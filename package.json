@@ -1,0 +1,21 @@
+{
+    "name": "my-app",
+    "version": "1.0.0",
+    "description": "",
+    "main": "server.js",
+    "scripts": {
+        "server": "node server.js",
+        "client": "npm --prefix client start",
+        "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
+        "client-build": "npm --prefix client run build",
+        "start": "npm run client-build && npm run server"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "concurrently": "^6.5.1",
+        "express": "^4.17.1",
+        "mysql": "^2.18.1"
+    }
+}
