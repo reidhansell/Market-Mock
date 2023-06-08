@@ -3,5 +3,9 @@
     "dbhostname": "",
     "dbusername": "",
     "dbpassword": "",
-    "dbname": ""
+    "dbname": "",
+    "email": "",
+    "emailpassword": "",
+    "jwtSecret": "",
+    "serverURL": "http://localhost:3000"
 }
