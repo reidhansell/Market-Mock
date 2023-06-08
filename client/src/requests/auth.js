@@ -5,7 +5,6 @@ export const login = async (email, password) => {
     try {
         const response = await axios.post(config.serverURL + '/api/auth/login', { email, password });
 
-        // After successfully logging in, store the access token in local storage.
         if (response.data && response.data.token) {
             localStorage.setItem('token', response.data.token);
             console.error("No token found");
