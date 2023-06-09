@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { verifyEmail } from '../../requests/auth';
+import { AlertContext } from '../Common/AlertContext'
 
 const VerifyEmail = () => {
+    const addAlert = useContext(AlertContext);
     const navigate = useNavigate();
     const { token } = useParams();
     const [success, setSuccess] = useState(false);
@@ -17,11 +19,10 @@ const VerifyEmail = () => {
                     setTimeout(() => {
                         navigate('/');
                     }, 3000);
-                } else {
-                    // Handle the error case
                 }
             } catch (error) {
-                console.error('Verification error:', error);
+                addAlert(error || 'An error occurred during registration');
+                console.error(error);
             }
         };
         handleVerification();
