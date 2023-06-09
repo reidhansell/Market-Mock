@@ -3,25 +3,60 @@ const fs = require('fs');
 const app = express();
 const path = require('path');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const dbManager = require('./databaseManager'); // To initialize
 const config = require('./config.json');
-const { cleanupExpiredTokens } = require('./queries/auth')
+const { cleanupExpiredTokens } = require('./queries/auth');
+const winston = require('winston');
 
 const port = config.port || 5000;
 
-app.use(cors());
-app.use(express.json());
+// Configure Winston logger
+const logger = winston.createLogger({
+    transports: [
+        new winston.transports.Console(),
+        new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'logs/combined.log' })
+    ],
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    )
+});
+
+const originalConsoleLog = console.log;
+console.log = function (msg) {
+    originalConsoleLog(msg);
+    logger.info(msg);
+};
+
+const originalConsoleError = console.error;
+console.error = function (msg) {
+    originalConsoleError(msg);
+    logger.error(msg);
+};
 
 // Serve static files from the React app in production
 if (config.production) {
     app.use(express.static(path.join(__dirname, 'client/build')));
 
-    // "catchall" handler for any request that doesn't
-    // match one above, send back React's index.html file.
     app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname + '/client/build/index.html'));
+        res.sendFile(path.join(__dirname, 'client/build/index.html'));
     });
 }
+
+// Middleware
+app.use(cors({
+    origin: config.serverURL,
+    credentials: true
+}));
+app.use(express.json());
+app.use(cookieParser());
+app.use((err, req, res, next) => {
+    console.error({ message: err.message, stack: err.stack, url: req.originalUrl, body: req.body });
+    const errorMessage = err.message || 'Internal Server Error';
+    res.status(err.status || 500).json({ error: errorMessage });
+});
 
 const requireRoutes = (dir, basePath = '/') => {
     const files = fs.readdirSync(dir);
@@ -46,13 +81,13 @@ const requireRoutes = (dir, basePath = '/') => {
 };
 
 const routesPath = path.join(__dirname, 'routes');
-requireRoutes(routesPath, '/api/');
+requireRoutes(routesPath, '/api');
 
-// Periodically clean up refresh tokens
 setInterval(cleanupExpiredTokens, 24 * 60 * 60 * 1000);
 
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    logger.info(`Server is running on port ${port}`);
 });
 
 module.exports = app;
+

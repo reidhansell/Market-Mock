@@ -7,5 +7,6 @@
     "email": "",
     "emailpassword": "",
     "jwtSecret": "",
+    "refreshTokenSecret": "",
     "serverURL": "http://localhost:3000"
 }
