@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const { getWatchList } = require('../queries/watchlist.js');
-const authenticateToken = require('../middleware.js');
+const { authenticateToken } = require('../middleware.js');
 
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req, res, next) => {
     try {
-        const watchlist = await getWatchList(req.user.user_id);
+        const user_id = req.user.user_id;
+        const watchlist = await getWatchList(user_id);
         res.status(200).json(watchlist);
     } catch (error) {
         console.error('Error fetching watchlist', error);
-        res.status(500).json({ error: 'Error fetching watchlist' });
+        next(error);
     }
 });
 

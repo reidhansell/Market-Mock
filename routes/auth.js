@@ -1,44 +1,21 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { registerUser, findUserByEmail, findUserByUsername, updateEmailVerificationStatus, updateVerificationToken } = require('../queries/auth');
+const express = require('express');
+const router = express.Router();
+const {
+    storeRefreshToken,
+    isRefreshTokenStored,
+    registerUser,
+    findUserByEmail,
+    findUserByUsername,
+    updateEmailVerificationStatus,
+    updateVerificationToken
+} = require('../queries/auth');
 const config = require('../config.json');
-const nodemailer = require('nodemailer');
-const express = require('express')
-const router = express.Router()
-const { serverURL } = require('../config.json')
+const emailService = require('../emailService');
 
-async function sendVerificationEmail(email, verificationToken) {
-    try {
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: config.email,
-                pass: config.emailpassword,
-            },
-        });
-
-        const emailContent = `
-        <h1>Email Verification</h1>
-        <p>Please click the following link to verify your email:</p>
-        <a href="${serverURL}/verify/${verificationToken}">Verify Email</a>
-      `;
-
-        const mailOptions = {
-            from: config.email,
-            to: email,
-            subject: 'Email Verification',
-            html: emailContent,
-        };
-
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent:', info.response);
-    } catch (error) {
-        console.error('Error sending email', error);
-        throw new Error('Failed to send verification email');
-    }
-}
-
-router.post('/register', async (req, res) => {
+// Register a new user
+router.post('/register', async (req, res, next) => {
     try {
         const { username, email, password } = req.body;
 
@@ -58,18 +35,21 @@ router.post('/register', async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const user_id = await registerUser(username, email, hashedPassword);
-        const verificationToken = generateVerificationToken(user_id);
+
+        const verificationToken = emailService.generateVerificationToken(user_id);
 
         await updateVerificationToken(user_id, verificationToken);
-        await sendVerificationEmail(email, verificationToken);
+        await emailService.sendVerificationEmail(email, verificationToken);
+
         res.status(200).json({ message: 'Registration successful', user_id });
     } catch (error) {
         console.error('Error registering user', error);
-        res.status(500).json({ error: 'Error registering user' });
+        next(error);
     }
 });
 
-router.post('/login', async (req, res) => {
+// User login
+router.post('/login', async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
@@ -84,7 +64,7 @@ router.post('/login', async (req, res) => {
         }
 
         if (!user.is_email_verified) {
-            return res.status(401).json({ error: 'Not email verified' });
+            return res.status(401).json({ error: 'Email not verified' });
         }
 
         const token = jwt.sign({
@@ -93,20 +73,20 @@ router.post('/login', async (req, res) => {
             email: user.email,
         }, config.jwtSecret, { expiresIn: '1h' });
 
+        const refreshToken = jwt.sign({ user_id: user.user_id }, config.refreshTokenSecret);
+        await storeRefreshToken(refreshToken, user.user_id);
+
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, path: '/api/auth/refresh_token', sameSite: 'None', secure: true });
+
         res.status(200).json({ token });
     } catch (error) {
         console.error('Error logging in', error);
-        res.status(500).json({ error: 'Error logging in' });
+        next(error);
     }
 });
 
-function generateVerificationToken(user_id) {
-    const expiresIn = '1d';
-    const signedToken = jwt.sign({ user_id: user_id }, config.jwtSecret, { expiresIn });
-    return signedToken;
-}
-
-router.post('/verify/:token', async (req, res) => {
+// Verify email
+router.post('/verify/:token', async (req, res, next) => {
     try {
         const { token } = req.params;
 
@@ -117,8 +97,34 @@ router.post('/verify/:token', async (req, res) => {
         res.status(200).json({ message: 'Email verified successfully' });
     } catch (error) {
         console.error('Error verifying email', error);
-        res.status(500).json({ error: 'Error verifying email' });
+        next(error);
     }
 });
 
-module.exports = router
+// Refresh access token
+router.get('/refresh_token', async (req, res, next) => {
+    try {
+        const refreshToken = req.cookies ? req.cookies.refreshToken : null;
+        if (!refreshToken) {
+            return res.status(403).json({ error: 'Refresh token is required' });
+        }
+
+        if (!(await isRefreshTokenStored(refreshToken))) {
+            return res.status(403).json({ error: 'Refresh token is not in store' });
+        }
+
+        try {
+            const payload = jwt.verify(refreshToken, config.refreshTokenSecret);
+            const token = jwt.sign({ user_id: payload.user_id }, config.jwtSecret, { expiresIn: '1h' });
+            return res.status(200).json({ accessToken: token });
+        } catch (error) {
+            console.error('Error refreshing access token', error);
+            next(error);
+        }
+    } catch (error) {
+        console.error('Error refreshing access token', error);
+        next(error);
+    }
+});
+
+module.exports = router;

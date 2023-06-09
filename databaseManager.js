@@ -1,5 +1,6 @@
 const mysql = require('mysql');
 const config = require('./config.json');
+const util = require('util');
 
 const connection = mysql.createConnection({
     host: config.dbhostname,
@@ -8,21 +9,30 @@ const connection = mysql.createConnection({
     database: config.dbname,
 });
 
+// This will allow you to use `await connection.query()`
+connection.query = util.promisify(connection.query);
+
 connection.connect((err) => {
     if (err) {
         console.error("Error connecting to database: ", err);
         process.exit(1);
     }
-    console.log("Connected!");
 
-    const tables = [
-        'Refresh_Tokens',
-        'User_Reset',
-        'Orders',
-        'Watch_List',
-        'Transactions',
-        'Users'
-    ];
+    console.log("Database connected!");
+
+    const dropTables = async () => {
+        try {
+            connection.query('SET FOREIGN_KEY_CHECKS = 0');
+            connection.query('DROP TABLE IF EXISTS Refresh_Tokens, User_Reset, Orders, Watch_List, Transactions, Users');
+            connection.query('SET FOREIGN_KEY_CHECKS = 1');
+            console.log('Tables dropped successfully.');
+        } catch (error) {
+            console.error('Error dropping tables', error);
+            throw new Error('Error dropping tables');
+        }
+    };
+
+    dropTables();
 
     const table_definitions = [
         `CREATE TABLE IF NOT EXISTS Users (
@@ -80,26 +90,13 @@ connection.connect((err) => {
         )`
     ];
 
-    /* DANGER ZONE DO NOT TOUCH
-    if (!config.production) {
-        for (const table of tables) {
-            connection.query(`DROP TABLE IF EXISTS ${table}`, function (err, result) {
-                if (err) {
-                    console.error(`Error dropping ${table} table: `, err);
-                    process.exit(1);
-                }
-                console.log(`${table} table dropped`);
-            });
-        }
-    }*/
-
     for (const table_definition of table_definitions) {
-        connection.query(table_definition, function (err, result) {
+        connection.query(table_definition, (err) => {
             if (err) {
                 console.error("Error creating table: ", err);
                 process.exit(1);
             }
-            console.log(`${table_definition.split(' ')[5]} table created`);
+            console.log(`Table ${table_definition.split(' ')[5]} created`);
         });
     }
 });

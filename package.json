@@ -16,11 +16,13 @@
     "dependencies": {
         "bcrypt": "^5.1.0",
         "concurrently": "^6.5.1",
+        "cookie-parser": "^1.4.6",
         "cors": "^2.8.5",
         "express": "^4.17.1",
         "jsonwebtoken": "^9.0.0",
         "mysql": "^2.18.1",
         "nodemailer": "^6.9.3",
-        "uuid": "^9.0.0"
+        "uuid": "^9.0.0",
+        "winston": "^3.9.0"
     }
 }

@@ -1,141 +1,111 @@
 const connection = require('../databaseManager');
 
-function registerUser(username, email, password) {
-    return new Promise((resolve, reject) => {
-        const query = 'INSERT INTO Users (username, email, password, is_email_verified) VALUES (?, ?, ?, ?)';
-        const isEmailVerified = false;
-        connection.query(query, [username, email, password, isEmailVerified], (err, results) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(results.insertId);
-            }
-        });
-    });
+async function registerUser(username, email, password) {
+    const isEmailVerified = false;
+    const query = 'INSERT INTO Users (username, email, password, is_email_verified) VALUES (?, ?, ?, ?)';
+    const results = await connection.query(query, [username, email, password, isEmailVerified]);
+
+    if (results.affectedRows === 0) {
+        throw new Error(`Could not register user: ${username}`);
+    }
+
+    return results.insertId;
 }
 
-function updateVerificationToken(user_id, verificationToken) {
-    return new Promise((resolve, reject) => {
-        const query = 'UPDATE Users SET verification_token = ? WHERE user_id = ?';
-        connection.query(query, [verificationToken, user_id], (err, results) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(results.affectedRows > 0);
-            }
-        });
-    });
+async function updateVerificationToken(user_id, verificationToken) {
+    const query = 'UPDATE Users SET verification_token = ? WHERE user_id = ?';
+    const results = await connection.query(query, [verificationToken, user_id]);
+
+    if (results.affectedRows === 0) {
+        throw new Error(`Could not update verification token for user: ${user_id}`);
+    }
+
+    return results.affectedRows > 0;
 }
 
+async function findUserByEmail(email) {
+    const query = 'SELECT * FROM Users WHERE email = ?';
+    const results = await connection.query(query, [email]);
+    if (results.length === 0) {
+        return null;
+    }
 
-function findUserByEmail(email) {
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT * FROM Users WHERE email = ?';
-        connection.query(query, [email], (err, results) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(results[0]);
-            }
-        });
-    });
+    return results[0];
 }
 
-function findUserByUsername(username) {
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT * FROM Users WHERE username = ?';
-        connection.query(query, [username], (err, results) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(results[0]);
-            }
-        });
-    });
-}
+async function findUserByUsername(username) {
+    const query = 'SELECT * FROM Users WHERE username = ?';
+    const results = await connection.query(query, [username]);
 
-const findUserById = async (id) => {
-    return new Promise((resolve, reject) => {
-        connection.query('SELECT * FROM Users WHERE user_id = ?', [id], (error, results) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(results[0]);
-            }
-        });
-    });
-}
+    if (results.length === 0) {
+        return null;
+    }
 
-function updateEmailVerificationStatus(user_id) {
-    return new Promise((resolve, reject) => {
-        const query = 'UPDATE Users SET is_email_verified = ? WHERE user_id = ?';
-        connection.query(query, [true, user_id], (err, results) => {
-            if (err) {
-                reject(err);
-            } else {
-                if (results.affectedRows === 0) {
-                    reject(new Error('No rows were changed'));
-                } else {
-                    resolve();
-                }
-            }
-        });
-    });
+    return results[0];
 }
 
 
-function storeRefreshToken(token, user_id) {
-    const query = "INSERT INTO Refresh_Tokens (user_id, token, expiry_date) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))";
-    return new Promise((resolve, reject) => {
-        connection.query(query, [user_id, token], (error, results) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(results);
-            }
-        });
-    });
+async function findUserById(id) {
+    const query = 'SELECT * FROM Users WHERE user_id = ?';
+    const results = await connection.query(query, [id]);
+
+    if (results.length === 0) {
+        return null;
+    }
+
+    return results[0];
 }
 
-function isRefreshTokenStored(token) {
+
+async function updateEmailVerificationStatus(user_id) {
+    const query = 'UPDATE Users SET is_email_verified = ? WHERE user_id = ?';
+    const results = await connection.query(query, [true, user_id]);
+
+    if (results.affectedRows === 0) {
+        throw new Error(`Could not update email verification status for user: ${user_id}`);
+    }
+
+    return results.affectedRows > 0;
+}
+
+async function storeRefreshToken(token, user_id) {
+    const expiry_date = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+    const query = "INSERT INTO Refresh_Tokens (user_id, token, expiry_date) VALUES (?, ?, ?)";
+    const results = await connection.query(query, [user_id, token, expiry_date]);
+
+    if (results.affectedRows === 0) {
+        throw new Error(`Could not store refresh token for user: ${user_id}`);
+    }
+
+    return results.insertId;
+}
+
+async function isRefreshTokenStored(token) {
     const query = "SELECT * FROM Refresh_Tokens WHERE token = ?";
-    return new Promise((resolve, reject) => {
-        connection.query(query, [token], (error, results) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(results.length > 0);
-            }
-        });
-    });
+    const rows = await connection.query(query, [token]);
+
+    if (rows.length === 0) {
+        throw new Error(`Refresh token not found: ${token}`);
+    }
+
+    return true;
 }
 
-function deleteRefreshToken(token) {
+async function deleteRefreshToken(token) {
     const query = "DELETE FROM Refresh_Tokens WHERE token = ?";
-    return new Promise((resolve, reject) => {
-        connection.query(query, [token], (error, results) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(results);
-            }
-        });
-    });
+    const results = await connection.query(query, [token]);
+
+    if (results.affectedRows === 0) {
+        throw new Error(`Could not delete refresh token: ${token}`);
+    }
+
+    return results.affectedRows > 0;
 }
 
-function cleanupExpiredTokens() {
+async function cleanupExpiredTokens() {
     const query = "DELETE FROM Refresh_Tokens WHERE expiry_date < NOW()";
-    return new Promise((resolve, reject) => {
-        connection.query(query, (error, results) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(results);
-            }
-        });
-    });
+    await connection.query(query);
 }
-
 
 module.exports = {
     registerUser,
