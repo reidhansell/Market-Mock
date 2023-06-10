@@ -9,7 +9,8 @@ const {
     findUserByEmail,
     findUserByUsername,
     updateEmailVerificationStatus,
-    updateVerificationToken
+    updateVerificationToken,
+    deleteRefreshToken
 } = require('../queries/auth');
 const config = require('../config.json');
 const emailService = require('../emailService');
@@ -123,6 +124,27 @@ router.get('/refresh_token', async (req, res, next) => {
         }
     } catch (error) {
         console.error('Error refreshing access token', error);
+        next(error);
+    }
+});
+
+// Logout
+router.post('/logout', async (req, res, next) => {
+    try {
+        const refreshToken = req.cookies ? req.cookies.refreshToken : null;
+        if (!refreshToken) {
+            return res.status(401).json({ error: 'No refresh token provided' });
+        }
+
+        // Remove the refresh token from the store
+        await deleteRefreshToken(refreshToken);
+
+        // Clear the refresh token cookie
+        res.clearCookie('refreshToken', { path: '/api/auth/refresh_token' });
+
+        res.status(200).json({ message: 'Logout successful' });
+    } catch (error) {
+        console.error('Error logging out', error);
         next(error);
     }
 });
