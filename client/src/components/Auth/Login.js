@@ -2,13 +2,12 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 import { login } from '../../requests/auth';
-import { AlertContext } from '../Common/AlertContext'
+import { AlertContext } from '../Common/AlertContext';
 
 const Login = (props) => {
     const addAlert = useContext(AlertContext);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
     const navigate = useNavigate();
 
     const handleLogin = async () => {
@@ -46,8 +45,9 @@ const Login = (props) => {
                     <button style={{ width: '100%' }} onClick={() => navigate('/register')}>Register</button>
                 </div>
             </div>
-        </div >
+        </div>
     );
 };
 
 export default Login;
+
