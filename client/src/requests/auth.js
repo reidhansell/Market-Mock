@@ -39,3 +39,14 @@ export const verifyEmail = async (token) => {
         throw error.response.data.error;
     }
 };
+
+export const logout = async () => {
+    try {
+        const response = await axios.post('/api/auth/session/logout');
+        console.log('Logout successful');
+        delete axios.defaults.headers.common['Authorization'];
+        return response;
+    } catch (error) {
+        throw error.response.data.error;
+    }
+};

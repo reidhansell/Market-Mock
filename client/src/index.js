@@ -12,7 +12,7 @@ import AlertContainer from './components/Common/AlertContainer';
 
 const refreshToken = async () => {
   try {
-    const response = await axios.get(config.serverURL + '/api/auth/refresh_token', { withCredentials: true });
+    const response = await axios.get(config.serverURL + '/api/auth/session/refresh_token', { withCredentials: true });
     return response.data.accessToken;
   } catch (error) {
     console.error('Error refreshing token', error);
@@ -32,7 +32,7 @@ const isAuthenticated = async () => {
   }
 
   try {
-    await axios.get(config.serverURL + '/api/auth/refresh_token', { withCredentials: true, headers: { 'Access-Control-Allow-Origin': 'http://localhost:3000', Authorization: `Bearer ${token}` } });
+    await axios.get(config.serverURL + '/api/auth/session/refresh_token', { withCredentials: true, headers: { 'Access-Control-Allow-Origin': 'http://localhost:3000', Authorization: `Bearer ${token}` } });
 
     return true;
   } catch (error) {
@@ -57,10 +57,10 @@ const App = () => {
     <AlertContainer>
       < Router >
         <Routes>
-          <Route path="/login" element={auth ? <Home /> : <Login setAuth={setAuth} />} />
-          <Route path="/register" element={auth ? <Home /> : <Register />} />
+          <Route path="/login" element={auth ? <Home setAuth={setAuth} /> : <Login setAuth={setAuth} />} />
+          <Route path="/register" element={auth ? <Home setAuth={setAuth} /> : <Register />} />
           <Route path="/verify/:token" element={<VerifyEmail />} />
-          <Route path="/" element={auth ? <Home /> : <Login setAuth={setAuth} />}
+          <Route path="/" element={auth ? <Home setAuth={setAuth} /> : <Login setAuth={setAuth} />}
           />
         </Routes>
       </Router >

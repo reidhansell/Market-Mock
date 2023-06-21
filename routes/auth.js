@@ -15,7 +15,6 @@ const {
 const config = require('../config.json');
 const emailService = require('../emailService');
 
-// Register a new user
 router.post('/register', async (req, res, next) => {
     try {
         const { username, email, password } = req.body;
@@ -49,7 +48,6 @@ router.post('/register', async (req, res, next) => {
     }
 });
 
-// User login
 router.post('/login', async (req, res, next) => {
     try {
         const { email, password } = req.body;
@@ -77,7 +75,7 @@ router.post('/login', async (req, res, next) => {
         const refreshToken = jwt.sign({ user_id: user.user_id }, config.refreshTokenSecret);
         await storeRefreshToken(refreshToken, user.user_id);
 
-        res.cookie('refreshToken', refreshToken, { httpOnly: true, path: '/api/auth/refresh_token', sameSite: 'None', secure: true });
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, path: '/api/auth/session', sameSite: 'None', secure: true });
 
         res.status(200).json({ token });
     } catch (error) {
@@ -86,7 +84,6 @@ router.post('/login', async (req, res, next) => {
     }
 });
 
-// Verify email
 router.post('/verify/:token', async (req, res, next) => {
     try {
         const { token } = req.params;
@@ -102,8 +99,7 @@ router.post('/verify/:token', async (req, res, next) => {
     }
 });
 
-// Refresh access token
-router.get('/refresh_token', async (req, res, next) => {
+router.get('/session/refresh_token', async (req, res, next) => {
     try {
         const refreshToken = req.cookies ? req.cookies.refreshToken : null;
         if (!refreshToken) {
@@ -128,19 +124,16 @@ router.get('/refresh_token', async (req, res, next) => {
     }
 });
 
-// Logout
-router.post('/logout', async (req, res, next) => {
+router.post('/session/logout', async (req, res, next) => {
     try {
         const refreshToken = req.cookies ? req.cookies.refreshToken : null;
         if (!refreshToken) {
             return res.status(401).json({ error: 'No refresh token provided' });
         }
 
-        // Remove the refresh token from the store
         await deleteRefreshToken(refreshToken);
 
-        // Clear the refresh token cookie
-        res.clearCookie('refreshToken', { path: '/api/auth/refresh_token' });
+        res.clearCookie('refreshToken', { path: '/api/auth/session' });
 
         res.status(200).json({ message: 'Logout successful' });
     } catch (error) {
