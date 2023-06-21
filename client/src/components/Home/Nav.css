@@ -2,12 +2,12 @@ nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--background-2);
+    background-color: var(--surface1-dark);
     padding: 10px;
   }
   
   .logo-container a {
-    color: #fff;
+    color: var(--text1-light);
     font-size: 24px;
     font-weight: bold;
     text-decoration: none;
@@ -26,9 +26,9 @@ nav {
     height: 30px;
     border-radius: 50%;
     background-color: transparent;
-    color: #fff;
+    color: var(--text1-light);
     cursor: pointer;
-    border: 2px solid #fff;
+    border: 2px solid var(--text1-light);
     margin-left: 20px;
   }
   
@@ -36,7 +36,7 @@ nav {
     list-style-type: none;
     padding-left: 0px;
     padding-right: 0px;
-    background-color: #fff;
+    background-color: var(--text1-light);
     border-radius: 4px;
     position: absolute;
     top: 40px;
@@ -55,16 +55,16 @@ nav {
   }
 
   .user-menu li:hover {
-    background-color: var(--button);
+    background-color: var(--brand);
   }
   
   .user-menu li a {
-    color: #000;
+    color: var(--text1-dark);
     text-decoration: none;
   }
 
   .user-menu li a:hover {
-    color: var(--text);
+    color: var(--text2-dark);
   }
   
   
@@ -72,6 +72,6 @@ nav {
     background-color: transparent;
     border: none;
     cursor: pointer;
-    color: #000;
+    color: var(--text1-dark);
   }
   

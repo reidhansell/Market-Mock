@@ -24,7 +24,7 @@ const Login = (props) => {
 
     return (
         <div className="auth-container">
-            <h1 className="logo-placeholder">MARKET MOCK</h1>
+            <h1 className="logo-placeholder"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</h1>
             <h2>Login</h2>
             <div className="auth-form">
                 <input
@@ -45,7 +45,7 @@ const Login = (props) => {
                     <button style={{ width: '100%' }} onClick={() => navigate('/register')}>Register</button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
