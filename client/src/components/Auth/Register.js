@@ -32,7 +32,7 @@ const Register = () => {
 
     return (
         <div className="auth-container">
-            <h1 className="logo-placeholder">MARKET MOCK</h1>
+            <h1 className="logo-placeholder"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</h1>
             {!registrationSuccess ? (<>
                 <h2>Register</h2>
                 <form className="auth-form" onSubmit={handleRegister}>
