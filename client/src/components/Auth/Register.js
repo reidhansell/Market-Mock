@@ -14,7 +14,8 @@ const Register = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleRegister = async () => {
+    const handleRegister = async (event) => {
+        event.preventDefault();
         try {
             setLoading(true);
             let response = await register(username, email, password);
@@ -29,13 +30,12 @@ const Register = () => {
         }
     };
 
-
     return (
         <div className="auth-container">
             <h1 className="logo-placeholder">MARKET MOCK</h1>
             {!registrationSuccess ? (<>
                 <h2>Register</h2>
-                <div className="auth-form">
+                <form className="auth-form" onSubmit={handleRegister}>
                     <input
                         type="text"
                         placeholder="Username"
@@ -54,12 +54,12 @@ const Register = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
-                    <button onClick={handleRegister}>Register {loading ? <LoadingCircle /> : ""}</button>
+                    <button type="submit">Register {loading ? <LoadingCircle /> : ""}</button>
                     <div className="auth-link">
                         <small><i>Already have an account?</i></small>
-                        <button style={{ width: '100%' }} onClick={() => navigate('/login')}>Login</button>
+                        <button type="button" style={{ width: '100%' }} onClick={() => navigate('/login')}>Login</button>
                     </div>
-                </div></>) : (<>
+                </form></>) : (<>
                     <h2>A verification email has been sent.</h2>
                     <p>Please follow the link in the email from marketmock@gmail.com.</p>
                 </>)}
@@ -69,3 +69,4 @@ const Register = () => {
 };
 
 export default Register;
+
