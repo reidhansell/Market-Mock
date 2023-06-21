@@ -30,7 +30,8 @@ const VerifyEmail = () => {
 
     return (
         <div className="auth-container">
-            <h1>Email Verification</h1>
+            <h1 className="logo-placeholder"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</h1>
+            <h2>Email Verification</h2>
             {success ? (
                 <p>Success! Your email has been verified. Sending you to the login page shortly...</p>
             ) : (

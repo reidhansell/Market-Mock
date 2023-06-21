@@ -29,7 +29,7 @@ const Navigation = (props) => {
     return (
         <nav>
             <div className="logo-container">
-                <Link to="/">Market Mock</Link>
+                <Link to="/"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</Link>
             </div>
             <div className="user-menu-container">
                 <div className="user-icon" onClick={toggleUserMenu}>
@@ -37,15 +37,9 @@ const Navigation = (props) => {
                 </div>
                 {showUserMenu && (
                     <ul className="user-menu">
-                        <li>
-                            <Link to="/watchlist">Watchlist</Link>
-                        </li>
-                        <li>
-                            <Link to="/profile">Profile</Link>
-                        </li>
-                        <li onClick={handleLogout}>
-                            <Link to="/login">Signout</Link>
-                        </li>
+                        <Link to="/watchlist"><li>Watchlist</li></Link>
+                        <Link to="/profile"><li>Profile</li></Link>
+                        <Link to="/login" onClick={handleLogout}><li >Signout</li></Link>
                     </ul>
                 )}
             </div>

@@ -1,77 +1,64 @@
 nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: var(--surface1-dark);
-    padding: 10px;
-  }
-  
-  .logo-container a {
-    color: var(--text1-light);
-    font-size: 24px;
-    font-weight: bold;
-    text-decoration: none;
-  }
-  
-  .user-menu-container {
-    display: flex;
-    align-items: center;
-  }
-  
-  .user-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background-color: transparent;
-    color: var(--text1-light);
-    cursor: pointer;
-    border: 2px solid var(--text1-light);
-    margin-left: 20px;
-  }
-  
-  .user-menu {
-    list-style-type: none;
-    padding-left: 0px;
-    padding-right: 0px;
-    background-color: var(--text1-light);
-    border-radius: 4px;
-    position: absolute;
-    top: 40px;
-    right: 0;
-    display: flex;
-    flex-direction: column;
-    margin-top: 10px;
-  }
-  
-  .user-menu li {
-    width: 100%;
-    padding-right: 10px;
-    padding-left: 10px;
-    padding-bottom: 5px;
-    padding-top: 5px;
-  }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--surface4-dark);
+  padding: 10px 0 10px 0;
+  position: relative;
+}
 
-  .user-menu li:hover {
-    background-color: var(--brand);
-  }
-  
-  .user-menu li a {
-    color: var(--text1-dark);
-    text-decoration: none;
-  }
+.logo-container a {
+  color: var(--text1-dark);
+  font-size: 24px;
+  font-weight: bold;
+  text-decoration: none;
+  margin-left: 10px;
+}
 
-  .user-menu li a:hover {
-    color: var(--text2-dark);
-  }
-  
-  
-  .user-menu button {
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    color: var(--text1-dark);
-  }
-  
+.user-menu-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.user-icon {
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--text1-dark);
+  cursor: pointer;
+  border: 2px solid var(--text1-dark);
+}
+
+.user-menu {
+  list-style-type: none;
+  padding: 0;
+  padding-top: 10px;
+  background-color: var(--surface4-dark);
+  border-radius: 0 0 0 4px;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  margin-top: 0;
+}
+
+.user-menu a {
+  display: block;
+  color: var(--text1-dark);
+  padding: 10px;
+  text-decoration: none;
+}
+
+.user-menu a:hover {
+  background-color: var(--brand);
+  color: var(--text1-light);
+}
+
+
