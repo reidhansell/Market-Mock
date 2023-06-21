@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { logout } from '../../requests/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
-import { AlertContext } from '../Common/AlertContext'
+import { AlertContext } from '../Common/AlertContext';
 import './Nav.css';
 
 const Navigation = (props) => {
@@ -21,7 +21,6 @@ const Navigation = (props) => {
             console.error(error);
         }
     };
-
 
     const toggleUserMenu = () => {
         setShowUserMenu((prevShowUserMenu) => !prevShowUserMenu);
@@ -55,3 +54,4 @@ const Navigation = (props) => {
 };
 
 export default Navigation;
+

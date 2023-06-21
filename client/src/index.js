@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
 import axios from 'axios';
 import Home from './components/Home/Home.js';
@@ -55,16 +55,24 @@ const App = () => {
 
   return (
     <AlertContainer>
-      < Router >
-        <Routes>
-          <Route path="/login" element={auth ? <Home setAuth={setAuth} /> : <Login setAuth={setAuth} />} />
-          <Route path="/register" element={auth ? <Home setAuth={setAuth} /> : <Register />} />
-          <Route path="/verify/:token" element={<VerifyEmail />} />
-          <Route path="/" element={auth ? <Home setAuth={setAuth} /> : <Login setAuth={setAuth} />}
-          />
-        </Routes>
-      </Router >
-    </AlertContainer>)
+      {auth ?
+        < Router >
+          <Routes>
+            <Route path="/" element={<Home setAuth={setAuth} />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Router >
+        :
+        < Router >
+          <Routes>
+            <Route path="/login" element={auth ? <Home setAuth={setAuth} /> : <Login setAuth={setAuth} />} />
+            <Route path="/register" element={auth ? <Home setAuth={setAuth} /> : <Register />} />
+            <Route path="/verify/:token" element={<VerifyEmail />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </Router >
+      }
+    </AlertContainer >)
 };
 
 createRoot(document.getElementById('root')).render(<App />);
