@@ -32,7 +32,7 @@ connection.connect((err) => {
         }
     };
 
-    dropTables();
+    //if (!config.production) { dropTables(); }
 
     const table_definitions = [
         `CREATE TABLE IF NOT EXISTS Users (
