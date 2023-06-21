@@ -10,7 +10,8 @@ const Login = (props) => {
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
-    const handleLogin = async () => {
+    const handleLogin = async (event) => {
+        event.preventDefault();
         try {
             let response = await login(email, password);
             if (response.status === 200) {
@@ -26,7 +27,7 @@ const Login = (props) => {
         <div className="auth-container">
             <h1 className="logo-placeholder"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</h1>
             <h2>Login</h2>
-            <div className="auth-form">
+            <form className="auth-form" onSubmit={handleLogin}>
                 <input
                     type="email"
                     placeholder="Email"
@@ -39,15 +40,16 @@ const Login = (props) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
-                <button onClick={handleLogin}>Login</button>
+                <button type="submit">Login</button>
                 <div className="auth-link">
                     <small><i>Don't have an account?</i></small>
-                    <button style={{ width: '100%' }} onClick={() => navigate('/register')}>Register</button>
+                    <button type="button" style={{ width: '100%' }} onClick={() => navigate('/register')}>Register</button>
                 </div>
-            </div>
+            </form>
         </div >
     );
 };
 
 export default Login;
+
 
