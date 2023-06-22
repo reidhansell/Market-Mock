@@ -8,6 +8,8 @@ const dbManager = require('./databaseManager'); // To initialize
 const config = require('./config.json');
 const { cleanupExpiredTokens } = require('./queries/auth');
 const winston = require('winston');
+const cron = require('node-cron');
+const { fetchAndSaveTickers } = require('./queries/ticker');
 
 const port = config.port || 5000;
 
@@ -83,7 +85,10 @@ const requireRoutes = (dir, basePath = '/') => {
 const routesPath = path.join(__dirname, 'routes');
 requireRoutes(routesPath, '/api');
 
-setInterval(cleanupExpiredTokens, 24 * 60 * 60 * 1000);
+cleanupExpiredTokens();
+fetchAndSaveTickers();
+cron.schedule('0 1 * * *', cleanupExpiredTokens);
+cron.schedule('0 2 * * *', fetchAndSaveTickers);
 
 app.listen(port, () => {
     logger.info(`Server is running on port ${port}`);
