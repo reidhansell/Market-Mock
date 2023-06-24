@@ -4,7 +4,7 @@ import config from '../config.json';
 export const login = async (email, password) => {
     try {
         axios.defaults.withCredentials = true;
-        const response = await axios.post(config.serverURL + '/api/auth/login', {
+        const response = await axios.post(`${config.serverURL}/api/auth/login`, {
             email,
             password,
         });
@@ -18,7 +18,7 @@ export const login = async (email, password) => {
 
         return response;
     } catch (error) {
-        throw error.response.data.error;
+        throw error.response.data.error; /*  Specific to Axios  */
     }
 };
 

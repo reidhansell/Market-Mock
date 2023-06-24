@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const config = require('./config.json');
-const { findUserById, isRefreshTokenStored } = require('./queries/auth');
+const config = require('../config.json');
+const { findUserById, isRefreshTokenStored } = require('../database/queries/auth');
 
 const authenticateToken = async (req, res, next) => {
     try {

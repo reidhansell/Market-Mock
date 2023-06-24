@@ -6,13 +6,14 @@ import Home from './components/Home/Home.js';
 import Login from './components/Auth/Login.js';
 import Register from './components/Auth/Register.js';
 import config from './config.json';
-import './index.css';
 import VerifyEmail from './components/Auth/VerifyEmail.js';
 import AlertContainer from './components/Common/AlertContainer';
+import addAlert from './components/Common/AlertContext';
+import './index.css';
 
 const refreshToken = async () => {
   try {
-    const response = await axios.get(config.serverURL + '/api/auth/session/refresh_token', { withCredentials: true });
+    const response = await axios.get(`${config.serverURL}/api/auth/session/refresh_token`, { withCredentials: true });
     return response.data.accessToken;
   } catch (error) {
     console.error('Error refreshing token', error);
@@ -32,7 +33,7 @@ const isAuthenticated = async () => {
   }
 
   try {
-    await axios.get(config.serverURL + '/api/auth/session/refresh_token', { withCredentials: true, headers: { 'Access-Control-Allow-Origin': 'http://localhost:3000', Authorization: `Bearer ${token}` } });
+    await axios.get(`${config.serverURL}/api/auth/session/refresh_token`, { withCredentials: true, headers: { 'Access-Control-Allow-Origin': 'http://localhost:3000', Authorization: `Bearer ${token}` } });
 
     return true;
   } catch (error) {
@@ -51,28 +52,43 @@ const App = () => {
     };
 
     checkAuthentication();
+
+    /*  Interceptor must be called at the top level and within a component. */
+    const interceptor = axios.interceptors.response.use(
+      (response) => {
+        if (response.error) {
+          addAlert(response.error);
+        }
+        return response;
+      }
+    );
+
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
   }, []);
 
   return (
     <AlertContainer>
       {auth ?
-        < Router >
+        <Router>
           <Routes>
             <Route path="/" element={<Home setAuth={setAuth} />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
-        </Router >
+        </Router>
         :
-        < Router >
+        <Router>
           <Routes>
             <Route path="/login" element={auth ? <Home setAuth={setAuth} /> : <Login setAuth={setAuth} />} />
             <Route path="/register" element={auth ? <Home setAuth={setAuth} /> : <Register />} />
             <Route path="/verify/:token" element={<VerifyEmail />} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
-        </Router >
+        </Router>
       }
-    </AlertContainer >)
+    </AlertContainer>
+  );
 };
 
 createRoot(document.getElementById('root')).render(<App />);

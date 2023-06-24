@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
-const config = require('./config.json');
+const config = require('../config.json');
 
 async function sendVerificationEmail(email, verificationToken) {
     try {
@@ -22,7 +22,7 @@ async function sendVerificationEmail(email, verificationToken) {
                         </h1>
                         <h1 style="margin-top: 0.5rem; margin-bottom: 0.5rem; color: hsl(50.59, 15%, 85%);">Email Verification</h1>
                         <p style="color: hsl(50.59, 15%, 85%);">Please click the following link to verify your email:</p>
-                        <a href="${config.serverURL}/verify/${verificationToken}" style="color: hsl(50.59, 15%, 85%);">Verify Email</a>
+                        <a href="${config.clientURL}/verify/${verificationToken}" style="color: hsl(50.59, 15%, 85%);">Verify Email</a>
                     </div>
                 </td>
             </tr>
@@ -37,7 +37,6 @@ async function sendVerificationEmail(email, verificationToken) {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent:', info.response);
     } catch (error) {
         console.error(error);
         throw error;

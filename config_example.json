@@ -8,6 +8,6 @@
     "emailpassword": "",
     "jwtSecret": "",
     "refreshTokenSecret": "",
-    "serverURL": "http://localhost:3000",
+    "clientURL": "http://localhost:3000",
     "marketStackKey": ""
 }
