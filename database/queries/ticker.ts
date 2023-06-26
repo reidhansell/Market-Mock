@@ -6,7 +6,7 @@ const ExpectedError = require('../../tools/ExpectedError');
     which, when triggered, will be logged and returned as a 500.   */
 
 async function insertTicker(ticker) {
-    const query = 'INSERT INTO Tickers (ticker_symbol, company_name) VALUES (?, ?)';
+    const query = 'INSERT INTO Ticker (ticker_symbol, company_name) VALUES (?, ?)';
     const parameters = [ticker.ticker_symbol, ticker.company_name];
     const results = await executeQuery(query, parameters);
     if (results.affectedRows === 0) {
@@ -15,7 +15,7 @@ async function insertTicker(ticker) {
 }
 
 async function checkTickerSymbol(symbol) {
-    const query = 'SELECT * FROM Tickers WHERE ticker_symbol = ?';
+    const query = 'SELECT * FROM Ticker WHERE ticker_symbol = ?';
     const parameters = [symbol];
     const results = await executeQuery(query, parameters);
     if (results.affectedRows === 0) {
@@ -27,7 +27,7 @@ async function checkTickerSymbol(symbol) {
 async function searchTickersByCompanyName(company_name) {
     const sql = `
       SELECT ticker_symbol, company_name
-      FROM Tickers
+      FROM Ticker
       WHERE company_name LIKE ?
       LIMIT 50
     `;

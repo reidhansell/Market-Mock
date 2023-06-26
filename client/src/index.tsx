@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
-import axios from 'axios';
+import axios, { AxiosResponse, AxiosError } from 'axios';
 import Home from './components/Home/Home.js';
 import Login from './components/Auth/Login.js';
 import Register from './components/Auth/Register.js';
 import config from './config.json';
 import VerifyEmail from './components/Auth/VerifyEmail.js';
-import AlertContainer from './components/Common/AlertContainer';
-import addAlert from './components/Common/AlertContext';
+import AlertContainer from './components/Common/AlertContainer.js';
+import addAlert from './components/Common/AlertContext.js';
 import './index.css';
 
 const refreshToken = async () => {
@@ -54,41 +54,50 @@ const App = () => {
     checkAuthentication();
 
     /*  Interceptor must be called at the top level and within a component. */
+    import axios, { AxiosResponse, AxiosError } from 'axios';
+
     const interceptor = axios.interceptors.response.use(
-      (response) => {
-        if (response.error) {
-          addAlert(response.error);
-        }
+      (response: AxiosResponse) => {
+        // your code here for successful response
         return response;
+      },
+      (error: AxiosError) => {
+        // error handling
+        if (error.response) {
+          addAlert(error.response.data.message);
+        }
+        return Promise.reject(error);
       }
     );
 
-    return () => {
-      axios.interceptors.response.eject(interceptor);
-    };
-  }, []);
+    return (
+      <AlertContainer>
+        {auth ?
+          <Router>
+            <Routes>
+              <Route path="/" element={<Home setAuth={setAuth} />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </Router>
+          :
+          <Router>
+            <Routes>
+              <Route path="/login" element={auth ? <Home setAuth={setAuth} /> : <Login setAuth={setAuth} />} />
+              <Route path="/register" element={auth ? <Home setAuth={setAuth} /> : <Register />} />
+              <Route path="/verify/:token" element={<VerifyEmail />} />
+              <Route path="*" element={<Navigate to="/login" />} />
+            </Routes>
+          </Router>
+        }
+      </AlertContainer>
+    );
+  };
 
-  return (
-    <AlertContainer>
-      {auth ?
-        <Router>
-          <Routes>
-            <Route path="/" element={<Home setAuth={setAuth} />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </Router>
-        :
-        <Router>
-          <Routes>
-            <Route path="/login" element={auth ? <Home setAuth={setAuth} /> : <Login setAuth={setAuth} />} />
-            <Route path="/register" element={auth ? <Home setAuth={setAuth} /> : <Register />} />
-            <Route path="/verify/:token" element={<VerifyEmail />} />
-            <Route path="*" element={<Navigate to="/login" />} />
-          </Routes>
-        </Router>
-      }
-    </AlertContainer>
-  );
-};
+  const rootElement = document.getElementById('root');
 
-createRoot(document.getElementById('root')).render(<App />);
+  if (!rootElement) {
+    throw new Error("Could not find root element");
+  }
+
+  createRoot(rootElement).render(<App />);
+
