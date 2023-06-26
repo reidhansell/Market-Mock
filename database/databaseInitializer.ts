@@ -1,19 +1,19 @@
-const { executeQuery } = require('./queryExecutor');
-const { production } = require('../config.json');
+import { executeQuery } from './queryExecutor';
+import config from '../config.json';
 
-async function initializeDatabase() {
+async function initializeDatabase(): Promise<void> {
     try {
         console.log("Beginning database initialization.");
-        /*  TODO Remove the following function and the require() before 1.0. Consider modularizing as a tool.   */
-        if (!production) {
+        if (!config.production) {
             console.log("Dropping tables");
             await executeQuery('SET FOREIGN_KEY_CHECKS = 0');
+            /* TODO change these to singular after first run    */
             await executeQuery('DROP TABLE IF EXISTS Refresh_Tokens, User_Reset, Orders, Watch_List, Transactions, Users, Stock_Data, Tickers');
             await executeQuery('SET FOREIGN_KEY_CHECKS = 1');
             console.log('Tables dropped successfully.');
         }
-        const table_definitions = [
-            `CREATE TABLE IF NOT EXISTS Tickers (
+        const table_definitions: string[] = [
+            `CREATE TABLE IF NOT EXISTS Ticker (
                 ticker_symbol VARCHAR(20) PRIMARY KEY,
                 company_name VARCHAR(255)
             )`,
@@ -30,9 +30,9 @@ async function initializeDatabase() {
                 PE_ratio DECIMAL(8, 2),
                 dividend_yield DECIMAL(8, 2),
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (ticker_symbol) REFERENCES Tickers(ticker_symbol)
+                FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
             )`,
-            `CREATE TABLE IF NOT EXISTS Users (
+            `CREATE TABLE IF NOT EXISTS User (
                 user_id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(20) UNIQUE,
                 email VARCHAR(255) UNIQUE,
@@ -43,7 +43,7 @@ async function initializeDatabase() {
                 is_email_verified BOOLEAN DEFAULT false,
                 verification_token VARCHAR(255)
             )`,
-            `CREATE TABLE IF NOT EXISTS Transactions (
+            `CREATE TABLE IF NOT EXISTS Transaction (
                 transaction_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 ticker_symbol VARCHAR(20),
@@ -51,17 +51,17 @@ async function initializeDatabase() {
                 quantity INT,
                 price_per_share DECIMAL(8, 2),
                 transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES Users(user_id),
-                FOREIGN KEY (ticker_symbol) REFERENCES Tickers(ticker_symbol)
+                FOREIGN KEY (user_id) REFERENCES User(user_id),
+                FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
             )`,
             `CREATE TABLE IF NOT EXISTS Watch_List (
                 watch_list_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 ticker_symbol VARCHAR(20),
-                FOREIGN KEY (user_id) REFERENCES Users(user_id),
-                FOREIGN KEY (ticker_symbol) REFERENCES Tickers(ticker_symbol)
+                FOREIGN KEY (user_id) REFERENCES User(user_id),
+                FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
             )`,
-            `CREATE TABLE IF NOT EXISTS Orders (
+            `CREATE TABLE IF NOT EXISTS Order (
                 order_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 ticker_symbol VARCHAR(20),
@@ -70,8 +70,8 @@ async function initializeDatabase() {
                 quantity INT,
                 fulfilled BOOLEAN DEFAULT FALSE,
                 order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES Users(user_id),
-                FOREIGN KEY (ticker_symbol) REFERENCES Tickers(ticker_symbol)
+                FOREIGN KEY (user_id) REFERENCES User(user_id),
+                FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
             )`,
             `CREATE TABLE IF NOT EXISTS User_Reset (
                 reset_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -79,14 +79,14 @@ async function initializeDatabase() {
                 starting_amount DECIMAL(15, 2),
                 end_amount DECIMAL(15, 2),
                 reset_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES Users(user_id)
+                FOREIGN KEY (user_id) REFERENCES User(user_id)
             )`,
-            `CREATE TABLE IF NOT EXISTS Refresh_Tokens (
+            `CREATE TABLE IF NOT EXISTS Refresh_Token (
                 token_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 token VARCHAR(255),
                 expiry_date TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES Users(user_id)
+                FOREIGN KEY (user_id) REFERENCES User(user_id)
             )`
         ];
 
@@ -98,9 +98,9 @@ async function initializeDatabase() {
 
         console.log("Database initialized!");
 
-    } catch (error) {
+    } catch (error: any) {
         console.error(`Error initializing database: ${error.message}`);
     }
 }
 
-module.exports = initializeDatabase;
+export default initializeDatabase;

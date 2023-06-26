@@ -1,5 +1,7 @@
 {
     "ProjectTree.useDefaultIgnore": false,
     "ProjectTree.loadIgnore": true,
-    "ProjectTree.commentDistance": 10
+    "ProjectTree.commentDistance": 10,
+    "typescript.tsdk": "node_modules\\typescript\\lib",
+    "editor.formatOnSave": true
 }
