@@ -1,43 +1,46 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const express = require('express');
-const router = express.Router();
-const {
+import { NextFunction, Request as Request, Response, Router } from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import {
     storeRefreshToken,
     isRefreshTokenStored,
     registerUser,
     findUserByEmail,
+    findUserSensitiveByEmail,
     findUserByUsername,
     findUserById,
     updateEmailVerificationStatus,
     updateVerificationToken,
     deleteRefreshToken,
     getUserData
-} = require('../database/queries/auth');
-const config = require('../config.json');
-const emailService = require('../tools/emailService');
-const { authenticateToken } = require('../tools/authMiddleware.js');
-const ExpectedError = require('../tools/ExpectedError');
-const isEmail = require('validator/lib/isEmail');
-const Filter = require('bad-words')
+} from '../database/queries/auth';
+import config from '../config.json';
+import { sendVerificationEmail, generateVerificationToken } from '../tools/emailService';
+import { authenticateToken } from '../tools/authMiddleware';
+import ExpectedError from '../tools/ExpectedError';
+import isEmail from 'validator/lib/isEmail';
+import Filter from 'bad-words';
+import User from '../models/User';
 
-/*  Routes are responsible for data validation and business logic,
-    though there are database constraints as a last line of defense.
-    all errors will be caught and handled by middleware,
-    so the only responses that must be sent are successful ones.
-    Queries are reponsible for returning clean and non-null data.   */
+interface RequestFromMiddleware extends Request {
+    user: {
+        user_id: number;
+    }
+}
 
-router.get('/', authenticateToken, async (req, res, next) => {
+const router: Router = Router();
+
+router.get('/', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user_id = req.user.user_id; /*    Authenticated and attached by middleware from token */
-        const userData = await getUserData(user_id);
+        const user_id: number = (req as RequestFromMiddleware).user.user_id;
+        const userData: User | null = await getUserData(user_id);
         res.status(200).json(userData);
     } catch (error) {
         next(error);
     }
 });
 
-router.post('/register', async (req, res, next) => {
+router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { username, email, password } = req.body;
 
@@ -78,10 +81,10 @@ router.post('/register', async (req, res, next) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const user_id = await registerUser(username, email, hashedPassword);
 
-        const verificationToken = emailService.generateVerificationToken(user_id);
+        const verificationToken = generateVerificationToken(user_id);
 
         await updateVerificationToken(user_id, verificationToken);
-        await emailService.sendVerificationEmail(email, verificationToken);
+        await sendVerificationEmail(email, verificationToken);
 
         res.status(200).json({ message: 'Registration successful', user_id });
     } catch (error) {
@@ -89,7 +92,7 @@ router.post('/register', async (req, res, next) => {
     }
 });
 
-router.post('/login', async (req, res, next) => {
+router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, password } = req.body;
 
@@ -101,12 +104,12 @@ router.post('/login', async (req, res, next) => {
             throw new ExpectedError("Invalid password.", 400, "/login failed with invalid password");
         }
 
-        const user = await findUserByEmail(email);
+        const user = await findUserSensitiveByEmail(email);
         if (!user) {
             throw new ExpectedError('Invalid credentials', 401, "/login failed with email not found");
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             throw new ExpectedError('Invalid credentials', 401, "/login failed with invalid password");
         }
@@ -124,33 +127,33 @@ router.post('/login', async (req, res, next) => {
         const refreshToken = jwt.sign({ user_id: user.user_id }, config.refreshTokenSecret);
         await storeRefreshToken(refreshToken, user.user_id);
 
-        res.cookie('refreshToken', refreshToken, { httpOnly: true, path: '/api/auth/session', sameSite: 'None', secure: true });
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, path: '/api/auth/session', sameSite: 'none', secure: true });
         res.status(200).json({ token });
     } catch (error) {
         next(error);
     }
 });
 
-router.post('/verify/:token', async (req, res, next) => {
+router.post('/verify/:token', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { token } = req.params;
 
         if (!token) {
-            throw new ExpectedError("Token is required.", 400);
+            throw new ExpectedError("Token is required.", 400, "/verify failed with missing token");
         }
         let decoded;
         try {
             decoded = jwt.verify(token, config.jwtSecret);
-        } catch (err) {
-            if (err instanceof jwt.TokenExpiredError) {
+        } catch (error) {
+            if (error instanceof jwt.TokenExpiredError) {
                 throw new ExpectedError("Token expired. Please verify your email again.", 401, "/verify failed with expired token");
-            } else if (err instanceof jwt.JsonWebTokenError) {
+            } else if (error instanceof jwt.JsonWebTokenError) {
                 throw new ExpectedError("Invalid token.", 401, "/verify failed with invalid token");
             } else {
-                throw err;
+                throw error;
             }
         }
-        const { user_id } = decoded;
+        const { user_id } = decoded as User;
 
         const user = await findUserById(user_id);
         if (!user) {
@@ -164,7 +167,7 @@ router.post('/verify/:token', async (req, res, next) => {
     }
 });
 
-router.get('/session/refresh_token', async (req, res, next) => {
+router.get('/session/refresh_token', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const refreshToken = req.cookies ? req.cookies.refreshToken : null;
         if (!refreshToken) {
@@ -177,7 +180,7 @@ router.get('/session/refresh_token', async (req, res, next) => {
 
         let payload;
         try {
-            payload = jwt.verify(refreshToken, config.refreshTokenSecret);
+            payload = jwt.verify(refreshToken, config.refreshTokenSecret) as User;
         } catch (err) {
             if (err instanceof jwt.TokenExpiredError) {
                 throw new ExpectedError("Refresh token expired. Please login again.", 401, "/session/refresh_token failed with expired refresh token");
@@ -196,7 +199,7 @@ router.get('/session/refresh_token', async (req, res, next) => {
     }
 });
 
-router.post('/session/logout', async (req, res, next) => {
+router.post('/session/logout', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const refreshToken = req.cookies ? req.cookies.refreshToken : null;
         if (!refreshToken) {
@@ -216,4 +219,4 @@ router.post('/session/logout', async (req, res, next) => {
     }
 });
 
-module.exports = router;
+export default router;

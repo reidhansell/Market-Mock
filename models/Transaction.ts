@@ -1,4 +1,4 @@
-interface Transaction {
+export default interface Transaction {
     transaction_id: number;
     user_id: number;
     ticker_symbol: string;

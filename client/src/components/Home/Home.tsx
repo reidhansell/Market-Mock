@@ -1,12 +1,16 @@
 import React from 'react';
 import Nav from './Nav';
 
-const Home = (props) => {
+interface HomeProps {
+    setAuth: (auth: boolean) => void;
+}
+
+const Home: React.FC<HomeProps> = ({ setAuth }) => {
     return (
         <>
-            <Nav setAuth={props.setAuth} />
+            <Nav setAuth={setAuth} />
             <div>
-                <h1>Welcome to the Home Page, {props.user}</h1>
+                <h1>Welcome to the Home Page, {/*user*/}</h1>
                 <p>This is the home page of your application.</p>
             </div>
         </>
@@ -14,3 +18,4 @@ const Home = (props) => {
 };
 
 export default Home;
+

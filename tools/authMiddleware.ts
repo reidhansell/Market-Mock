@@ -1,80 +1,78 @@
 import jwt from 'jsonwebtoken';
 import config from '../config.json';
 import { findUserById, isRefreshTokenStored } from '../database/queries/auth';
-import { Request, Response, NextFunction } from 'express';
+import { Request as ExpressRequest, Response, NextFunction } from 'express';
 import User from '../models/User';
 
-const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const authHeader = req.headers.authorization;
-        const token = authHeader && authHeader.split(' ')[1];
+interface Request extends ExpressRequest {
+    user?: User;
+}
 
-        if (!token) {
-            res.status(401).json({ error: 'Unauthorized' });
+const handleErrors = (error: Error, res: Response, message: string) => {
+    console.error(message, error);
+    res.status(500).json({ error: 'Internal server error' });
+};
+
+const verifyToken = (token: string, secret: string): User => {
+    try {
+        return jwt.verify(token, secret) as User;
+    } catch (error: any) {
+        throw new Error(error.message);
+    }
+};
+
+const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(' ')[1];
+
+    if (!token) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    try {
+        const user = verifyToken(token, config.jwtSecret);
+        const db_user = await findUserById(user.user_id);
+
+        if (!db_user) {
+            res.status(404).json({ error: 'User not found' });
             return;
         }
 
-        const decoded = jwt.verify(token, config.jwtSecret) as User;
-        if (err) {
-            console.error('Error verifying token', err);
-            return res.status(403).json({ error: err.message });
+        if (!db_user.is_email_verified) {
+            res.status(403).json({ error: 'Email not verified' });
+            return;
         }
 
-        try {
-            const db_user = await findUserById(user.user_id);
-            if (!db_user) {
-                return res.status(404).json({ error: 'User not found' });
-            }
-
-            if (db_user.is_email_verified !== 1) {
-                return res.status(403).json({ error: 'Email not verified' });
-            }
-
-            req.user = db_user;
-            next();
-        } catch (error) {
-            console.error('Error fetching user data', error);
-            res.status(500).json({ error: 'Internal server error' });
-        }
-    } catch (error) {
-        console.error('Error authenticating token', error);
-        res.status(500).json({ error: 'Internal server error' });
+        req.user = db_user;
+        next();
+    } catch (error: any) {
+        handleErrors(error, res, 'Error authenticating token');
     }
 };
 
 const authenticateRefreshToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const refreshToken = req.cookies.refreshToken;
+    const refreshToken = req.cookies.refreshToken;
 
-        if (!refreshToken) {
-            return res.status(401).json({ error: 'Unauthorized' });
+    if (!refreshToken) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    try {
+        const user = verifyToken(refreshToken, config.refreshTokenSecret);
+        const tokenIsStored = await isRefreshTokenStored(refreshToken);
+
+        if (!tokenIsStored) {
+            res.status(403).json({ error: 'Refresh token is not valid' });
+            return;
         }
 
-        jwt.verify(refreshToken, config.refreshTokenSecret, async (err: any, user: User) => {
-            if (err) {
-                console.error('Error verifying refresh token', err);
-                return res.status(403).json({ error: err.message });
-            }
-
-            try {
-                const tokenIsStored = await isRefreshTokenStored(refreshToken);
-                if (!tokenIsStored) {
-                    return res.status(403).json({ error: 'Refresh token is not valid' });
-                }
-
-                req.user = user;
-                next();
-            } catch (error) {
-                console.error('Error fetching refresh token data', error);
-                res.status(500).json({ error: 'Internal server error' });
-            }
-        });
-    } catch (error) {
-        console.error('Error authenticating refresh token', error);
-        res.status(500).json({ error: 'Internal server error' });
+        req.user = user;
+        next();
+    } catch (error: any) {
+        handleErrors(error, res, 'Error authenticating refresh token');
     }
 };
 
 export { authenticateToken, authenticateRefreshToken };
-
-

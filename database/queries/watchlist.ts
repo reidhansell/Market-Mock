@@ -1,24 +1,25 @@
-const { executeQuery } = require('../queryExecutor');
-const ExpectedError = require('../../tools/ExpectedError');
+import { executeQuery } from '../queryExecutor';
+import ExpectedError from '../../tools/ExpectedError';
+import WatchList from '../../models/WatchList';
 
-/*  Queries assume that the caller has already validated the data.
-    As a last line of defense, the database has its own constraints
-    which, when triggered, will be logged and returned as a 500.   */
-
-async function getWatchList(user_id) {
+async function getWatchList(user_id: number): Promise<WatchList[]> {
     const sql = `
-        SELECT stock_symbol
-        FROM Watch_List
-        WHERE user_id = ?
-    `;
-    const result = await executeQuery(sql, [user_id]);
-    if (result.length === 0) {
-        throw new ExpectedError('No watchlist found.', 404, `Query: "${sql}" with parameters: "${user_id}" returned no results`);
+    SELECT stock_symbol
+    FROM Watch_List
+    WHERE user_id = ?
+  `;
+    const results = await executeQuery(sql, [user_id]) as WatchList[];
+    if (results.length === 0) {
+        throw new ExpectedError(
+            'No watchlist found.',
+            404,
+            `Query: "${sql}" with parameters: "${user_id}" returned no results`
+        );
     }
-    return result;
+    return results;
 }
 
-module.exports = {
+export {
     getWatchList,
 };
 

@@ -1,16 +1,15 @@
-const mysql = require('mysql');
-const config = require('../config.json');
+import * as mysql from 'mysql';
+import config from '../config.json';
 
-let databaseConnection = null;
+let databaseConnection: mysql.Connection | null = null;
 
-async function initializeDatabaseConnection() {
+async function initializeDatabaseConnection(): Promise<mysql.Connection> {
     console.log("Initializing database connection.");
-    return new Promise((resolve, reject) => {
-        if (databaseConnection) {
-            resolve(databaseConnection);
-            return;
-        }
+    if (databaseConnection) {
+        return Promise.resolve(databaseConnection);
+    }
 
+    return new Promise((resolve, reject) => {
         databaseConnection = mysql.createConnection({
             host: config.dbhostname,
             user: config.dbusername,
@@ -24,21 +23,20 @@ async function initializeDatabaseConnection() {
                 reject(error);
             } else {
                 console.log('Database connection successful.');
-                resolve(databaseConnection);
+                resolve(databaseConnection as mysql.Connection);
             }
         });
     });
 }
 
-function getDatabaseConnection() {
+async function getDatabaseConnection(): Promise<mysql.Connection> {
     if (!databaseConnection) {
         throw new Error('Database connection has not been initialized.');
     }
     return databaseConnection;
 }
 
-module.exports = {
+export {
     initializeDatabaseConnection,
     getDatabaseConnection,
 };
-

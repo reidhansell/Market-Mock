@@ -1,21 +1,27 @@
-const axios = require('axios');
-const config = require('../config.json');
-const ExpectedError = require('./ExpectedError');
-const { insertTicker, checkTickerSymbol } = require('../database/queries/ticker');
+import axios from 'axios';
+import config from '../config.json';
+import ExpectedError from './ExpectedError';
+import { insertTicker, checkTickerExists } from '../database/queries/ticker';
+import Ticker from '../models/Ticker';
 
-async function fetchTickersFromAPI(exchange) {
-    let tickers = [];
+interface MarketStackTicker {
+    symbol: string;
+    name: string;
+}
+
+async function fetchTickersFromAPI(exchange: string): Promise<Ticker[]> {
+    let tickers: Ticker[] = [];
     let page = 1;
     let response;
 
     do {
         try {
             response = await axios.get(`https://api.marketstack.com/v1/exchanges/${exchange}/tickers?access_key=${config.marketStackKey}&limit=10000&offset=${page > 1 ? (page - 1) * 10000 + 1 : 0}`);
-        } catch (error) {
+        } catch (error: any) {
             throw new ExpectedError('Could not fetch data from MarketStack', 500, `Error fetching data from MarketStack for exchange ${exchange}: ${error.message}`);
         }
 
-        tickers = tickers.concat(response.data.data.tickers.filter((ticker) => ticker.name).map((ticker) => ({
+        tickers = tickers.concat(response.data.data.tickers.filter((ticker: MarketStackTicker) => ticker.name).map((ticker: MarketStackTicker) => ({
             ticker_symbol: ticker.symbol,
             company_name: ticker.name
         })));
@@ -26,8 +32,8 @@ async function fetchTickersFromAPI(exchange) {
     return tickers;
 }
 
-async function storeTicker(ticker) {
-    const existingTicker = await checkTickerSymbol(ticker.ticker_symbol);
+async function storeTicker(ticker: Ticker): Promise<void> {
+    const existingTicker = await checkTickerExists(ticker.ticker_symbol);
 
     if (existingTicker) {
         if (existingTicker.company_name !== ticker.company_name) {
@@ -38,7 +44,7 @@ async function storeTicker(ticker) {
     }
 }
 
-async function syncTickers() {
+async function syncTickers(): Promise<void> {
     console.log("Beginning tickers sync.");
     console.log("Fetching tickers from MarketStack.");
     const NYSETickers = await fetchTickersFromAPI('XNYS');
@@ -51,14 +57,14 @@ async function syncTickers() {
 
     for (const [i, ticker] of tickers.entries()) {
         try { await storeTicker(ticker); }
-        catch (error) {
+        catch (error: any) {
             if (error instanceof ExpectedError) {
                 error.statusCode === 500 ? console.error(error.devMessage) : null;
             }
             else {
                 console.error(`Error storing ticker ${ticker.ticker_symbol}: ${error.message}`);
+                console.log('Continuing...')
             }
-            console.log('Continuing...')
         }
 
         if (i === Math.round(totalTickers * 0.25)) {
@@ -75,6 +81,4 @@ async function syncTickers() {
     console.log("Completed tickers sync.");
 }
 
-module.exports = {
-    syncTickers
-};
+export { syncTickers };

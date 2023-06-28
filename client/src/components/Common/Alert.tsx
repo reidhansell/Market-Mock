@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react';
-import './Alert.css';
 
-const Alert = ({ message, onClose }) => {
+interface AlertProps {
+    message: string;
+    onClose: () => void;
+}
+
+const Alert: React.FC<AlertProps> = ({ message, onClose }) => {
     useEffect(() => {
         const timer = setTimeout(() => {
             onClose();
@@ -19,6 +23,4 @@ const Alert = ({ message, onClose }) => {
     );
 }
 
-
 export default Alert;
-

@@ -1,4 +1,4 @@
-interface StockData {
+export default interface StockData {
     stock_id: number;
     ticker_symbol: string;
     current_price: number;

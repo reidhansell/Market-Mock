@@ -1,24 +1,26 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, FC } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AxiosResponse } from 'axios';
 import './Auth.css';
-import { login } from '../../requests/auth';
-import { AlertContext } from '../Common/AlertContext';
+import { login, ResponseData } from '../../requests/auth';
 
-const Login = (props) => {
-    const addAlert = useContext(AlertContext);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+interface LoginProps {
+    setAuth: (auth: boolean) => void;
+}
+
+const Login: FC<LoginProps> = ({ setAuth }) => {
+    const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
     const navigate = useNavigate();
 
-    const handleLogin = async (event) => {
+    const handleLogin = async (event: React.FormEvent) => {
         event.preventDefault();
         try {
-            let response = await login(email, password);
+            const response: AxiosResponse<ResponseData> = await login(email, password);
             if (response.status === 200) {
-                props.setAuth(true);
+                setAuth(true);
             }
         } catch (error) {
-            addAlert(error || 'An error occurred during login');
             console.error(error);
         }
     };
@@ -51,5 +53,6 @@ const Login = (props) => {
 };
 
 export default Login;
+
 
 

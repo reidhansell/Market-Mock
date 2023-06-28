@@ -1,4 +1,4 @@
-interface Order {
+export default interface Order {
     order_id: number;
     user_id: number;
     ticker_symbol: string;
