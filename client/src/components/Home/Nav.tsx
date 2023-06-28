@@ -1,23 +1,22 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { logout } from '../../requests/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
-import { AlertContext } from '../Common/AlertContext';
 import './Nav.css';
 
-const Navigation = (props) => {
+interface NavProps {
+    setAuth: (auth: boolean) => void;
+}
+
+const Navigation: React.FC<NavProps> = ({ setAuth }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
-    const addAlert = useContext(AlertContext);
 
     const handleLogout = async () => {
         try {
-            let response = await logout();
-            if (response.status === 200) {
-                props.setAuth(false);
-            }
+            await logout();
+            setAuth(false);
         } catch (error) {
-            addAlert(error || 'An error occurred during logout');
             console.error(error);
         }
     };

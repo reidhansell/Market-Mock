@@ -7,8 +7,7 @@ async function initializeDatabase(): Promise<void> {
         if (!config.production) {
             console.log("Dropping tables");
             await executeQuery('SET FOREIGN_KEY_CHECKS = 0');
-            /* TODO change these to singular after first run    */
-            await executeQuery('DROP TABLE IF EXISTS Refresh_Tokens, User_Reset, Orders, Watch_List, Transactions, Users, Stock_Data, Tickers');
+            await executeQuery('DROP TABLE IF EXISTS Refresh_Token, User_Reset, Trade_Order, Watch_List, Transaction, User, Stock_Data, Ticker');
             await executeQuery('SET FOREIGN_KEY_CHECKS = 1');
             console.log('Tables dropped successfully.');
         }
@@ -61,7 +60,7 @@ async function initializeDatabase(): Promise<void> {
                 FOREIGN KEY (user_id) REFERENCES User(user_id),
                 FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
             )`,
-            `CREATE TABLE IF NOT EXISTS Order (
+            `CREATE TABLE IF NOT EXISTS Trade_Order (
                 order_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 ticker_symbol VARCHAR(20),

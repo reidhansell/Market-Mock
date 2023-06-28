@@ -1,10 +1,10 @@
-const nodemailer = require('nodemailer');
-const jwt = require('jsonwebtoken');
-const config = require('../config.json');
+import nodemailer, { Transporter } from 'nodemailer';
+import jwt from 'jsonwebtoken';
+import config from '../config.json';
 
-async function sendVerificationEmail(email, verificationToken) {
+async function sendVerificationEmail(email: string, verificationToken: string): Promise<void> {
     try {
-        const transporter = nodemailer.createTransport({
+        const transporter: Transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
                 user: config.email,
@@ -12,7 +12,7 @@ async function sendVerificationEmail(email, verificationToken) {
             },
         });
 
-        const emailContent = `
+        const emailContent: string = `
         <table style="width: 100%; height: 100%; min-height: 100vh; border-collapse: collapse; margin: 0; background-color: hsl(50.59, 10%, 10%); color: hsl(50.59, 15%, 85%);">
             <tr>
                 <td style="text-align: center; vertical-align: middle;">
@@ -29,7 +29,7 @@ async function sendVerificationEmail(email, verificationToken) {
         </table>
     `;
 
-        const mailOptions = {
+        const mailOptions: nodemailer.SendMailOptions = {
             from: config.email,
             to: email,
             subject: 'Email Verification',
@@ -43,10 +43,10 @@ async function sendVerificationEmail(email, verificationToken) {
     }
 }
 
-function generateVerificationToken(user_id) {
-    const expiresIn = '1d';
-    const signedToken = jwt.sign({ user_id: user_id }, config.jwtSecret, { expiresIn });
+function generateVerificationToken(user_id: number): string {
+    const expiresIn: string = '1d';
+    const signedToken: string = jwt.sign({ user_id: user_id }, config.jwtSecret, { expiresIn });
     return signedToken;
 }
 
-module.exports = { sendVerificationEmail, generateVerificationToken };
+export { sendVerificationEmail, generateVerificationToken };

@@ -1,17 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const { searchTickers } = require('../database/queries/ticker');
-const ExpectedError = require('../tools/ExpectedError');
+import { Router, Request, Response, NextFunction } from 'express';
+import { searchTickersByCompanyName } from '../database/queries/ticker';
+import ExpectedError from '../tools/ExpectedError';
 
-/*  Routes are responsible for data validation and business logic,
-    though there are database constraints as a last line of defense.
-    all errors will be caught and handled by middleware,
-    so the only responses that must be sent are successful ones.
-    Queries are reponsible for returning clean and non-null data.   */
+const router = Router();
 
-router.get('/search', async (req, res, next) => {
+router.get('/search', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { companyName } = req.query;
+        const companyName: string = req.query.companyName as string;
 
         if (!companyName || !companyName.trim()) {
             throw new ExpectedError('Company name is required', 400, "Missing companyName in /search route");
@@ -23,12 +18,11 @@ router.get('/search', async (req, res, next) => {
             throw new ExpectedError('Invalid company name', 400, "Invalid companyName in /search route");
         }
 
-        const results = await searchTickers(companyName);
+        const results = await searchTickersByCompanyName(companyName);
         res.json(results);
     } catch (error) {
         next(error);
     }
 });
 
-module.exports = router;
-
+export default router;

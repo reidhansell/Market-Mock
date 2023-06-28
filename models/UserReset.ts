@@ -1,4 +1,4 @@
-interface UserReset {
+export default interface UserReset {
     reset_id: number;
     user_id: number;
     starting_amount: number;

@@ -1,19 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
-import axios, { AxiosResponse, AxiosError } from 'axios';
-import Home from './components/Home/Home.js';
-import Login from './components/Auth/Login.js';
-import Register from './components/Auth/Register.js';
+import Axios, { AxiosResponse, AxiosError } from 'axios';
+import Home from './components/Home/Home';
+import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
 import config from './config.json';
-import VerifyEmail from './components/Auth/VerifyEmail.js';
-import AlertContainer from './components/Common/AlertContainer.js';
-import addAlert from './components/Common/AlertContext.js';
+import VerifyEmail from './components/Auth/VerifyEmail';
+import AlertComponent from './components/Common/Alert';
 import './index.css';
+import './components/Common/Alert.css';
+
+interface Alert {
+  id: string;
+  message: string;
+}
 
 const refreshToken = async () => {
   try {
-    const response = await axios.get(`${config.serverURL}/api/auth/session/refresh_token`, { withCredentials: true });
+    const response = await Axios.get(`${config.serverURL}/api/auth/session/refresh_token`, { withCredentials: true });
     return response.data.accessToken;
   } catch (error) {
     console.error('Error refreshing token', error);
@@ -33,7 +38,7 @@ const isAuthenticated = async () => {
   }
 
   try {
-    await axios.get(`${config.serverURL}/api/auth/session/refresh_token`, { withCredentials: true, headers: { 'Access-Control-Allow-Origin': 'http://localhost:3000', Authorization: `Bearer ${token}` } });
+    await Axios.get(`${config.serverURL}/api/auth/session/refresh_token`, { withCredentials: true, headers: { 'Access-Control-Allow-Origin': 'http://localhost:3000', Authorization: `Bearer ${token}` } });
 
     return true;
   } catch (error) {
@@ -43,7 +48,36 @@ const isAuthenticated = async () => {
 };
 
 const App = () => {
-  const [auth, setAuth] = useState(null);
+  const [auth, setAuth] = useState(false);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+
+  const generateId = (): string => {
+    return Math.random().toString(36).substr(2, 9);
+  };
+
+  const addAlert = (message: string) => {
+    const id = generateId(); // Generate a unique ID for each alert
+    const newAlert = { id, message };
+    setAlerts((prevAlerts) => [...prevAlerts, newAlert]);
+  };
+
+  const removeAlert = (id: string) => {
+    setAlerts((prevAlerts) => prevAlerts.filter((alert) => alert.id !== id));
+  };
+
+  /*  Interceptor must be called at the top level and within a component. */
+  Axios.interceptors.response.use(
+    (response: AxiosResponse) => {
+      return response;
+    },
+    (error: AxiosError) => {
+      const errorMessage = (error?.response?.data as { error: string }).error;
+      if (errorMessage) {
+        addAlert(errorMessage);
+      }
+      return Promise.reject(); // Reject without passing the error object
+    }
+  );
 
   useEffect(() => {
     const checkAuthentication = async () => {
@@ -52,52 +86,58 @@ const App = () => {
     };
 
     checkAuthentication();
+  }, []); // Empty dependency array - the effect will only run once on mount
 
-    /*  Interceptor must be called at the top level and within a component. */
-    import axios, { AxiosResponse, AxiosError } from 'axios';
-
-    const interceptor = axios.interceptors.response.use(
-      (response: AxiosResponse) => {
-        // your code here for successful response
-        return response;
-      },
-      (error: AxiosError) => {
-        // error handling
-        if (error.response) {
-          addAlert(error.response.data.message);
-        }
-        return Promise.reject(error);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (alerts.length > 0) {
+        removeAlert(alerts[0].id); // Automatically remove the oldest alert after 5 seconds
       }
-    );
+    }, 5000);
 
-    return (
-      <AlertContainer>
-        {auth ?
-          <Router>
-            <Routes>
-              <Route path="/" element={<Home setAuth={setAuth} />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </Router>
-          :
-          <Router>
-            <Routes>
-              <Route path="/login" element={auth ? <Home setAuth={setAuth} /> : <Login setAuth={setAuth} />} />
-              <Route path="/register" element={auth ? <Home setAuth={setAuth} /> : <Register />} />
-              <Route path="/verify/:token" element={<VerifyEmail />} />
-              <Route path="*" element={<Navigate to="/login" />} />
-            </Routes>
-          </Router>
-        }
-      </AlertContainer>
-    );
-  };
+    return () => {
+      clearTimeout(timeout); // Clear the timeout when the component unmounts
+    };
+  }, [alerts]);
 
-  const rootElement = document.getElementById('root');
 
-  if (!rootElement) {
-    throw new Error("Could not find root element");
-  }
+  return (<>
+    <div className='alert-container'>
+      {alerts.map((alert) => (
+        <AlertComponent
+          key={alert.id}
+          message={alert.message}
+          onClose={() => removeAlert(alert.id)}
+        />
+      ))}
+    </div>
+    {
+      auth ?
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home setAuth={setAuth} />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Router>
+        :
+        <Router>
+          <Routes>
+            <Route path="/login" element={auth ? <Home setAuth={setAuth} /> : <Login setAuth={setAuth} />} />
+            <Route path="/register" element={auth ? <Home setAuth={setAuth} /> : <Register />} />
+            <Route path="/verify/:token" element={<VerifyEmail />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </Router>
+    }
+  </>
+  );
+};
 
-  createRoot(rootElement).render(<App />);
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error("Could not find root element");
+}
+
+createRoot(rootElement).render(<App />);
 
