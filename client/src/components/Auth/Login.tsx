@@ -2,7 +2,7 @@ import React, { useState, FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AxiosResponse } from 'axios';
 import './Auth.css';
-import { login, ResponseData } from '../../requests/auth';
+import { login, ResponseData } from '../../requests/Auth';
 
 interface LoginProps {
     setAuth: (auth: boolean) => void;

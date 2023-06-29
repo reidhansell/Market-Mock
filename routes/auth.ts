@@ -13,10 +13,10 @@ import {
     updateVerificationToken,
     deleteRefreshToken,
     getUserData
-} from '../database/queries/auth';
+} from '../database/queries/Auth';
 import config from '../config.json';
-import { sendVerificationEmail, generateVerificationToken } from '../tools/emailService';
-import { authenticateToken } from '../tools/authMiddleware';
+import { sendVerificationEmail, generateVerificationToken } from '../tools/EmailService';
+import { authenticateToken } from '../tools/AuthMiddleware';
 import ExpectedError from '../tools/ExpectedError';
 import isEmail from 'validator/lib/isEmail';
 import Filter from 'bad-words';

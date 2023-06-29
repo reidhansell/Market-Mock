@@ -1,4 +1,4 @@
-import { getDatabaseConnection } from './databaseConnector';
+import { getDatabaseConnection } from './DatabaseConnector';
 import * as mysql from 'mysql';
 
 /*  Convert callback-based queries into Promises    */
