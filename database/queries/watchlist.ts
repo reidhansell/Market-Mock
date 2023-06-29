@@ -1,4 +1,4 @@
-import { executeQuery } from '../queryExecutor';
+import { executeQuery } from '../QueryExecutor';
 import ExpectedError from '../../tools/ExpectedError';
 import WatchList from '../../models/WatchList';
 

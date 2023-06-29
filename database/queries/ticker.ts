@@ -1,7 +1,7 @@
-import { executeQuery } from '../queryExecutor';
+import { executeQuery } from '../QueryExecutor';
 import ExpectedError from '../../tools/ExpectedError';
 import Ticker from '../../models/Ticker';
-import { ResultObject } from '../queryExecutor';
+import { ResultObject } from '../QueryExecutor';
 
 async function insertTicker(ticker: Ticker): Promise<void> {
     const query = 'INSERT INTO Ticker (ticker_symbol, company_name) VALUES (?, ?)';

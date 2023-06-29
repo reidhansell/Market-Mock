@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { searchTickersByCompanyName } from '../database/queries/ticker';
+import { searchTickersByCompanyName } from '../database/queries/Ticker';
 import ExpectedError from '../tools/ExpectedError';
 
 const router = Router();

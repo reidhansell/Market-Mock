@@ -1,7 +1,7 @@
 import axios from 'axios';
 import config from '../config.json';
 import ExpectedError from './ExpectedError';
-import { insertTicker, checkTickerExists } from '../database/queries/ticker';
+import { insertTicker, checkTickerExists } from '../database/queries/Ticker';
 import Ticker from '../models/Ticker';
 
 interface MarketStackTicker {

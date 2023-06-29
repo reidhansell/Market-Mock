@@ -1,4 +1,4 @@
-import { executeQuery } from './queryExecutor';
+import { executeQuery } from './QueryExecutor';
 import config from '../config.json';
 
 async function initializeDatabase(): Promise<void> {
