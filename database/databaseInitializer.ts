@@ -3,6 +3,7 @@ import config from '../config.json';
 
 async function initializeDatabase(): Promise<void> {
     try {
+        /*  TODO Remove this code before deploying to production    */
         console.log("Beginning database initialization.");
         if (!config.production) {
             console.log("Dropping tables");
@@ -11,6 +12,7 @@ async function initializeDatabase(): Promise<void> {
             await executeQuery('SET FOREIGN_KEY_CHECKS = 1');
             console.log('Tables dropped successfully.');
         }
+        /*  End of code to remove before deploying to production */
         const table_definitions: string[] = [
             `CREATE TABLE IF NOT EXISTS Ticker (
                 ticker_symbol VARCHAR(20) PRIMARY KEY,

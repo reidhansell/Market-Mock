@@ -1,28 +1,16 @@
-import { NextFunction, Request as Request, Response, Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import {
-    storeRefreshToken,
-    isRefreshTokenStored,
-    registerUser,
-    findUserByEmail,
-    findUserSensitiveByEmail,
-    findUserByUsername,
-    findUserById,
-    updateEmailVerificationStatus,
-    updateVerificationToken,
-    deleteRefreshToken,
-    getUserData
-} from '../database/queries/Auth';
-import config from '../config.json';
-import { sendVerificationEmail, generateVerificationToken } from '../tools/EmailService';
-import { authenticateToken } from '../tools/AuthMiddleware';
-import ExpectedError from '../tools/ExpectedError';
 import isEmail from 'validator/lib/isEmail';
 import Filter from 'bad-words';
 import User from '../models/User';
+import { sendVerificationEmail, generateVerificationToken } from '../tools/EmailService';
+import { authenticateToken } from '../tools/AuthMiddleware';
+import ExpectedError from '../tools/ExpectedError';
+import { findUserByEmail, findUserByUsername, registerUser, updateVerificationToken, getUserData, findUserSensitiveByEmail, storeRefreshToken, findUserById, updateEmailVerificationStatus, isRefreshTokenStored, deleteRefreshToken } from '../database/queries/Auth';
+import config from '../config.json';
 
-interface RequestFromMiddleware extends Request {
+interface AuthenticatedRequest extends Request {
     user: {
         user_id: number;
     }
@@ -30,9 +18,13 @@ interface RequestFromMiddleware extends Request {
 
 const router: Router = Router();
 
+const USERNAME_PATTERN = /^[a-zA-Z0-9]{3,20}$/;
+const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,255}$/;
+const FILTER = new Filter();
+
 router.get('/', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user_id: number = (req as RequestFromMiddleware).user.user_id;
+        const user_id: number = (req as AuthenticatedRequest).user.user_id;
         const userData: User | null = await getUserData(user_id);
         res.status(200).json(userData);
     } catch (error) {
@@ -48,13 +40,11 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
             throw new ExpectedError("Missing required fields.", 400, "/register failed with missing fields");
         }
 
-        const usernamePattern = /^[a-zA-Z0-9]{3,20}$/;
-        if (!usernamePattern.test(username)) {
+        if (!USERNAME_PATTERN.test(username)) {
             throw new ExpectedError("Username must be alphanumeric, between 3 to 20 characters.", 400, "/register failed with invalid username");
         }
 
-        const filter = new Filter();
-        const filteredUsername = filter.clean(username);
+        const filteredUsername = FILTER.clean(username);
         if (filteredUsername !== username) {
             throw new ExpectedError("Username contains inappropriate content.", 400, "/register failed with inappropriate username");
         }
@@ -63,30 +53,25 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
             throw new ExpectedError("Invalid email format.", 400, "/register failed with invalid email");
         }
 
-        const passwordPattern = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,255}$/;
-        if (!passwordPattern.test(password)) {
-            throw new ExpectedError("Password must be between 8 and 255 characters, and include at least one uppercase letter, one lowercase letter, one number, and one special character.", 400, "/register failed with invalid password");
+        if (!PASSWORD_PATTERN.test(password)) {
+            throw new ExpectedError("Password must include 8-255 characters, at least one uppercase letter, one lowercase letter, one number, and one special character.", 400, "/register failed with invalid password");
         }
 
-        const existingUserEmail = await findUserByEmail(email);
-        if (existingUserEmail) {
+        if (await findUserByEmail(email)) {
             throw new ExpectedError("Email already exists", 400, "/register failed with existing email");
         }
 
-        const existingUsername = await findUserByUsername(username);
-        if (existingUsername) {
+        if (await findUserByUsername(username)) {
             throw new ExpectedError("Username already exists", 400, "/register failed with existing username");
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const user_id = await registerUser(username, email, hashedPassword);
-
         const verificationToken = generateVerificationToken(user_id);
-
         await updateVerificationToken(user_id, verificationToken);
         await sendVerificationEmail(email, verificationToken);
 
-        res.status(200).json({ message: 'Registration successful', user_id });
+        res.status(200).json(null);
     } catch (error) {
         next(error);
     }
@@ -97,21 +82,21 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         const { email, password } = req.body;
 
         if (!email || !isEmail(email)) {
-            throw new ExpectedError("Invalid email format.", 400, "/login failed with invalid email");
+            throw new ExpectedError("Invalid credentials", 400, "/login failed with invalid email");
         }
 
-        if (!password || password.length < 8) {
-            throw new ExpectedError("Invalid password.", 400, "/login failed with invalid password");
+        if (!password) {
+            throw new ExpectedError("Invalid credentials", 400, "/login failed with missing password");
         }
 
         const user = await findUserSensitiveByEmail(email);
         if (!user) {
-            throw new ExpectedError('Invalid credentials', 401, "/login failed with email not found");
+            throw new ExpectedError('Invalid credentials', 401, "/login failed with invalid credentials");
         }
 
-        const isPasswordValid = bcrypt.compare(password, user.password);
+        const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            throw new ExpectedError('Invalid credentials', 401, "/login failed with invalid password");
+            throw new ExpectedError('Invalid credentials', 401, "/login failed with invalid credentials");
         }
 
         if (!user.is_email_verified) {
@@ -128,7 +113,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         await storeRefreshToken(refreshToken, user.user_id);
 
         res.cookie('refreshToken', refreshToken, { httpOnly: true, path: '/api/auth/session', sameSite: 'none', secure: true });
-        res.status(200).json({ token });
+        res.status(200).json({ token: token });
     } catch (error) {
         next(error);
     }
@@ -141,6 +126,7 @@ router.post('/verify/:token', async (req: Request, res: Response, next: NextFunc
         if (!token) {
             throw new ExpectedError("Token is required.", 400, "/verify failed with missing token");
         }
+
         let decoded;
         try {
             decoded = jwt.verify(token, config.jwtSecret);
@@ -153,15 +139,15 @@ router.post('/verify/:token', async (req: Request, res: Response, next: NextFunc
                 throw error;
             }
         }
-        const { user_id } = decoded as User;
 
+        const { user_id } = decoded as User;
         const user = await findUserById(user_id);
         if (!user) {
             throw new ExpectedError("Invalid user.", 400, "/verify failed with invalid user");
         }
-        await updateEmailVerificationStatus(user_id);
 
-        res.status(200).json({ message: 'Email verified successfully' });
+        await updateEmailVerificationStatus(user_id);
+        res.status(200).json(null);
     } catch (error) {
         next(error);
     }
@@ -171,11 +157,11 @@ router.get('/session/refresh_token', async (req: Request, res: Response, next: N
     try {
         const refreshToken = req.cookies ? req.cookies.refreshToken : null;
         if (!refreshToken) {
-            throw new ExpectedError('Refresh token is required', 403, "/session/refresh_token failed with missing refresh token");
+            throw new ExpectedError('', 403, "/refresh_token failed with missing refresh token");
         }
 
         if (!(await isRefreshTokenStored(refreshToken))) {
-            throw new ExpectedError('Refresh token is not in store', 403, "/session/refresh_token failed with invalid refresh token");
+            throw new ExpectedError('', 403, "/refresh_token failed with invalid refresh token");
         }
 
         let payload;
@@ -183,16 +169,15 @@ router.get('/session/refresh_token', async (req: Request, res: Response, next: N
             payload = jwt.verify(refreshToken, config.refreshTokenSecret) as User;
         } catch (err) {
             if (err instanceof jwt.TokenExpiredError) {
-                throw new ExpectedError("Refresh token expired. Please login again.", 401, "/session/refresh_token failed with expired refresh token");
+                throw new ExpectedError("Refresh token expired. Please login again.", 401, "/refresh_token failed with expired refresh token");
             } else if (err instanceof jwt.JsonWebTokenError) {
-                throw new ExpectedError("Invalid refresh token.", 401, "/session/refresh_token failed with invalid refresh token");
+                throw new ExpectedError("Invalid refresh token.", 401, "/refresh_token failed with invalid refresh token");
             } else {
                 throw err;
             }
         }
 
         const token = jwt.sign({ user_id: payload.user_id }, config.jwtSecret, { expiresIn: '1h' });
-
         res.status(200).json({ accessToken: token });
     } catch (error) {
         next(error);
@@ -203,17 +188,15 @@ router.post('/session/logout', async (req: Request, res: Response, next: NextFun
     try {
         const refreshToken = req.cookies ? req.cookies.refreshToken : null;
         if (!refreshToken) {
-            throw new ExpectedError('No refresh token provided', 401, "/session/logout failed with missing refresh token");
+            throw new ExpectedError('No refresh token provided', 401, "/logout failed with missing refresh token");
         }
 
         if (!(await isRefreshTokenStored(refreshToken))) {
-            throw new ExpectedError('Already logged out', 403, "/session/logout failed as user is already logged out");
+            throw new ExpectedError('Refresh token is not in store', 403, "/logout failed with invalid refresh token");
         }
 
         await deleteRefreshToken(refreshToken);
-
-        res.clearCookie('refreshToken', { path: '/api/auth/session' });
-        res.status(200).json({ message: 'Logout successful' });
+        res.status(200).json(null);
     } catch (error) {
         next(error);
     }

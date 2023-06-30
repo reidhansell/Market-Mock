@@ -7,18 +7,17 @@ async function insertTicker(ticker: Ticker): Promise<void> {
     const query = 'INSERT INTO Ticker (ticker_symbol, company_name) VALUES (?, ?)';
     const parameters = [ticker.ticker_symbol, ticker.company_name];
     const queryResults = await executeQuery(query, parameters) as ResultObject;
-    console.log(queryResults);
     if (queryResults.affectedRows === 0) {
         throw new ExpectedError('Failed to store ticker', 500, `Failed query: "${query}" with parameters: "${parameters}"`);
     }
 }
 
-async function checkTickerExists(symbol: string): Promise<Ticker> {
+async function checkTickerExists(symbol: string): Promise<Ticker | null> {
     const query = 'SELECT * FROM Ticker WHERE ticker_symbol = ?';
     const parameters = [symbol];
     const results = await executeQuery(query, parameters) as Ticker[];
-    if (!results.length) {
-        throw new ExpectedError('Failed to get ticker', 404, `Query: "${query}" with parameters: "${parameters}" returned no results`);
+    if (results.length === 0) {
+        return null;
     }
     return results[0];
 }
@@ -32,9 +31,7 @@ async function searchTickersByCompanyName(company_name: string): Promise<Ticker[
     `;
     const searchTerm = `%${company_name}%`;
     const results = await executeQuery(sql, [searchTerm]) as Ticker[];
-    if (results.length === 0) {
-        throw new ExpectedError('Failed to get tickers', 404, `Query: "${sql}" with parameters: "${searchTerm}" returned no results`);
-    }
+    /* Empty set acceptable, not looking for a particular record */
     return results;
 }
 

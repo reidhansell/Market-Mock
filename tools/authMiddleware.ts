@@ -8,71 +8,46 @@ interface Request extends ExpressRequest {
     user?: User;
 }
 
-const handleErrors = (error: Error, res: Response, message: string) => {
-    console.error(message, error);
-    res.status(500).json({ error: 'Internal server error' });
-};
-
-const verifyToken = (token: string, secret: string): User => {
+const verifyToken = (token: string, secret: string): User | null => {
     try {
         return jwt.verify(token, secret) as User;
-    } catch (error: any) {
-        throw new Error(error.message);
+    } catch {
+        return null;
     }
 };
 
-const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.split(' ')[1];
+const authenticate = (getToken: (req: Request) => string | null, verifyStoredToken?: (token: string) => Promise<boolean>) =>
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        const token = getToken(req);
 
-    if (!token) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-    }
+        if (!token) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
 
-    try {
         const user = verifyToken(token, config.jwtSecret);
-        const db_user = await findUserById(user.user_id);
 
-        if (!db_user) {
-            res.status(404).json({ error: 'User not found' });
-            return;
-        }
-
-        if (!db_user.is_email_verified) {
-            res.status(403).json({ error: 'Email not verified' });
-            return;
-        }
-
-        req.user = db_user;
-        next();
-    } catch (error: any) {
-        handleErrors(error, res, 'Error authenticating token');
-    }
-};
-
-const authenticateRefreshToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const refreshToken = req.cookies.refreshToken;
-
-    if (!refreshToken) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-    }
-
-    try {
-        const user = verifyToken(refreshToken, config.refreshTokenSecret);
-        const tokenIsStored = await isRefreshTokenStored(refreshToken);
-
-        if (!tokenIsStored) {
-            res.status(403).json({ error: 'Refresh token is not valid' });
+        if (!user || verifyStoredToken && !(await verifyStoredToken(token))) {
+            res.status(403).json({ error: 'Token is not valid' });
             return;
         }
 
         req.user = user;
         next();
-    } catch (error: any) {
-        handleErrors(error, res, 'Error authenticating refresh token');
-    }
-};
+    };
+
+const authenticateToken = authenticate(
+    req => (req.headers.authorization?.split(' ')[1]) ?? null,
+    async token => {
+        const user = await findUserById((verifyToken(token, config.jwtSecret) as User).user_id);
+        return Boolean(user && user.is_email_verified);
+    },
+);
+
+const authenticateRefreshToken = authenticate(
+    req => req.cookies.refreshToken ?? null,
+    isRefreshTokenStored,
+);
+
 
 export { authenticateToken, authenticateRefreshToken };
