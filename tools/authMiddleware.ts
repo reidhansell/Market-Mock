@@ -3,6 +3,7 @@ import config from '../config.json';
 import { findUserById, isRefreshTokenStored } from '../database/queries/Auth';
 import { Request as ExpressRequest, Response, NextFunction } from 'express';
 import User from '../models/User';
+import ExpectedError from './ExpectedError';
 
 interface Request extends ExpressRequest {
     user?: User;
@@ -21,14 +22,14 @@ const authenticate = (getToken: (req: Request) => string | null, verifyStoredTok
         const token = getToken(req);
 
         if (!token) {
-            res.status(401).json({ error: '' });
+            next(new ExpectedError('Failed authentication.', 400, 'Authenticate failed: Missing token'));
             return;
         }
 
         const user = verifyToken(token, config.jwtSecret);
 
         if (!user || verifyStoredToken && !(await verifyStoredToken(token))) {
-            res.status(403).json({ error: '' });
+            next(new ExpectedError('Failed authentication.', 401, 'Authenticate failed: Token is not valid'));
             return;
         }
 

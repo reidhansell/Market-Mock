@@ -124,7 +124,7 @@ router.post('/verify/:token', async (req: Request, res: Response, next: NextFunc
         const { token } = req.params;
 
         if (!token) {
-            throw new ExpectedError("Token is required.", 400, "/verify failed with missing token");
+            throw new ExpectedError("Verification token is required.", 400, "/verify failed with missing token");
         }
 
         let decoded;
@@ -132,9 +132,10 @@ router.post('/verify/:token', async (req: Request, res: Response, next: NextFunc
             decoded = jwt.verify(token, config.jwtSecret);
         } catch (error) {
             if (error instanceof jwt.TokenExpiredError) {
-                throw new ExpectedError("Token expired. Please verify your email again.", 401, "/verify failed with expired token");
+                throw new ExpectedError("Verification token expired. Please verify your email again.", 401, "/verify failed with expired token");
+                //TODO generate a new token and send a new email
             } else if (error instanceof jwt.JsonWebTokenError) {
-                throw new ExpectedError("Invalid token.", 401, "/verify failed with invalid token");
+                throw new ExpectedError("Invalid Verification token.", 400, "/verify failed with invalid token");
             } else {
                 throw error;
             }
@@ -157,11 +158,11 @@ router.get('/session/refresh_token', async (req: Request, res: Response, next: N
     try {
         const refreshToken = req.cookies ? req.cookies.refreshToken : null;
         if (!refreshToken) {
-            throw new ExpectedError('', 403, "/refresh_token failed with missing refresh token");
+            throw new ExpectedError('Failed authentication.', 400, "/refresh_token failed with missing refresh token");
         }
 
         if (!(await isRefreshTokenStored(refreshToken))) {
-            throw new ExpectedError('', 403, "/refresh_token failed with invalid refresh token");
+            throw new ExpectedError('Failed authentication.', 401, "/refresh_token failed with invalid refresh token");
         }
 
         let payload;
@@ -169,9 +170,9 @@ router.get('/session/refresh_token', async (req: Request, res: Response, next: N
             payload = jwt.verify(refreshToken, config.refreshTokenSecret) as User;
         } catch (err) {
             if (err instanceof jwt.TokenExpiredError) {
-                throw new ExpectedError("Refresh token expired. Please login again.", 401, "/refresh_token failed with expired refresh token");
+                throw new ExpectedError("Session expired, please login again.", 401, "/refresh_token failed with expired refresh token");
             } else if (err instanceof jwt.JsonWebTokenError) {
-                throw new ExpectedError("Invalid refresh token.", 401, "/refresh_token failed with invalid refresh token");
+                throw new ExpectedError("Failed authentication.", 401, "/refresh_token failed with invalid refresh token");
             } else {
                 throw err;
             }
@@ -188,11 +189,11 @@ router.post('/session/logout', async (req: Request, res: Response, next: NextFun
     try {
         const refreshToken = req.cookies ? req.cookies.refreshToken : null;
         if (!refreshToken) {
-            throw new ExpectedError('', 401, "/logout failed with missing refresh token");
+            throw new ExpectedError('Failed logout.', 400, "/logout failed with missing refresh token");
         }
 
         if (!(await isRefreshTokenStored(refreshToken))) {
-            throw new ExpectedError('', 403, "/logout failed with invalid refresh token");
+            throw new ExpectedError('Failed logout.', 400, "/logout failed with invalid refresh token");
         }
 
         await deleteRefreshToken(refreshToken);
