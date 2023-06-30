@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
-import Axios, { AxiosResponse, AxiosError } from 'axios';
+import Axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import Home from './components/Home/Home';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
-import config from './config.json';
 import VerifyEmail from './components/Auth/VerifyEmail';
 import AlertComponent from './components/Common/Alert';
+import { getUser, logout } from './requests/Auth';
 import './index.css';
 import './components/Common/Alert.css';
 
@@ -15,63 +15,6 @@ interface Alert {
   id: string;
   message: string;
 }
-
-const refreshToken = async () => {
-  try {
-    const response = await Axios.get(`${config.serverURL}/api/auth/session/refresh_token`);
-    return response.data.accessToken;
-  } catch (error) {
-    console.error('Error refreshing token', error);
-    return null;
-  }
-};
-
-const getToken = () => {
-  return new Promise((resolve, reject) => {
-    try {
-      const token = localStorage.getItem('token');
-      resolve(token);
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
-const isAuthenticated = async () => {
-  Axios.defaults.withCredentials = true;
-  let token = await getToken() as string;
-  Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-  if (!token) {
-    token = await refreshToken();
-    if (!token) {
-      return false;
-    }
-    localStorage.setItem('token', token);
-    Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  }
-
-  try {
-    const response = await Axios.get(`${config.serverURL}/api/auth/`, { withCredentials: true });
-    if (response.status === 200) {
-      return true;
-    }
-    return false;
-  } catch (error) {
-    token = await refreshToken();
-    if (!token) {
-      return false;
-    }
-    localStorage.setItem('token', token);
-    Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    const response = await Axios.get(`${config.serverURL}/api/auth/`);
-    if (response.status === 200) {
-      return true;
-    }
-    return false;
-  }
-};
-
 
 const App = () => {
   const [auth, setAuth] = useState(false);
@@ -91,27 +34,56 @@ const App = () => {
     setAlerts((prevAlerts) => prevAlerts.filter((alert) => alert.id !== id));
   };
 
-  /*  Interceptor must be called at the top level and within a component. */
+  const AxiosRefreshInstance: AxiosInstance = Axios.create({
+    baseURL: Axios.defaults.baseURL,
+    headers: {
+      ...Axios.defaults.headers,
+    },
+  });
+
   Axios.interceptors.response.use(
     (response: AxiosResponse) => {
       return response;
     },
-    (error: AxiosError) => {
-      const errorMessage = (error?.response?.data as { error: string }).error;
-      if (errorMessage) {
+    async (error: AxiosError) => {
+      const originalRequest = error.config as any;
+
+      if (error?.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+
+        try {
+          const response = await AxiosRefreshInstance.get('/api/auth/session/refresh_token', {});
+          const token = response.data.data.token;
+
+          Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          AxiosRefreshInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+          localStorage.setItem('token', token);
+
+          return Axios(originalRequest);
+        } catch (error) {
+          await logout();
+          setAuth(false);
+        }
+      }
+
+      const errorMessage = (error as any).response.data.error;
+      if (errorMessage && errorMessage !== 'Failed authentication.' && errorMessage !== 'Failed logout.') {
         addAlert(errorMessage);
       }
-      return Promise.reject();
+
+      return Promise.reject(error);
     }
   );
 
   useEffect(() => {
-    const checkAuthentication = async () => {
-      const res = await isAuthenticated();
-      setAuth(res);
-    };
-
-    checkAuthentication();
+    getUser()
+      .then(response => {
+        setAuth(true);
+      })
+      .catch(error => {
+        setAuth(false);
+      });
   }, []);
 
   useEffect(() => {

@@ -18,7 +18,7 @@ const Login: FC<LoginProps> = ({ setAuth }) => {
     const handleLogin = async (event: React.FormEvent) => {
         event.preventDefault();
         try {
-            const response: AxiosResponse<ResponseData> = await login(email, password);
+            const response = await login(email, password);
             if (response.status === 200) {
                 const response = await Axios.get(`${config.serverURL}/api/auth/`);
                 if (response.status === 200) {

@@ -28,7 +28,6 @@ export const login = async (email: string, password: string): Promise<AxiosRespo
 
         if (response.data && response.data.token) {
             Axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-            Axios.defaults.headers.common['Access-Control-Allow-Origin'] = config.serverURL;
             localStorage.setItem('token', response.data.token);
             console.log('Login successful');
         }
@@ -60,11 +59,33 @@ export const verifyEmail = async (token: string): Promise<AxiosResponse<Response
 export const logout = async (): Promise<AxiosResponse<ResponseData>> => {
     try {
         localStorage.removeItem('token');
-        const response = await Axios.post<ResponseData>('/api/auth/session/logout');
         delete Axios.defaults.headers.common['Authorization'];
+        const response = await Axios.post<ResponseData>('/api/auth/session/logout');
         console.log('Logout successful');
         return response;
     } catch (error: any) {
         throw error.response.data.error;
     }
 };
+
+export const refreshToken = async (): Promise<AxiosResponse<ResponseData>> => {
+    try {
+        const response = await Axios.get<ResponseData>('/api/auth/session/refresh_token');
+        return response;
+    } catch (error: any) {
+        throw error.response.data.error;
+    }
+}
+
+export const getUser = async (): Promise<AxiosResponse<ResponseData>> => {
+    try {
+        const token = localStorage.getItem('token');
+        Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        Axios.defaults.headers.common['Access-Control-Allow-Origin'] = config.serverURL;
+        Axios.defaults.withCredentials = true;
+        const response = await Axios.get<ResponseData>('/api/auth/');
+        return response;
+    } catch (error: any) {
+        throw error.response.data.error;
+    }
+}
