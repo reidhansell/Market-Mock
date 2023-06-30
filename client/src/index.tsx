@@ -56,7 +56,7 @@ const App = () => {
   };
 
   const addAlert = (message: string) => {
-    const id = generateId(); // Generate a unique ID for each alert
+    const id = generateId();
     const newAlert = { id, message };
     setAlerts((prevAlerts) => [...prevAlerts, newAlert]);
   };
@@ -75,7 +75,7 @@ const App = () => {
       if (errorMessage) {
         addAlert(errorMessage);
       }
-      return Promise.reject(); // Reject without passing the error object
+      return Promise.reject();
     }
   );
 
@@ -86,17 +86,17 @@ const App = () => {
     };
 
     checkAuthentication();
-  }, []); // Empty dependency array - the effect will only run once on mount
+  }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (alerts.length > 0) {
-        removeAlert(alerts[0].id); // Automatically remove the oldest alert after 5 seconds
+        removeAlert(alerts[0].id);
       }
     }, 5000);
 
     return () => {
-      clearTimeout(timeout); // Clear the timeout when the component unmounts
+      clearTimeout(timeout);
     };
   }, [alerts]);
 

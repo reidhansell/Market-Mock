@@ -25,7 +25,7 @@ export const login = async (email: string, password: string): Promise<AxiosRespo
         const response = await axios.post<ResponseData>(`${config.serverURL}/api/auth/login`, {
             email,
             password,
-        });
+        } as LoginData);
 
         if (response.data && response.data.accessToken) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.accessToken}`;

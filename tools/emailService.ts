@@ -2,17 +2,16 @@ import nodemailer, { Transporter } from 'nodemailer';
 import jwt from 'jsonwebtoken';
 import config from '../config.json';
 
-async function sendVerificationEmail(email: string, verificationToken: string): Promise<void> {
-    try {
-        const transporter: Transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: config.email,
-                pass: config.emailpassword,
-            },
-        });
+const transporter: Transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: config.email,
+        pass: config.emailpassword,
+    },
+});
 
-        const emailContent: string = `
+function getEmailContent(verificationToken: string): string {
+    return `
         <table style="width: 100%; height: 100%; min-height: 100vh; border-collapse: collapse; margin: 0; background-color: hsl(50.59, 10%, 10%); color: hsl(50.59, 15%, 85%);">
             <tr>
                 <td style="text-align: center; vertical-align: middle;">
@@ -28,6 +27,11 @@ async function sendVerificationEmail(email: string, verificationToken: string): 
             </tr>
         </table>
     `;
+}
+
+async function sendVerificationEmail(email: string, verificationToken: string): Promise<void> {
+    try {
+        const emailContent: string = getEmailContent(verificationToken);
 
         const mailOptions: nodemailer.SendMailOptions = {
             from: config.email,
@@ -36,7 +40,7 @@ async function sendVerificationEmail(email: string, verificationToken: string): 
             html: emailContent,
         };
 
-        const info = await transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
     } catch (error) {
         console.error(error);
         throw error;
@@ -45,8 +49,10 @@ async function sendVerificationEmail(email: string, verificationToken: string): 
 
 function generateVerificationToken(user_id: number): string {
     const expiresIn: string = '1d';
-    const signedToken: string = jwt.sign({ user_id: user_id }, config.jwtSecret, { expiresIn });
+    const payload = { user_id };
+    const signedToken: string = jwt.sign(payload, config.jwtSecret, { expiresIn });
     return signedToken;
 }
 
 export { sendVerificationEmail, generateVerificationToken };
+

@@ -12,6 +12,10 @@ export default class CronJobs {
     }
 
     static async scheduleCleanupTokens() {
+        console.log('Cleaning up expired tokens...');
+        await cleanupExpiredTokens();
+        console.log('Done cleaning up expired tokens');
+
         cron.schedule('0 1 * * *', this.wrapJob(async () => {
             console.log('Cleaning up expired tokens...');
             await cleanupExpiredTokens();
@@ -20,6 +24,10 @@ export default class CronJobs {
     }
 
     static async scheduleSyncTickers() {
+        console.log('Syncing tickers...');
+        await syncTickers();
+        console.log('Done syncing tickers');
+
         cron.schedule('0 2 * * *', this.wrapJob(async () => {
             console.log('Syncing tickers...');
             await syncTickers();

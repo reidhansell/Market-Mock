@@ -51,7 +51,7 @@ async function registerUser(username: string, email: string, password: string): 
     return results.insertId;
 }
 
-async function getUserData(user_id: number): Promise<User | null> {
+async function getUserData(user_id: number): Promise<User> {
     const query = `
         SELECT user_id, username, email, registration_date, starting_amount, current_balance, is_email_verified
         FROM User
@@ -60,13 +60,17 @@ async function getUserData(user_id: number): Promise<User | null> {
     const parameters = [user_id];
     const results = await executeQuery(query, parameters) as User[];
     if (results.length === 0) {
-        return null;
+        throw new ExpectedError(
+            'Could not get user data.',
+            500,
+            `Failed query: "${query}" with parameters: "${parameters}"`
+        );
     } else {
         return mapUserResult(results[0]);
     }
 }
 
-async function updateVerificationToken(user_id: number, verificationToken: string): Promise<boolean> {
+async function updateVerificationToken(user_id: number, verificationToken: string): Promise<void> {
     const query = 'UPDATE User SET verification_token = ? WHERE user_id = ?';
     const parameters = [verificationToken, user_id];
     const results = await executeQuery(query, parameters) as ResultObject;
@@ -77,7 +81,6 @@ async function updateVerificationToken(user_id: number, verificationToken: strin
             `Failed query: "${query}" with parameters: "${parameters}"`
         );
     }
-    return true;
 }
 
 async function findUserByEmail(email: string): Promise<User | null> {
@@ -97,7 +100,7 @@ async function findUserSensitiveByEmail(email: string): Promise<UserSensitive | 
     if (results.length === 0) {
         return null;
     }
-    return mapUserSensitiveResult(results[0]); // mapUserSensitiveResult is hypothetical, you should create a proper mapping function
+    return mapUserSensitiveResult(results[0]);
 }
 
 async function findUserByUsername(username: string): Promise<User | null> {
@@ -120,7 +123,7 @@ async function findUserById(id: number): Promise<User | null> {
     return mapUserResult(results[0]);
 }
 
-async function updateEmailVerificationStatus(user_id: number): Promise<boolean> {
+async function updateEmailVerificationStatus(user_id: number): Promise<void> {
     const query = 'UPDATE User SET is_email_verified = ? WHERE user_id = ?';
     const parameters = [convertJSToDatabaseBool(true), user_id];
     const results = await executeQuery(query, parameters) as ResultObject;
@@ -131,7 +134,6 @@ async function updateEmailVerificationStatus(user_id: number): Promise<boolean> 
             `Failed query: "${query}" with parameters: "${parameters}"`
         );
     }
-    return true;
 }
 
 async function storeRefreshToken(token: string, user_id: number): Promise<number> {
@@ -159,7 +161,7 @@ async function isRefreshTokenStored(token: string): Promise<boolean> {
     return true;
 }
 
-async function deleteRefreshToken(token: string): Promise<boolean> {
+async function deleteRefreshToken(token: string): Promise<void> {
     const query = 'DELETE FROM Refresh_Token WHERE token = ?';
     const parameters = [token];
     const results = await executeQuery(query, parameters) as ResultObject;
@@ -170,13 +172,11 @@ async function deleteRefreshToken(token: string): Promise<boolean> {
             `Failed query: "${query}" with parameters: "${parameters}"`
         );
     }
-    return true;
 }
 
-async function cleanupExpiredTokens(): Promise<boolean> {
+async function cleanupExpiredTokens(): Promise<void> {
     const query = 'DELETE FROM Refresh_Token WHERE expiry_date < NOW()';
     await executeQuery(query);
-    return true;
 }
 
 export {

@@ -1,16 +1,16 @@
-import * as mysql from 'mysql';
+import { Connection, createConnection } from 'mysql';
 import config from '../config.json';
 
-let databaseConnection: mysql.Connection | null = null;
+let databaseConnection: Connection | null = null;
 
-async function initializeDatabaseConnection(): Promise<mysql.Connection> {
+async function initializeDatabaseConnection(): Promise<Connection> {
     console.log("Initializing database connection.");
     if (databaseConnection) {
-        return Promise.resolve(databaseConnection);
+        return databaseConnection;
     }
 
     return new Promise((resolve, reject) => {
-        databaseConnection = mysql.createConnection({
+        databaseConnection = createConnection({
             host: config.dbhostname,
             user: config.dbusername,
             password: config.dbpassword,
@@ -23,13 +23,13 @@ async function initializeDatabaseConnection(): Promise<mysql.Connection> {
                 reject(error);
             } else {
                 console.log('Database connection successful.');
-                resolve(databaseConnection as mysql.Connection);
+                resolve(databaseConnection as Connection);
             }
         });
     });
 }
 
-async function getDatabaseConnection(): Promise<mysql.Connection> {
+function getDatabaseConnection(): Connection {
     if (!databaseConnection) {
         throw new Error('Database connection has not been initialized.');
     }
