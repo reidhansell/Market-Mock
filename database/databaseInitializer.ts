@@ -3,34 +3,51 @@ import config from '../config.json';
 
 async function initializeDatabase(): Promise<void> {
     try {
-        /*  TODO Remove this code before deploying to production    */
+        /*  TODO Remove this code before deploying to production    
         console.log("Beginning database initialization.");
         if (!config.production) {
             console.log("Dropping tables");
             await executeQuery('SET FOREIGN_KEY_CHECKS = 0');
-            await executeQuery('DROP TABLE IF EXISTS Refresh_Token, User_Reset, Trade_Order, Watch_List, Transaction, User, Stock_Data, Ticker');
+            await executeQuery('DROP TABLE IF EXISTS Refresh_Token, User_Reset, Trade_Order, Watch_List, Transaction, User, Ticker_End_Of_Day, Ticker_Intraday, Ticker');
             await executeQuery('SET FOREIGN_KEY_CHECKS = 1');
             console.log('Tables dropped successfully.');
         }
-        /*  End of code to remove before deploying to production */
+          End of code to remove before deploying to production */
         const table_definitions: string[] = [
             `CREATE TABLE IF NOT EXISTS Ticker (
                 ticker_symbol VARCHAR(20) PRIMARY KEY,
                 company_name VARCHAR(255)
             )`,
-            `CREATE TABLE IF NOT EXISTS Stock_Data (
-                stock_id INT AUTO_INCREMENT PRIMARY KEY,
+            `CREATE TABLE IF NOT EXISTS Ticker_End_Of_Day (
+                eod_id INT AUTO_INCREMENT PRIMARY KEY,
                 ticker_symbol VARCHAR(20),
-                current_price DECIMAL(8, 2),
-                previous_close DECIMAL(8, 2),
                 open_price DECIMAL(8, 2),
                 high_price DECIMAL(8, 2),
                 low_price DECIMAL(8, 2),
-                volume INT,
-                market_cap DECIMAL(20, 2),
-                PE_ratio DECIMAL(8, 2),
-                dividend_yield DECIMAL(8, 2),
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                close_price DECIMAL(8, 2),
+                volume BIGINT,
+                adjusted_open DECIMAL(8, 2),
+                adjusted_high DECIMAL(8, 2),
+                adjusted_low DECIMAL(8, 2),
+                adjusted_close DECIMAL(8, 2),
+                adjusted_volume BIGINT,
+                split_factor DECIMAL(8, 2),
+                dividend DECIMAL(8, 2),
+                exchange VARCHAR(20),
+                date DATE,
+                FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
+            )`,
+            `CREATE TABLE IF NOT EXISTS Ticker_Intraday (
+                intraday_id INT AUTO_INCREMENT PRIMARY KEY,
+                ticker_symbol VARCHAR(20),
+                open_price DECIMAL(8, 2),
+                high_price DECIMAL(8, 2),
+                low_price DECIMAL(8, 2),
+                last_price DECIMAL(8, 2),
+                close_price DECIMAL(8, 2),
+                volume BIGINT,
+                exchange VARCHAR(20),
+                date_time DATETIME,
                 FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
             )`,
             `CREATE TABLE IF NOT EXISTS User (

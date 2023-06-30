@@ -14,7 +14,6 @@ const VerifyEmail = () => {
                 return;
             }
             await verifyEmail(token);
-            localStorage.setItem('token', token);
             setSuccess(true);
             setTimeout(() => {
                 navigate('/');

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { AxiosResponse } from 'axios';
 import './Auth.css';
 import { login, ResponseData } from '../../requests/Auth';
+import Axios from 'axios';
+import config from '../../config.json';
 
 interface LoginProps {
     setAuth: (auth: boolean) => void;
@@ -18,7 +20,10 @@ const Login: FC<LoginProps> = ({ setAuth }) => {
         try {
             const response: AxiosResponse<ResponseData> = await login(email, password);
             if (response.status === 200) {
-                setAuth(true);
+                const response = await Axios.get(`${config.serverURL}/api/auth/`);
+                if (response.status === 200) {
+                    setAuth(true);
+                }
             }
         } catch (error) {
             console.error(error);

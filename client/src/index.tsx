@@ -18,7 +18,7 @@ interface Alert {
 
 const refreshToken = async () => {
   try {
-    const response = await Axios.get(`${config.serverURL}/api/auth/session/refresh_token`, { withCredentials: true });
+    const response = await Axios.get(`${config.serverURL}/api/auth/session/refresh_token`);
     return response.data.accessToken;
   } catch (error) {
     console.error('Error refreshing token', error);
@@ -26,8 +26,21 @@ const refreshToken = async () => {
   }
 };
 
+const getToken = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      const token = localStorage.getItem('token');
+      resolve(token);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 const isAuthenticated = async () => {
-  let token = localStorage.getItem('token');
+  Axios.defaults.withCredentials = true;
+  let token = await getToken() as string;
+  Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
   if (!token) {
     token = await refreshToken();
@@ -35,17 +48,30 @@ const isAuthenticated = async () => {
       return false;
     }
     localStorage.setItem('token', token);
+    Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
 
   try {
-    await Axios.get(`${config.serverURL}/api/auth/session/refresh_token`, { withCredentials: true, headers: { 'Access-Control-Allow-Origin': 'http://localhost:3000', Authorization: `Bearer ${token}` } });
-
-    return true;
+    const response = await Axios.get(`${config.serverURL}/api/auth/`, { withCredentials: true });
+    if (response.status === 200) {
+      return true;
+    }
+    return false;
   } catch (error) {
-    console.error('Error verifying token', error);
+    token = await refreshToken();
+    if (!token) {
+      return false;
+    }
+    localStorage.setItem('token', token);
+    Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    const response = await Axios.get(`${config.serverURL}/api/auth/`);
+    if (response.status === 200) {
+      return true;
+    }
     return false;
   }
 };
+
 
 const App = () => {
   const [auth, setAuth] = useState(false);
@@ -100,7 +126,6 @@ const App = () => {
     };
   }, [alerts]);
 
-
   return (<>
     <div className='alert-container'>
       {alerts.map((alert) => (
@@ -111,24 +136,15 @@ const App = () => {
         />
       ))}
     </div>
-    {
-      auth ?
-        <Router>
-          <Routes>
-            <Route path="/" element={<Home setAuth={setAuth} />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </Router>
-        :
-        <Router>
-          <Routes>
-            <Route path="/login" element={auth ? <Home setAuth={setAuth} /> : <Login setAuth={setAuth} />} />
-            <Route path="/register" element={auth ? <Home setAuth={setAuth} /> : <Register />} />
-            <Route path="/verify/:token" element={<VerifyEmail />} />
-            <Route path="*" element={<Navigate to="/login" />} />
-          </Routes>
-        </Router>
-    }
+    <Router>
+      <Routes>
+        <Route path="/login" element={!auth ? <Login setAuth={setAuth} /> : <Navigate to="/" />} />
+        <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
+        <Route path="/verify/:token" element={<VerifyEmail />} />
+        <Route path="/" element={auth ? <Home setAuth={setAuth} /> : <Navigate to="/login" />} />
+        <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
+      </Routes>
+    </Router>
   </>
   );
 };
@@ -140,4 +156,3 @@ if (!rootElement) {
 }
 
 createRoot(rootElement).render(<App />);
-

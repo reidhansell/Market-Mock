@@ -188,11 +188,11 @@ router.post('/session/logout', async (req: Request, res: Response, next: NextFun
     try {
         const refreshToken = req.cookies ? req.cookies.refreshToken : null;
         if (!refreshToken) {
-            throw new ExpectedError('No refresh token provided', 401, "/logout failed with missing refresh token");
+            throw new ExpectedError('', 401, "/logout failed with missing refresh token");
         }
 
         if (!(await isRefreshTokenStored(refreshToken))) {
-            throw new ExpectedError('Refresh token is not in store', 403, "/logout failed with invalid refresh token");
+            throw new ExpectedError('', 403, "/logout failed with invalid refresh token");
         }
 
         await deleteRefreshToken(refreshToken);
