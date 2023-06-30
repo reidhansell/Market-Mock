@@ -21,14 +21,14 @@ const authenticate = (getToken: (req: Request) => string | null, verifyStoredTok
         const token = getToken(req);
 
         if (!token) {
-            res.status(401).json({ error: 'Unauthorized' });
+            res.status(401).json({ error: '' });
             return;
         }
 
         const user = verifyToken(token, config.jwtSecret);
 
         if (!user || verifyStoredToken && !(await verifyStoredToken(token))) {
-            res.status(403).json({ error: 'Token is not valid' });
+            res.status(403).json({ error: '' });
             return;
         }
 
