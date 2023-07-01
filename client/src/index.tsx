@@ -7,6 +7,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import VerifyEmail from './components/Auth/VerifyEmail';
 import AlertComponent from './components/Common/Alert';
+import Ticker from './components/Home/Ticker';
 import { getUser, logout } from './requests/Auth';
 import './index.css';
 import './components/Common/Alert.css';
@@ -114,6 +115,7 @@ const App = () => {
         <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
         <Route path="/verify/:token" element={<VerifyEmail />} />
         <Route path="/" element={auth ? <Home setAuth={setAuth} /> : <Navigate to="/login" />} />
+        <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
       </Routes>
     </Router>

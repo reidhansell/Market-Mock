@@ -1,8 +1,7 @@
 import React, { useState, FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AxiosResponse } from 'axios';
 import './Auth.css';
-import { login, ResponseData } from '../../requests/Auth';
+import { login } from '../../requests/Auth';
 import Axios from 'axios';
 import config from '../../config.json';
 

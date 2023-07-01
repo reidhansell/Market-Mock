@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Ticker from "../../../../models/Ticker"
 import { searchTickers } from '../../requests/Ticker';
+import './TickerSearch.css';
 
 function useDebounce(value: any, delay: number) {
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -19,7 +20,7 @@ function useDebounce(value: any, delay: number) {
     return debouncedValue;
 }
 
-const SearchTicker = () => {
+const TickerSearch = () => {
     const [companyName, setCompanyName] = useState('');
     const [searchResults, setSearchResults] = useState([] as Ticker[]);
     const debouncedSearchTerm = useDebounce(companyName, 500);
@@ -39,34 +40,27 @@ const SearchTicker = () => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setCompanyName(''); //reset the state to cancel pending debounced request
-        searchAPI(companyName);
-    };
-
     return (
-        <div>
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    placeholder="Search tickers..."
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                />
-                <button type="submit">Search</button>
-            </form>
-            <ul>
-                {searchResults.slice(0, 10).map((ticker: Ticker, index) => (
-                    <li key={index}>
-                        <Link to={`{tickerDetailURL}/${ticker.ticker_symbol}`}>
+        <div className="search-ticker">
+            <input
+                type="text"
+                className="search-input"
+                placeholder="Search tickers..."
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+            />
+            <ul className="ticker-list">
+                {searchResults.map((ticker: Ticker, index) => (
+                    <Link key={index} to={`/ticker/${ticker.ticker_symbol}`} className="ticker-link">
+                        <li className="ticker-item">
                             {`${ticker.ticker_symbol}: ${ticker.company_name.slice(0, 25)}`}
-                        </Link>
-                    </li>
+                        </li>
+                    </Link>
+
                 ))}
             </ul>
         </div>
     );
 };
 
-export default SearchTicker;
+export default TickerSearch;
