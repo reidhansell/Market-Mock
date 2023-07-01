@@ -63,3 +63,5 @@ interface ExchangeTickersResponse {
         }[];
     };
 }
+
+export { EODResponse, IntradayResponse, ExchangeTickersResponse };

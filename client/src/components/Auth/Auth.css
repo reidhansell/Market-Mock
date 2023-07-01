@@ -13,19 +13,6 @@
     background-color: var(--background-2);
 }
 
-.auth-form input {
-    padding: 10px;
-    background: var(--surface1-light);
-    border: 2px solid transparent;
-    border-radius: 5px;
-    color: var(--text1-light);
-}
-
-.auth-form input:focus {
-    outline: none;
-    border-color: var(--brand);
-}
-
 .auth-link {
     display: flex;
     flex-direction: column;

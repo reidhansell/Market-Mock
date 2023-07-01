@@ -1,0 +1,40 @@
+.search-ticker {
+    width: 360px;
+    height: 540px;
+    margin:5px;
+    background-color: var(--surface2-dark); /* Add your preferred color */
+    border-radius: 5px;
+    box-shadow:
+    0 2.8px 2.2px hsl(var(--surface-shadow) / calc(var(--shadow-strength) + .03)),
+    0 6.7px 5.3px hsl(var(--surface-shadow) / calc(var(--shadow-strength) + .01)),
+    0 12.5px 10px hsl(var(--surface-shadow) / calc(var(--shadow-strength) + .02)),
+    0 22.3px 17.9px hsl(var(--surface-shadow) / calc(var(--shadow-strength) + .02)),
+    0 41.8px 33.4px hsl(var(--surface-shadow) / calc(var(--shadow-strength) + .03)),
+    0 100px 80px hsl(var(--surface-shadow) / var(--shadow-strength));
+}
+
+.ticker-list {
+    background-color: var(--surface2-dark); /* Add your preferred color */
+    border-radius: 5px;
+    overflow: hidden; /* Enable scroll when content height exceeds container height */
+    padding: 0;
+    margin: 0;
+    height: calc(100% - 35px); /* subtract input height and its margin */
+    overflow-y: auto;
+}
+
+.ticker-link {
+    text-decoration: none;
+    color: var(--text1-dark); /* Add your preferred color */
+    display: block; /* Add this line */
+}
+
+.ticker-item {
+    padding: 5px;
+    border-bottom: 1px solid var(--text1-dark);
+}
+
+.ticker-item:hover {
+    color: var(--text1-light); /* Add your preferred color */
+    background-color: var(--brand);
+}

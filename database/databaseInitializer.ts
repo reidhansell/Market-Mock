@@ -47,7 +47,7 @@ async function initializeDatabase(): Promise<void> {
                 close_price DECIMAL(8, 2),
                 volume BIGINT,
                 exchange VARCHAR(20),
-                date_time DATETIME,
+                date DATETIME,
                 FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
             )`,
             `CREATE TABLE IF NOT EXISTS User (

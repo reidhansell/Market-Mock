@@ -47,7 +47,7 @@ async function insertEODData(eodData: TickerEndOfDay): Promise<void> {
 }
 
 async function insertIntradayData(intradayData: TickerIntraday): Promise<void> {
-    const query = 'INSERT INTO Ticker_Intraday (ticker_symbol, open_price, high_price, low_price, last_price, close_price, volume, exchange, date_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const query = 'INSERT INTO Ticker_Intraday (ticker_symbol, open_price, high_price, low_price, last_price, close_price, volume, exchange, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
     const parameters = [intradayData.symbol, intradayData.open, intradayData.high, intradayData.low, intradayData.last, intradayData.close, intradayData.volume, intradayData.exchange, intradayData.date];
     const queryResults = await executeQuery(query, parameters) as ResultObject;
     if (queryResults.affectedRows === 0) {
@@ -66,7 +66,7 @@ async function getLatestEODData(ticker_symbol: string): Promise<TickerEndOfDay[]
 }
 
 async function getLatestIntradayData(ticker_symbol: string): Promise<TickerIntraday[] | null> {
-    const query = 'SELECT * FROM Ticker_Intraday WHERE ticker_symbol = ? ORDER BY date_time DESC LIMIT 24';
+    const query = 'SELECT * FROM Ticker_Intraday WHERE ticker_symbol = ? ORDER BY date DESC LIMIT 24';
     const parameters = [ticker_symbol];
     const results = await executeQuery(query, parameters) as TickerIntraday[];
     if (results.length === 0) {

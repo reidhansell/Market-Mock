@@ -7,6 +7,7 @@ import { authenticateToken } from '../tools/AuthMiddleware';
 import { insertEODData, insertIntradayData } from '../database/queries/Ticker';
 import TickerEndOfDay from '../models/TickerEndOfDay';
 import TickerIntraday from '../models/TickerIntraday';
+import { EODResponse, IntradayResponse } from '../models/MarketStackResponses';
 
 const router = Router();
 
@@ -30,6 +31,15 @@ const isIntradayDataRecent = (intradayData: TickerIntraday[]): boolean => {
     return differenceInHours <= 1;
 };
 
+function formatTimestampForMySQL(timestamp: string) {
+    // Remove timezone information from timestamp
+    const withoutTimezone = timestamp.slice(0, -5);
+
+    // Convert 'T' separator between date and time into a space
+    const formatted = withoutTimezone.replace('T', ' ');
+
+    return formatted;
+}
 
 router.get('/search/:company_name', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -67,14 +77,16 @@ router.get('/eod/:ticker', authenticateToken, async (req: Request, res: Response
     }
 });
 
-router.get('intraday/:ticker', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/intraday/:ticker', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const ticker = req.params.ticker;
         const intradayData = await getLatestIntradayData(ticker);
 
         if (!intradayData || !isIntradayDataRecent(intradayData)) {
-            const response = await axios.get(`https://api.marketstack.com/v1/intraday?access_key=${marketStackKey}&symbols=${ticker}&limit=24`) as IntradayResponse;
+            const axiosResponse = await axios.get(`https://api.marketstack.com/v1/intraday?access_key=${marketStackKey}&symbols=${ticker}&limit=24&interval=1hour`);
+            const response = axiosResponse.data as IntradayResponse;
             for (let dataPoint of response.data) {
+                dataPoint.date = formatTimestampForMySQL(dataPoint.date);
                 await insertIntradayData(dataPoint as TickerIntraday);
             }
             return res.json(response.data);
