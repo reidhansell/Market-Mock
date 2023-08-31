@@ -105,6 +105,13 @@ async function initializeDatabase(): Promise<void> {
                 token VARCHAR(255),
                 expiry_date TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES User(user_id)
+            )`,
+            `CREATE TABLE IF NOT EXISTS User_Net_Worth (
+                user_id INT,
+                recorded_at TIMESTAMP,
+                net_worth DECIMAL(15, 2),
+                PRIMARY KEY (user_id, recorded_at),
+                FOREIGN KEY (user_id) REFERENCES User(user_id)
             )`
         ];
 
