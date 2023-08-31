@@ -61,6 +61,14 @@ async function initializeDatabase(): Promise<void> {
                 is_email_verified BOOLEAN DEFAULT false,
                 verification_token VARCHAR(255)
             )`,
+            `CREATE TABLE IF NOT EXISTS User_Stocks (
+                user_id INT,
+                ticker_symbol VARCHAR(20),
+                quantity INT,
+                FOREIGN KEY (user_id) REFERENCES User(user_id),
+                FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol),
+                PRIMARY KEY (user_id, ticker_symbol)
+            )`,
             `CREATE TABLE IF NOT EXISTS Transaction (
                 transaction_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
