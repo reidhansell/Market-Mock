@@ -1,10 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import axios from 'axios';
 import { marketStackKey } from '../config.json';
-import { getLatestEODData, getLatestIntradayData, searchTickersByCompanyName } from '../database/queries/Ticker';
+import { getLatestEODData, getLatestIntradayData, searchTickersByCompanyName, insertEODData, insertIntradayData } from '../database/queries/ticker';
 import ExpectedError from '../tools/ExpectedError';
-import { authenticateToken } from '../tools/AuthMiddleware';
-import { insertEODData, insertIntradayData } from '../database/queries/Ticker';
+import { authenticateToken } from '../tools/authMiddleware';
 import TickerEndOfDay from '../models/TickerEndOfDay';
 import TickerIntraday from '../models/TickerIntraday';
 import { EODResponse, IntradayResponse } from '../models/MarketStackResponses';

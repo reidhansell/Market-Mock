@@ -1,6 +1,6 @@
 import cron from 'node-cron';
-import { cleanupExpiredTokens } from '../database/queries/Auth';
-import { syncTickers } from './TickersSyncService';
+import { cleanupExpiredTokens } from '../database/queries/auth';
+import { syncTickers } from './tickersSyncService';
 import ExpectedError from './ExpectedError';
 
 export default class CronJobs {

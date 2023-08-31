@@ -2,7 +2,7 @@ import React, { useState, FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AxiosResponse } from 'axios';
 import './Auth.css';
-import { register, ResponseData } from '../../requests/Auth';
+import { register, ResponseData } from '../../requests/auth';
 import LoadingCircle from '../Common/LoadingCircle';
 
 const Register: FC = () => {
