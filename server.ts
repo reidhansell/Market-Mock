@@ -1,7 +1,7 @@
 import express from 'express';
 import config from './config.json';
-import { initializeDatabaseConnection } from './database/DatabaseConnector';
-import initializeDatabase from './database/DatabaseInitializer';
+import { initializeDatabaseConnection } from './database/databaseConnector';
+import initializeDatabase from './database/databaseInitializer';
 import Logger from './tools/Logger';
 import Router from './tools/Router';
 import CronJobs from './tools/CronJobs';

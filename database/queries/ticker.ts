@@ -1,7 +1,6 @@
-import { executeQuery } from '../QueryExecutor';
+import { executeQuery, ResultObject } from '../queryExecutor';
 import ExpectedError from '../../tools/ExpectedError';
 import Ticker from '../../models/Ticker';
-import { ResultObject } from '../QueryExecutor';
 import TickerEndOfDay from "../../models/TickerEndOfDay";
 import TickerIntraday from "../../models/TickerIntraday";
 

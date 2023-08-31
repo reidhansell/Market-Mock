@@ -8,7 +8,7 @@ import Register from './components/Auth/Register';
 import VerifyEmail from './components/Auth/VerifyEmail';
 import AlertComponent from './components/Common/Alert';
 import Ticker from './components/Home/Ticker';
-import { getUser, logout } from './requests/Auth';
+import { getUser, logout } from './requests/auth';
 import './index.css';
 import './components/Common/Alert.css';
 
