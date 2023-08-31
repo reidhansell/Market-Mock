@@ -1,25 +1,17 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import axios from 'axios';
 import { marketStackKey } from '../config.json';
-import { getLatestEODData, getLatestIntradayData, searchTickersByCompanyName, insertEODData, insertIntradayData } from '../database/queries/ticker';
+import { getLatestIntradayData, searchTickersByCompanyName, insertIntradayData } from '../database/queries/ticker';
 import ExpectedError from '../tools/ExpectedError';
 import { authenticateToken } from '../tools/authMiddleware';
-import TickerEndOfDay from '../models/TickerEndOfDay';
 import TickerIntraday from '../models/TickerIntraday';
-import { EODResponse, IntradayResponse } from '../models/MarketStackResponses';
+import { IntradayResponse } from '../models/MarketStackResponses';
+import { getEODDataForTicker } from '../tools/EODDataService';
+
 
 const router = Router();
 
 const COMPANYNAME_PATTERN = /^[a-zA-Z0-9\s.'-]{1,100}$/;
-
-const isEODDataRecent = (eodData: TickerEndOfDay[]): boolean => {
-    if (!eodData.length) return false;
-    const dataTime = new Date(eodData[0].date);
-    const currentTime = new Date();
-    const timeDifference = Math.abs(currentTime.getTime() - dataTime.getTime());
-    const differenceInHours = timeDifference / (1000 * 3600);
-    return differenceInHours <= 24;
-};
 
 const isIntradayDataRecent = (intradayData: TickerIntraday[]): boolean => {
     if (!intradayData.length) return false;
@@ -60,16 +52,7 @@ router.get('/search/:company_name', authenticateToken, async (req: Request, res:
 router.get('/eod/:ticker', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const ticker = req.params.ticker;
-        const eodData = await getLatestEODData(ticker);
-
-        if (!eodData || !isEODDataRecent(eodData)) {
-            const response = await axios.get(`https://api.marketstack.com/v1/eod?access_key=${marketStackKey}&symbols=${ticker}&limit=30`) as EODResponse;
-            for (let dataPoint of response.data) {
-                await insertEODData(dataPoint as TickerEndOfDay);
-            }
-            return res.json(response.data);
-        }
-
+        const eodData = await getEODDataForTicker(ticker);
         return res.json(eodData);
     } catch (error) {
         next(error);
