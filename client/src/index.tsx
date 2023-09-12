@@ -12,6 +12,19 @@ import { getUser, logout } from './requests/auth';
 import './index.css';
 import './components/Common/Alert.css';
 
+/*
+ * Alert System and Axios Interceptors:
+ * 
+ * Keeping both the alert system and Axios interceptors in the index.tsx file addresses a mutual dependency issue:
+ *    - The Axios interceptors depend on the alert system to display error messages to the user.
+ *    - The alert system relies on state variables defined in this component to function properly.
+ * 
+ * Keeping the interceptor definition outside of the App component (but within useEffect) addresses a re-instantiation issue:
+ *    - Defining the Axios interceptors outside of the App component prevents them from being recreated with every component render, avoiding bugs such as displaying multiple alerts for a single error.
+ *
+ * Future developers should maintain this structure to prevent the reintroduction of circular dependencies and other bugs that arise from separating these interdependent systems.
+ */
+
 interface Alert {
   id: string;
   message: string;
@@ -42,42 +55,42 @@ const App = () => {
     },
   });
 
-  Axios.interceptors.response.use(
-    (response: AxiosResponse) => {
-      return response;
-    },
-    async (error: AxiosError) => {
-      const originalRequest = error.config as any;
-
-      if (error?.response?.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-
-        try {
-          const response = await AxiosRefreshInstance.get('/api/auth/session/refresh_token', {});
-          const token = response.data.data.token;
-
-          Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          AxiosRefreshInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-          localStorage.setItem('token', token);
-
-          return Axios(originalRequest);
-        } catch (error) {
-          await logout();
-          setAuth(false);
-        }
-      }
-
-      const errorMessage = (error as any).response.data.error;
-      if (errorMessage && errorMessage !== 'Failed authentication.' && errorMessage !== 'Failed logout.') {
-        addAlert(errorMessage);
-      }
-
-      return Promise.reject(error);
-    }
-  );
-
   useEffect(() => {
+    const axiosInterceptor = Axios.interceptors.response.use(
+      (response: AxiosResponse) => {
+        return response;
+      },
+      async (error: AxiosError) => {
+        const originalRequest = error.config as any;
+
+        if (error?.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          try {
+            const response = await AxiosRefreshInstance.get('/api/auth/session/refresh_token', {});
+            const token = response.data.data.token;
+
+            Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            AxiosRefreshInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            localStorage.setItem('token', token);
+
+            return Axios(originalRequest);
+          } catch (error) {
+            await logout();
+            setAuth(false);
+          }
+        }
+
+        const errorMessage = (error as any).response.data.error;
+        if (errorMessage && errorMessage !== 'Failed authentication.' && errorMessage !== 'Failed logout.') {
+          addAlert(errorMessage);
+        }
+
+        return Promise.reject(error);
+      }
+    );
+
     getUser()
       .then(response => {
         setAuth(true);
