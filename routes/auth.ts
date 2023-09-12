@@ -4,9 +4,9 @@ import jwt from 'jsonwebtoken';
 import isEmail from 'validator/lib/isEmail';
 import Filter from 'bad-words';
 import User from '../models/User';
-import { sendVerificationEmail, generateVerificationToken } from '../tools/emailService';
-import { authenticateToken } from '../tools/authMiddleware';
-import ExpectedError from '../tools/ExpectedError';
+import { sendVerificationEmail, generateVerificationToken } from '../tools/services/emailService';
+import { authenticateToken } from '../tools/middleware/authMiddleware';
+import ExpectedError from '../tools/utils/ExpectedError';
 import { findUserByEmail, findUserByUsername, registerUser, updateVerificationToken, getUserData, findUserSensitiveByEmail, storeRefreshToken, findUserById, updateEmailVerificationStatus, isRefreshTokenStored, deleteRefreshToken } from '../database/queries/auth';
 import config from '../config.json';
 

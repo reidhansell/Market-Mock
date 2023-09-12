@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { getLatestEODData, insertEODData } from '../database/queries/ticker';
-import TickerEndOfDay from '../models/TickerEndOfDay';
-import { EODResponse } from '../models/MarketStackResponses';
-import { marketStackKey } from '../config.json';
+import { getLatestEODData, insertEODData } from '../../database/queries/ticker';
+import TickerEndOfDay from '../../models/TickerEndOfDay';
+import { EODResponse } from '../../models/MarketStackResponses';
+import { marketStackKey } from '../../config.json';
 
 const isEODDataRecent = (eodData: TickerEndOfDay[]): boolean => {
     if (!eodData.length) return false;

@@ -2,9 +2,9 @@ import express from 'express';
 import config from './config.json';
 import { initializeDatabaseConnection } from './database/databaseConnector';
 import initializeDatabase from './database/databaseInitializer';
-import Logger from './tools/Logger';
-import Router from './tools/Router';
-import CronJobs from './tools/CronJobs';
+import Logger from './tools/utils/Logger';
+import Router from './tools/utils/Router';
+import CronJobs from './tools/jobs/CronJobs';
 
 const app = express();
 const port = config.port;

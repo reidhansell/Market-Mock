@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken';
-import config from '../config.json';
-import { findUserById, isRefreshTokenStored } from '../database/queries/auth';
+import config from '../../config.json';
+import { findUserById, isRefreshTokenStored } from '../../database/queries/auth';
 import { Request as ExpressRequest, Response, NextFunction } from 'express';
-import User from '../models/User';
-import ExpectedError from './ExpectedError';
+import User from '../../models/User';
+import ExpectedError from '../utils/ExpectedError';
 
 interface Request extends ExpressRequest {
     user?: User;

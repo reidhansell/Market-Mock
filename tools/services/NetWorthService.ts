@@ -1,4 +1,4 @@
-import { executeQuery } from '../database/queryExecutor';
+import { executeQuery } from '../../database/queryExecutor';
 import { getEODDataForTicker } from './EODDataService';
 
 export async function calculateAndSaveUserNetWorth() {

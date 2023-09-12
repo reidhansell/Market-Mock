@@ -2,11 +2,11 @@ import { Router, Request, Response, NextFunction } from 'express';
 import axios from 'axios';
 import { marketStackKey } from '../config.json';
 import { getLatestIntradayData, searchTickersByCompanyName, insertIntradayData } from '../database/queries/ticker';
-import ExpectedError from '../tools/ExpectedError';
-import { authenticateToken } from '../tools/authMiddleware';
+import ExpectedError from '../tools/utils/ExpectedError';
+import { authenticateToken } from '../tools/middleware/authMiddleware';
 import TickerIntraday from '../models/TickerIntraday';
 import { IntradayResponse } from '../models/MarketStackResponses';
-import { getEODDataForTicker } from '../tools/EODDataService';
+import { getEODDataForTicker } from '../tools/services/EODDataService';
 
 
 const router = Router();
