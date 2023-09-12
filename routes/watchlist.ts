@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { getWatchList } from '../database/queries/watchlist';
-import { authenticateToken } from '../tools/authMiddleware';
+import { authenticateToken } from '../tools/middleware/authMiddleware';
 
 interface AuthenticatedRequest extends Request {
     user: {

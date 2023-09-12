@@ -1,6 +1,6 @@
 import nodemailer, { Transporter } from 'nodemailer';
 import jwt from 'jsonwebtoken';
-import config from '../config.json';
+import config from '../../config.json';
 
 const transporter: Transporter = nodemailer.createTransport({
     service: 'gmail',

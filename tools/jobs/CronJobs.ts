@@ -1,8 +1,8 @@
 import cron from 'node-cron';
-import { cleanupExpiredTokens } from '../database/queries/auth';
-import { syncTickers } from './tickersSyncService';
-import ExpectedError from './ExpectedError';
-import { calculateAndSaveUserNetWorth } from './NetWorthService';
+import { cleanupExpiredTokens } from '../../database/queries/auth';
+import { syncTickers } from '../services/tickersSyncService';
+import ExpectedError from '../utils/ExpectedError';
+import { calculateAndSaveUserNetWorth } from '../services/NetWorthService';
 
 export default class CronJobs {
     static scheduleJobs() {

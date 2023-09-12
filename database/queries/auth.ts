@@ -1,5 +1,5 @@
 import { ResultObject, executeQuery } from '../queryExecutor';
-import ExpectedError from '../../tools/ExpectedError';
+import ExpectedError from '../../tools/utils/ExpectedError';
 import User, { UserSensitive } from '../../models/User';
 import RefreshToken from '../../models/RefreshToken';
 

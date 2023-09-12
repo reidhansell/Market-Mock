@@ -4,7 +4,7 @@ import path from 'path';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import ExpectedError from './ExpectedError';
-import config from '../config.json';
+import config from '../../config.json';
 
 export default class Router {
     private static app: express.Express;
@@ -27,7 +27,7 @@ export default class Router {
             });
         }
 
-        this.loadRoutes(path.join(__dirname, '../routes'), '/api');
+        this.loadRoutes(path.join(__dirname, '../../routes'), '/api');
         this.errorHandler();
 
         console.log('Successfully initialized routes');
