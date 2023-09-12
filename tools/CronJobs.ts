@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { cleanupExpiredTokens } from '../database/queries/auth';
 import { syncTickers } from './tickersSyncService';
 import ExpectedError from './ExpectedError';
+import { calculateAndSaveUserNetWorth } from './NetWorthService';
 
 export default class CronJobs {
     static scheduleJobs() {
@@ -32,6 +33,18 @@ export default class CronJobs {
             console.log('Syncing tickers...');
             await syncTickers();
             console.log('Done syncing tickers');
+        }));
+    }
+
+    static async scheduleCalculateNetWorth() {
+        console.log('Calculating net worth...');
+        await calculateAndSaveUserNetWorth();
+        console.log('Done calculating net worth');
+
+        cron.schedule('0 0 23 * *', this.wrapJob(async () => {
+            console.log('Calculating net worth...');
+            await calculateAndSaveUserNetWorth();
+            console.log('Done calculating net worth');
         }));
     }
 
