@@ -11,6 +11,9 @@ import Ticker from './components/Home/Ticker';
 import { getUser, logout } from './requests/auth';
 import './index.css';
 import './components/Common/Alert.css';
+import Portfolio from './components/Home/Portfolio';
+import Watchlist from './components/Home/Watchlist';
+import Quests from './components/Home/Quests';
 
 /*
  * Alert System and Axios Interceptors:
@@ -128,6 +131,9 @@ const App = () => {
         <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
         <Route path="/verify/:token" element={<VerifyEmail />} />
         <Route path="/" element={auth ? <Home setAuth={setAuth} /> : <Navigate to="/login" />} />
+        <Route path="/portfolio" element={auth ? <Portfolio /> : <Navigate to="/login" />} />
+        <Route path="/watchlist" element={auth ? <Watchlist /> : <Navigate to="/login" />} />
+        <Route path="/quests" element={auth ? <Quests /> : <Navigate to="/login" />} />
         <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
       </Routes>
