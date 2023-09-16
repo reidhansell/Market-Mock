@@ -4,12 +4,14 @@ import './Auth.css';
 import { login } from '../../requests/auth';
 import Axios from 'axios';
 import config from '../../config.json';
+import User from '../../../../models/User';
 
 interface LoginProps {
     setAuth: (auth: boolean) => void;
+    setUser: (user: User) => void;
 }
 
-const Login: FC<LoginProps> = ({ setAuth }) => {
+const Login: FC<LoginProps> = ({ setAuth, setUser }) => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const navigate = useNavigate();
@@ -21,6 +23,7 @@ const Login: FC<LoginProps> = ({ setAuth }) => {
             if (response.status === 200) {
                 const response = await Axios.get(`${config.serverURL}/api/auth/`);
                 if (response.status === 200) {
+                    setUser(response.data)
                     setAuth(true);
                 }
             }
