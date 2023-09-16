@@ -1,6 +1,25 @@
 .dashboard-module {
-    border: 1px solid #ccc;
-    padding: 16px;
-    margin: 16px;
-  }
-  
+  border: 1px solid #ccc;
+  padding: 16px;
+  margin: 16px;
+  text-align: center;
+  width: 320px;
+  height: 540px;
+  cursor: pointer;
+  position: relative;
+  border-radius: 10px; 
+  padding-top: 70px; 
+}
+
+.dashboard-module-header {
+  border-radius: 10px 10px 0 0;
+  background-color: var(--surface4-dark);
+  width: 100%;
+  height: 45px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0;
+  margin: 0;
+  padding-top: 5px
+}
