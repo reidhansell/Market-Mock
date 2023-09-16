@@ -4,14 +4,6 @@
     align-items: center;
   }
   
-  .dashboard-module {
-    border: 1px solid #ccc;
-    padding: 16px;
-    margin: 16px;
-    width: 100%;
-    max-width: 320px; /* Smallest supported screen size */
-  }
-  
   @media (min-width: 600px) {
     .container {
       flex-direction: row;
