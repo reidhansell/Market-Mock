@@ -14,6 +14,8 @@ import './components/Common/Alert.css';
 import Portfolio from './components/Home/Portfolio';
 import Watchlist from './components/Home/Watchlist';
 import Quests from './components/Home/Quests';
+import User from '../../models/User';
+import Nav from './components/Home/Nav';
 
 /*
  * Alert System and Axios Interceptors:
@@ -36,6 +38,7 @@ interface Alert {
 const App = () => {
   const [auth, setAuth] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [user, setUser] = useState<User | null>(null);
 
   const generateId = (): string => {
     return Math.random().toString(36).substr(2, 9);
@@ -96,6 +99,8 @@ const App = () => {
 
     getUser()
       .then(response => {
+        const userData = response.data;
+        setUser(userData);
         setAuth(true);
       })
       .catch(error => {
@@ -125,13 +130,15 @@ const App = () => {
         />
       ))}
     </div>
+
     <Router>
+      {auth ? <Nav setAuth={setAuth} /> : null}
       <Routes>
-        <Route path="/login" element={!auth ? <Login setAuth={setAuth} /> : <Navigate to="/" />} />
+        <Route path="/login" element={!auth ? <Login setAuth={setAuth} setUser={setUser} /> : <Navigate to="/" />} />
         <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
         <Route path="/verify/:token" element={<VerifyEmail />} />
-        <Route path="/" element={auth ? <Home setAuth={setAuth} /> : <Navigate to="/login" />} />
-        <Route path="/portfolio" element={auth ? <Portfolio /> : <Navigate to="/login" />} />
+        <Route path="/" element={(auth && user) ? <Home user={user} /> : <Navigate to="/login" />} />
+        <Route path="/portfolio" element={auth && user ? <Portfolio user={user} /> : <Navigate to="/login" />} />
         <Route path="/watchlist" element={auth ? <Watchlist /> : <Navigate to="/login" />} />
         <Route path="/quests" element={auth ? <Quests /> : <Navigate to="/login" />} />
         <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
