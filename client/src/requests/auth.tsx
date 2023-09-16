@@ -1,5 +1,6 @@
 import Axios, { AxiosResponse } from 'axios';
 import config from '../config.json';
+import User from '../../../models/User'
 
 interface LoginData {
     email: string;
@@ -15,6 +16,7 @@ interface RegisterData {
 export interface ResponseData {
     data: {
         token?: string;
+        [key: string]: any;
     };
     [key: string]: any;
 }
@@ -77,13 +79,13 @@ export const refreshToken = async (): Promise<AxiosResponse<ResponseData>> => {
     }
 }
 
-export const getUser = async (): Promise<AxiosResponse<ResponseData>> => {
+export const getUser = async (): Promise<AxiosResponse<User>> => {
     try {
         const token = localStorage.getItem('token');
         Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         Axios.defaults.headers.common['Access-Control-Allow-Origin'] = config.serverURL;
         Axios.defaults.withCredentials = true;
-        const response = await Axios.get<ResponseData>('/api/auth/');
+        const response = await Axios.get<User>('/api/auth/');
         return response;
     } catch (error: any) {
         throw error.response.data.error;
