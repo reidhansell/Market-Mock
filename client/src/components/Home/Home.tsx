@@ -1,20 +1,19 @@
 import React from 'react';
-import Nav from './Nav';
 import DashboardModule from '../Common/DashboardModule';
 import './Home.css';
+import User from '../../../../models/User';
 
 interface HomeProps {
-    setAuth: (auth: boolean) => void;
+    user: User
 }
 
-const Home: React.FC<HomeProps> = ({ setAuth }) => {
+const Home: React.FC<HomeProps> = ({ user }) => {
     return (
         <>
-            <Nav setAuth={setAuth} />
             <div className="container">
-                <DashboardModule type="portfolio" />
-                <DashboardModule type="watchlist" />
-                <DashboardModule type="quests" />
+                <DashboardModule type="portfolio" user={user} />
+                <DashboardModule type="watchlist" user={user} />
+                <DashboardModule type="quests" user={user} />
             </div>
         </>
     );
