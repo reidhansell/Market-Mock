@@ -9,6 +9,7 @@ export default class CronJobs {
         console.log('Scheduling cron jobs...');
         this.scheduleCleanupTokens();
         this.scheduleSyncTickers();
+        this.scheduleCalculateNetWorth();
         console.log('Successfully scheduled cron jobs');
     }
 
@@ -41,7 +42,7 @@ export default class CronJobs {
         await calculateAndSaveUserNetWorth();
         console.log('Done calculating net worth');
 
-        cron.schedule('0 0 23 * *', this.wrapJob(async () => {
+        cron.schedule(/* TODO '0 0 23 * *'*/'*/2 * * * *', this.wrapJob(async () => {
             console.log('Calculating net worth...');
             await calculateAndSaveUserNetWorth();
             console.log('Done calculating net worth');
