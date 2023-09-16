@@ -4,18 +4,20 @@ import Portfolio from '../Home/Portfolio';
 import Watchlist from '../Home/Watchlist';
 import Quests from '../Home/Quests';
 import './DashboardModule.css';
+import User from '../../../../models/User';
 
 interface Props {
     type: 'portfolio' | 'watchlist' | 'quests';
+    user: User;
 }
 
-const DashboardModule: React.FC<Props> = ({ type }) => {
+const DashboardModule: React.FC<Props> = ({ type, user }) => {
     const navigate = useNavigate();
 
     const getContent = () => {
         switch (type) {
             case 'portfolio':
-                return <Portfolio />;
+                return <Portfolio user={user} />;
             case 'watchlist':
                 return <Watchlist />;
             case 'quests':
@@ -30,9 +32,11 @@ const DashboardModule: React.FC<Props> = ({ type }) => {
     }
 
     return (
-        <div className="dashboard-module">
+        <div className="dashboard-module" onClick={toggleFullscreen}>
+            <h1 className="dashboard-module-header">
+                {type === 'portfolio' ? 'Portfolio' : type === 'watchlist' ? 'Watchlist' : 'Quests'}
+            </h1>
             {getContent()}
-            <button onClick={toggleFullscreen}>Toggle Fullscreen</button>
         </div>
     );
 };
