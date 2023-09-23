@@ -10,7 +10,7 @@ interface HomeProps {
 const Home: React.FC<HomeProps> = ({ user }) => {
     return (
         <>
-            <div className="container">
+            <div className="home-container">
                 <DashboardModule type="portfolio" user={user} />
                 <DashboardModule type="watchlist" user={user} />
                 <DashboardModule type="quests" user={user} />
