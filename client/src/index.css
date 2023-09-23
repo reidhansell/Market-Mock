@@ -28,47 +28,69 @@
   --shadow-strength-dark: .8;
 }
 
-body {
-  margin: 0;
-  font-family: 'Roboto';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--surface1-dark);
-  color: var(--text1-dark)
-
+:root {
+  font-size: 16px;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    margin-top: 0.5rem; 
-    margin-bottom: 0.5rem; 
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Roboto';
+  background-color: var(--surface1-dark);
+  color: var(--text1-dark)
+}
+
+body, h1, h2, h3, h4, h5, h6, p, ol, ul {
+  font-weight: normal;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: left;
+  min-width: 320px;
+  margin: 0 auto;
+  padding: 20px;
+  height: 100%;
+}
+
+button, input, textarea, select, option {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+}
+
+button, input {
+  border-radius: 5px;
+  padding: 10px;
+  transition: all 0.3s ease;
+  height: 2.5rem;
 }
 
 button {
-  background-color: var(--brand); 
+  background-color: var(--brand);
   border: none;
-  color: var(--text1-light); 
+  color: var(--text1-light);
   text-align: center;
-  display: inline-block;
-  font-size: 16px;
-  transition-duration: 0.4s;
   cursor: pointer;
-  padding: 10px 24px;
-  border-radius: 5px;
 }
 
 button:hover {
-  background-color: var(--brand-dark); 
-  color: var(--surface1-dark); 
+  background-color: var(--brand-dark);
 }
 
 input {
-  padding: 10px;
-  width: calc(100% - 34px);
   background: var(--surface1-light);
   border: 2px solid transparent;
-  border-radius: 5px;
   color: var(--text1-light);
-  margin: 5px;
 }
 
 input:focus {

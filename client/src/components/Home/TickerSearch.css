@@ -1,32 +1,47 @@
-.search-ticker {
-    width: 360px;
-    height: 540px;
-    margin:5px;
-    background-color: var(--surface2-dark); /* Add your preferred color */
-    border-radius: 5px;
-    box-shadow:
-    0 2.8px 2.2px hsl(var(--surface-shadow) / calc(var(--shadow-strength) + .03)),
-    0 6.7px 5.3px hsl(var(--surface-shadow) / calc(var(--shadow-strength) + .01)),
-    0 12.5px 10px hsl(var(--surface-shadow) / calc(var(--shadow-strength) + .02)),
-    0 22.3px 17.9px hsl(var(--surface-shadow) / calc(var(--shadow-strength) + .02)),
-    0 41.8px 33.4px hsl(var(--surface-shadow) / calc(var(--shadow-strength) + .03)),
-    0 100px 80px hsl(var(--surface-shadow) / var(--shadow-strength));
+.ticker-search-container {
+    display: flex;
+    flex-direction: column;
+    min-width: 20rem;
+    max-width: 30rem;
+    width: 25vw;
+    height: 40rem;
+    max-height: 40rem;
+    background-color: var(--surface2-dark); 
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    box-shadow: 0px 4px 6px rgba(255, 255, 255, 0.1); 
+  transition: box-shadow 0.3s ease-in-out;
 }
 
-.ticker-list {
-    background-color: var(--surface2-dark); /* Add your preferred color */
-    border-radius: 5px;
-    overflow: hidden; /* Enable scroll when content height exceeds container height */
-    padding: 0;
-    margin: 0;
-    height: calc(100% - 35px); /* subtract input height and its margin */
+.ticker-search-container:hover {
+  box-shadow: 0px 8px 12px rgba(255, 255, 255, 0.1); 
+}
+
+.ticker-search-container input{
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    width: 90%;
+}
+
+.ticker-search-header{
+    justify-content: center;;
+    background-color: var(--surface4-dark);
+    border-radius: 10px 10px 0 0;
+    padding: 5px;
+}
+.ticker-list::-webkit-scrollbar-track {
+    border-radius: 0 0 10px 0;
+  }
+
+  .ticker-list {
+    background-color: var(--surface2-dark); 
+    border-radius: 0 0 10px 10px;
     overflow-y: auto;
 }
 
 .ticker-link {
-    text-decoration: none;
-    color: var(--text1-dark); /* Add your preferred color */
-    display: block; /* Add this line */
+    color: var(--text1-dark); 
 }
 
 .ticker-item {
@@ -35,6 +50,6 @@
 }
 
 .ticker-item:hover {
-    color: var(--text1-light); /* Add your preferred color */
+    color: var(--text1-light);
     background-color: var(--brand);
 }
