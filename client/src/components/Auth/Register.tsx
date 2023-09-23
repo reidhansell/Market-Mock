@@ -31,6 +31,7 @@ const Register: FC = () => {
     return (
         <div className="auth-container">
             <h1 className="logo-placeholder"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</h1>
+            <br />
             {!registrationSuccess ? (
                 <>
                     <h2>Register</h2>
