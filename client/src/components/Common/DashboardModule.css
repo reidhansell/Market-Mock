@@ -1,25 +1,33 @@
 .dashboard-module {
+  background-color: var(--surface2-dark);
   border: 1px solid #ccc;
-  padding: 16px;
-  margin: 16px;
-  text-align: center;
-  width: 320px;
-  height: 540px;
-  cursor: pointer;
+  margin: 1rem;
+  min-width: 20rem;
+  max-width: 30rem;
+  width: 25vw;
+  min-height: 40rem;
+  max-height: 40rem;
   position: relative;
   border-radius: 10px; 
-  padding-top: 70px; 
+  box-shadow: 0px 4px 6px rgba(255, 255, 255, 0.1);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.dashboard-module:hover {
+  box-shadow: 0px 8px 12px rgba(255, 255, 255, 0.1); 
 }
 
 .dashboard-module-header {
   border-radius: 10px 10px 0 0;
   background-color: var(--surface4-dark);
   width: 100%;
-  height: 45px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 0;
+  height: 3rem;
+  padding: 0 0.5rem 0 0.5rem;
   margin: 0;
-  padding-top: 5px
+  padding-top: 5px;
+  cursor: pointer;
+}
+
+.dashboard-module-content{
+  padding: 0.5rem;
 }
