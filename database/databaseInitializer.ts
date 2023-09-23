@@ -3,7 +3,7 @@ import config from '../config.json';
 
 async function initializeDatabase(): Promise<void> {
     try {
-        /*  TODO Remove this code before deploying to production    
+        /*  TODO Remove this code before deploying to production   
         console.log("Beginning database initialization.");
         if (!config.production) {
             console.log("Dropping tables");
@@ -81,11 +81,11 @@ async function initializeDatabase(): Promise<void> {
                 FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
             )`,
             `CREATE TABLE IF NOT EXISTS Watch_List (
-                watch_list_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 ticker_symbol VARCHAR(20),
                 FOREIGN KEY (user_id) REFERENCES User(user_id),
-                FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
+                FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol),
+                PRIMARY KEY (user_id, ticker_symbol)
             )`,
             `CREATE TABLE IF NOT EXISTS Trade_Order (
                 order_id INT AUTO_INCREMENT PRIMARY KEY,
