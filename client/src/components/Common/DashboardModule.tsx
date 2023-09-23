@@ -19,7 +19,7 @@ const DashboardModule: React.FC<Props> = ({ type, user }) => {
             case 'portfolio':
                 return <Portfolio user={user} />;
             case 'watchlist':
-                return <Watchlist />;
+                return <Watchlist user={user} />;
             case 'quests':
                 return <Quests />;
             default:
@@ -32,11 +32,13 @@ const DashboardModule: React.FC<Props> = ({ type, user }) => {
     }
 
     return (
-        <div className="dashboard-module" onClick={toggleFullscreen}>
-            <h1 className="dashboard-module-header">
+        <div className="dashboard-module">
+            <h1 className="dashboard-module-header" onClick={toggleFullscreen}>
                 {type === 'portfolio' ? 'Portfolio' : type === 'watchlist' ? 'Watchlist' : 'Quests'}
             </h1>
-            {getContent()}
+            <div className="dashboard-module-content">
+                {getContent()}
+            </div>
         </div>
     );
 };
