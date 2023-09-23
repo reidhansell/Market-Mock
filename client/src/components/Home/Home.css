@@ -1,0 +1,14 @@
+.home-container { 
+    display: flex;
+    flex-direction: column;
+  }
+  
+  @media (min-width: 1060px) {
+    .home-container {
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+  
+
+  
