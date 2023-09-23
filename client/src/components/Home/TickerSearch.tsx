@@ -41,14 +41,15 @@ const TickerSearch = () => {
     };
 
     return (
-        <div className="search-ticker">
-            <input
-                type="text"
-                className="search-input"
-                placeholder="Search tickers..."
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-            />
+        <div className="ticker-search-container">
+            <div className="ticker-search-header">
+                <input
+                    type="text"
+                    placeholder="Search tickers..."
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                />
+            </div>
             <ul className="ticker-list">
                 {searchResults.map((ticker: Ticker, index) => (
                     <Link key={index} to={`/ticker/${ticker.ticker_symbol}`} className="ticker-link">
