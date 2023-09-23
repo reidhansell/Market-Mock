@@ -8,6 +8,7 @@ import Register from './components/Auth/Register';
 import VerifyEmail from './components/Auth/VerifyEmail';
 import AlertComponent from './components/Common/Alert';
 import Ticker from './components/Home/Ticker';
+import TickerSearch from './components/Home/TickerSearch';
 import { getUser, logout } from './requests/auth';
 import './index.css';
 import './components/Common/Alert.css';
@@ -120,32 +121,35 @@ const App = () => {
     };
   }, [alerts]);
 
-  return (<>
-    <div className='alert-container'>
-      {alerts.map((alert) => (
-        <AlertComponent
-          key={alert.id}
-          message={alert.message}
-          onClose={() => removeAlert(alert.id)}
-        />
-      ))}
-    </div>
-
+  return (
     <Router>
       {auth ? <Nav setAuth={setAuth} /> : null}
-      <Routes>
-        <Route path="/login" element={!auth ? <Login setAuth={setAuth} setUser={setUser} /> : <Navigate to="/" />} />
-        <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
-        <Route path="/verify/:token" element={<VerifyEmail />} />
-        <Route path="/" element={(auth && user) ? <Home user={user} /> : <Navigate to="/login" />} />
-        <Route path="/portfolio" element={auth && user ? <Portfolio user={user} /> : <Navigate to="/login" />} />
-        <Route path="/watchlist" element={auth ? <Watchlist /> : <Navigate to="/login" />} />
-        <Route path="/quests" element={auth ? <Quests /> : <Navigate to="/login" />} />
-        <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
-        <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
-      </Routes>
+
+      <div className="app-container">
+        <div className='alert-container'>
+          {alerts.map((alert) => (
+            <AlertComponent
+              key={alert.id}
+              message={alert.message}
+              onClose={() => removeAlert(alert.id)}
+            />
+          ))}
+        </div>
+
+        <Routes>
+          <Route path="/login" element={!auth ? <Login setAuth={setAuth} setUser={setUser} /> : <Navigate to="/" />} />
+          <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
+          <Route path="/verify/:token" element={<VerifyEmail />} />
+          <Route path="/" element={(auth && user) ? <Home user={user} /> : <Navigate to="/login" />} />
+          <Route path="/portfolio" element={auth && user ? <Portfolio user={user} /> : <Navigate to="/login" />} />
+          <Route path="/watchlist" element={auth && user ? <Watchlist user={user} /> : <Navigate to="/login" />} />
+          <Route path="/quests" element={auth ? <Quests /> : <Navigate to="/login" />} />
+          <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
+          <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
+          <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
+        </Routes>
+      </div>
     </Router>
-  </>
   );
 };
 
