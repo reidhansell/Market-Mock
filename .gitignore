@@ -131,3 +131,6 @@ dist
 
 # other
 config.json
+
+# typescript
+./dist

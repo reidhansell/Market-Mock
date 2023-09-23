@@ -1,8 +1,8 @@
 .loader {
     display: inline-block;
     vertical-align: middle;
-    border: 0.16em solid #f3f3f3; /* Light grey */
-    border-top: 0.16em solid #3498db; /* Blue */
+    border: 0.16em solid var(--brand-dark);
+    border-top: 0.16em solid var(--brand);
     border-radius: 50%;
     width: 0.8em;
     height: 0.8em;

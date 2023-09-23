@@ -1,0 +1,12 @@
+.top-bar {
+    display: flex;
+}
+
+.top-bar button {
+    aspect-ratio: 1/1;
+}
+
+.search-input {
+    width: 100%
+}
+
