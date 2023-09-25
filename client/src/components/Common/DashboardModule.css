@@ -1,6 +1,6 @@
 .dashboard-module {
-  background-color: var(--surface2-dark);
-  border: 1px solid #ccc;
+  background-color: transparent;
+  border: none;
   margin: 1rem;
   min-width: 20rem;
   max-width: 30rem;
@@ -9,23 +9,29 @@
   max-height: 40rem;
   position: relative;
   border-radius: 10px; 
-  box-shadow: 0px 4px 6px rgba(255, 255, 255, 0.1);
-  transition: box-shadow 0.3s ease-in-out;
 }
 
-.dashboard-module:hover {
-  box-shadow: 0px 8px 12px rgba(255, 255, 255, 0.1); 
+.dashboard-module-large{
+  max-width: calc(100vw - 40px);
+  width: 50rem
 }
 
 .dashboard-module-header {
-  border-radius: 10px 10px 0 0;
-  background-color: var(--surface4-dark);
-  width: 100%;
-  height: 3rem;
-  padding: 0 0.5rem 0 0.5rem;
-  margin: 0;
-  padding-top: 5px;
+  display: flex;
   cursor: pointer;
+  border-bottom: 1px solid var(--text1-dark);
+}
+
+.dashboard-module-header-large{
+  cursor: default;
+}
+
+.dashboard-module-header:hover {
+  color: var(--brand);
+}
+
+.dashboard-module-header-large:hover {
+  color: var(--text1-dark);
 }
 
 .dashboard-module-content{

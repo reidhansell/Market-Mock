@@ -1,5 +1,7 @@
 .top-bar {
     display: flex;
+    border-bottom: 1px solid var(--text1-dark);
+    padding-bottom: 0.5rem;
 }
 
 .top-bar button {
