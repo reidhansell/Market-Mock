@@ -3,7 +3,7 @@ import './LoadingCircle.css';
 
 const LoadingCircle = () => {
     return (
-        <div className="loader"></div>
+        <span className="loader"></span>
     );
 };
 
