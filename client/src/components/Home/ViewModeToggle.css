@@ -1,0 +1,17 @@
+  .view-mode-toggle {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    margin-left: auto;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  .view-mode-toggle span {
+    transition: color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .view-mode-toggle span.active {
+    color: var(--brand);
+  }
+  
