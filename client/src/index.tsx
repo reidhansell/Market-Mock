@@ -17,6 +17,8 @@ import Watchlist from './components/Home/Watchlist';
 import Quests from './components/Home/Quests';
 import User from '../../models/User';
 import Nav from './components/Home/Nav';
+import { WatchlistProvider } from './components/Common/WatchlistProvider';
+import LoadingCircle from './components/Common/LoadingCircle';
 
 /*
  * Alert System and Axios Interceptors:
@@ -40,6 +42,7 @@ const App = () => {
   const [auth, setAuth] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const generateId = (): string => {
     return Math.random().toString(36).substr(2, 9);
@@ -106,6 +109,9 @@ const App = () => {
       })
       .catch(error => {
         setAuth(false);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
 
@@ -121,6 +127,10 @@ const App = () => {
     };
   }, [alerts]);
 
+  if (loading) {
+    return <h1><LoadingCircle /></h1>
+  }
+
   return (
     <Router>
       {auth ? <Nav setAuth={setAuth} /> : null}
@@ -128,33 +138,30 @@ const App = () => {
       <div className="app-container">
         <div className='alert-container'>
           {alerts.map((alert) => (
-            <AlertComponent
-              key={alert.id}
-              message={alert.message}
-              onClose={() => removeAlert(alert.id)}
-            />
+            <AlertComponent key={alert.id} message={alert.message} onClose={() => removeAlert(alert.id)} />
           ))}
         </div>
 
-        <Routes>
-          <Route path="/login" element={!auth ? <Login setAuth={setAuth} setUser={setUser} /> : <Navigate to="/" />} />
-          <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
-          <Route path="/verify/:token" element={<VerifyEmail />} />
-          <Route path="/" element={(auth && user) ? <Home user={user} /> : <Navigate to="/login" />} />
-          <Route path="/portfolio" element={auth && user ? <Portfolio user={user} /> : <Navigate to="/login" />} />
-          <Route path="/watchlist" element={auth && user ? <Watchlist user={user} /> : <Navigate to="/login" />} />
-          <Route path="/quests" element={auth ? <Quests /> : <Navigate to="/login" />} />
-          <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
-          <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
-          <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
-        </Routes>
+        <WatchlistProvider>
+          <Routes>
+            <Route path="/login" element={!auth ? <Login setAuth={setAuth} setUser={setUser} /> : <Navigate to="/" />} />
+            <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
+            <Route path="/verify/:token" element={<VerifyEmail />} />
+            <Route path="/" element={(auth && user) ? <Home user={user} /> : <Navigate to="/login" />} />
+            <Route path="/portfolio" element={auth && user ? <Portfolio user={user} /> : <Navigate to="/login" />} />
+            <Route path="/watchlist" element={auth && user ? <Watchlist user={user} /> : <Navigate to="/login" />} />
+            <Route path="/quests" element={auth ? <Quests /> : <Navigate to="/login" />} />
+            <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
+            <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
+            <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
+          </Routes>
+        </WatchlistProvider>
       </div>
     </Router>
   );
 };
 
 const rootElement = document.getElementById('root');
-
 if (!rootElement) {
   throw new Error("Could not find root element");
 }

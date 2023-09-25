@@ -55,7 +55,7 @@ const Portfolio: React.FC<Props> = ({ user }) => {
                                 const date = new Date(dateStr);
                                 return `${date.getMonth() + 1}/${date.getDate()}`; // format date to only show day/month
                             }}
-                            style={{ fontSize: '12px' }}
+                            style={{ fontSize: '0.75rem' }}
                             tick={{ fill: 'white' }}
                         />
                         <YAxis
@@ -63,13 +63,12 @@ const Portfolio: React.FC<Props> = ({ user }) => {
                             tickFormatter={(tick) => `${(tick / 1000).toFixed(1)}k`}
                             style={{ fontSize: '12px' }}
                             width={40}
-                            axisLine={{ stroke: '#f5f5f5' }}
+                            axisLine={false}
                             tick={{ fill: 'white' }}
                         />
                         <Tooltip />
                         <CartesianGrid stroke="#f5f5f5" vertical={false} />
                         <Line type="monotone" dataKey="netWorth" stroke="#3cb043" yAxisId={0} />
-                        {chartData.length > 0 && <ReferenceLine x={chartData[chartData.length - 1].date} stroke="#f5f5f5" />}
                     </LineChart>
                 </ResponsiveContainer>
             </div>
