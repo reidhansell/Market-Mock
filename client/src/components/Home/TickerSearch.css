@@ -6,15 +6,8 @@
     width: 25vw;
     height: 40rem;
     max-height: 40rem;
-    background-color: var(--surface2-dark); 
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    box-shadow: 0px 4px 6px rgba(255, 255, 255, 0.1); 
-  transition: box-shadow 0.3s ease-in-out;
-}
-
-.ticker-search-container:hover {
-  box-shadow: 0px 8px 12px rgba(255, 255, 255, 0.1); 
+    background-color: transparent; 
+    border: none;
 }
 
 .ticker-search-container input{
@@ -25,9 +18,7 @@
 }
 
 .ticker-search-header{
-    justify-content: center;;
-    background-color: var(--surface4-dark);
-    border-radius: 10px 10px 0 0;
+    border-bottom: 1px solid var(--text1-dark);
     padding: 5px;
 }
 .ticker-list::-webkit-scrollbar-track {
@@ -35,7 +26,6 @@
   }
 
   .ticker-list {
-    background-color: var(--surface2-dark); 
     border-radius: 0 0 10px 10px;
     overflow-y: auto;
 }
