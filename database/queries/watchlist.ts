@@ -13,8 +13,26 @@ async function getWatchList(user_id: number): Promise<WatchList[]> {
   return results;
 }
 
+async function addTickerToWatchList(user_id: number, ticker_symbol: string): Promise<void> {
+  const query = `
+    INSERT INTO Watch_List (user_id, ticker_symbol)
+    VALUES (?, ?)
+  `;
+  const parameters = [user_id, ticker_symbol];
+  await executeQuery(query, parameters);
+}
+
+async function removeTickerFromWatchList(user_id: number, ticker_symbol: string): Promise<void> {
+  const query = `
+    DELETE FROM Watch_List
+    WHERE user_id = ? AND ticker_symbol = ?
+  `;
+  const parameters = [user_id, ticker_symbol];
+  await executeQuery(query, parameters);
+}
+
 export {
-  getWatchList,
+  getWatchList, addTickerToWatchList, removeTickerFromWatchList
 };
 
 
