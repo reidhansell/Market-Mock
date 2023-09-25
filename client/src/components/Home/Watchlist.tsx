@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import LoadingCircle from '../Common/LoadingCircle';
 import WatchList from '../../../../models/WatchList';
-import { getWatchlist } from '../../requests/watchlist';
 import User from '../../../../models/User';
 import './Watchlist.css';
+import { WatchlistContext } from '../Common/WatchlistProvider';
 
 
 interface WatchListProps {
@@ -13,23 +13,8 @@ interface WatchListProps {
 
 const Watchlist: React.FC<WatchListProps> = ({ user }) => {
     const navigate = useNavigate();
-    const [data, setData] = useState<WatchList[]>([]);
-    const [loading, setLoading] = useState<Boolean>(true);
+    const { data, loading } = useContext(WatchlistContext);
     const [search, setSearch] = useState<string>("");
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await getWatchlist(user.user_id);
-                setData(response);
-            } catch (error) {
-                console.error('Failed to fetch watchlist data', error);
-            }
-        };
-
-        fetchData();
-        setLoading(false);
-    }, []);
 
     return (
         <>
