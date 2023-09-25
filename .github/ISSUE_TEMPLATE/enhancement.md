@@ -17,14 +17,4 @@ assignees: ''
 ## Use Cases
 
 
-### Technical Details
-## Possible Implementation
-
-
-## Code/Components Affected
-
-
-## Dependencies
-
-
-## Risks/Challenges
+### Technical Scope
