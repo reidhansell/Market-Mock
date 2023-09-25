@@ -17,11 +17,14 @@ export async function getIntradayDataForTicker(ticker: string) {
     let intradayData = await getLatestIntradayData(ticker);
 
     if (!intradayData || !isIntradayDataRecent(intradayData)) {
-        const response = await axios.get(`https://api.marketstack.com/v1/intraday?access_key=${marketStackKey}&symbols=${ticker}`) as IntradayResponse;
-        for (let dataPoint of response.data) {
+        const axiosResponse = await axios.get(`https://api.marketstack.com/v1/intraday?access_key=${marketStackKey}&symbols=${ticker}`);
+        const data = axiosResponse.data as IntradayResponse;
+        for (let dataPoint of data.data) {
+            const date = new Date(dataPoint.date);
+            dataPoint.date = date.toISOString().slice(0, 19).replace('T', ' ');
             await insertIntradayData(dataPoint as TickerIntraday);
         }
-        intradayData = response.data;
+        intradayData = data.data;
     }
 
     return intradayData;
