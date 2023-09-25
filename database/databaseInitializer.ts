@@ -1,5 +1,4 @@
 import { executeQuery } from './queryExecutor';
-import config from '../config.json';
 
 async function initializeDatabase(): Promise<void> {
     try {
