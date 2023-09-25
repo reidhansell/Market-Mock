@@ -8,31 +8,9 @@ assignees: ''
 ---
 
 ### Story
-As a  ,
-I want 
-so that 
+As a user, I want X so that Y
 
 ### Design Considerations
-## UI/UX components affected
-
-
-## User flow
-
-
-## Visuals (attach any mockups or links)
 
 
 ### Technical Scope
-## Proposed technical solution
-
-
-## Affected modules
-
-
-## Dependencies
-
-
-## Database changes
-
-
-## API changes
