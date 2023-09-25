@@ -1,12 +1,30 @@
 ---
 name: Enhancement
-about: Addition to an existing feature
+about: For additions to existing features
 title: ''
-labels: ''
+labels: enhancement
 assignees: ''
 
 ---
 
 ### Overview
-## Current Behavior: Describe the current functionality/behavior.
-## Desired Behavior: Describe what the enhancement would accomplish.
+## Current Behavior
+
+
+## Desired Behavior
+
+
+## Use Cases
+
+
+### Technical Details
+## Possible Implementation
+
+
+## Code/Components Affected
+
+
+## Dependencies
+
+
+## Risks/Challenges
