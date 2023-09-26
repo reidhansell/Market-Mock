@@ -14,12 +14,9 @@ const Portfolio: React.FC<Props> = ({ user }) => {
     const navigate = useNavigate();
     const [data, setData] = useState<NetWorthData[] | null>(null);
 
-    // TODO Replace with appropriate logic to get the current user's ID
-    const userId = 1;
-
     const fetchData = async () => {
         try {
-            const netWorthData = await getUserNetWorthData(userId);
+            const netWorthData = await getUserNetWorthData();
             console.log(netWorthData);
             setData(netWorthData);
         } catch (error) {
@@ -29,10 +26,10 @@ const Portfolio: React.FC<Props> = ({ user }) => {
 
     useEffect(() => {
         fetchData();
-    }, [userId]);
+    }, []);
 
     const transformToChartData = (data: NetWorthData[]) => {
-        return data.map(d => ({ date: new Date(d.recorded_at).toISOString(), netWorth: d.net_worth }));
+        return data.map(d => ({ date: new Date(d.recorded_at).toISOString(), netWorth: d.net_worth })).sort((a, b) => { return a.date < b.date ? -1 : 1 });
     };
 
     let chartData: { date: string; netWorth: number }[] = [];
@@ -53,7 +50,7 @@ const Portfolio: React.FC<Props> = ({ user }) => {
                             dataKey="date"
                             tickFormatter={(dateStr) => {
                                 const date = new Date(dateStr);
-                                return `${date.getMonth() + 1}/${date.getDate()}`; // format date to only show day/month
+                                return `${date.getMonth() + 1}/${date.getDate()}`;
                             }}
                             style={{ fontSize: '0.75rem' }}
                             tick={{ fill: 'white' }}
@@ -86,9 +83,9 @@ const Portfolio: React.FC<Props> = ({ user }) => {
             <p>
                 Current Net Worth:&nbsp;
                 <strong style={{
-                    color: data && data[data.length - 1].net_worth >= user.starting_amount ? '#3cb043' : '#e74c3c'
+                    color: data && data[0].net_worth >= user.starting_amount ? '#3cb043' : '#e74c3c'
                 }}>
-                    {data ? `$${data[data.length - 1].net_worth} (+$${data[data.length - 1].net_worth - user.starting_amount} / +%${data[data.length - 1].net_worth / user.starting_amount * 100 - 100})` : <LoadingCircle />}
+                    {data ? `$${data[0].net_worth} (+$${data[0].net_worth - user.starting_amount} / +%${data[0].net_worth / user.starting_amount * 100 - 100})` : <LoadingCircle />}
                 </strong>
             </p>
         </>
