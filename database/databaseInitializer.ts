@@ -11,7 +11,7 @@ async function initializeDatabase(): Promise<void> {
             await executeQuery('SET FOREIGN_KEY_CHECKS = 1');
             console.log('Tables dropped successfully.');
         }
-        End of code to remove before deploying to production */
+         End of code to remove before deploying to production */
         const table_definitions: string[] = [
             `CREATE TABLE IF NOT EXISTS Ticker (
                 ticker_symbol VARCHAR(20) PRIMARY KEY,
@@ -79,10 +79,9 @@ async function initializeDatabase(): Promise<void> {
                 order_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 ticker_symbol VARCHAR(20),
-                order_type VARCHAR(10),
+                order_type ENUM('MARKET', 'LIMIT', 'STOP') NOT NULL,
                 trigger_price DECIMAL(8, 2),
                 quantity INT,
-                fulfilled BOOLEAN DEFAULT FALSE,
                 cancelled BOOLEAN DEFAULT FALSE,
                 order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES User(user_id),
