@@ -23,10 +23,8 @@ const isIntradayDataRecent = (intradayData: TickerIntraday[]): boolean => {
 };
 
 function formatTimestampForMySQL(timestamp: string) {
-    // Remove timezone information from timestamp
     const withoutTimezone = timestamp.slice(0, -5);
 
-    // Convert 'T' separator between date and time into a space
     const formatted = withoutTimezone.replace('T', ' ');
 
     return formatted;
