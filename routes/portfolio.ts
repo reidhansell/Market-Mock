@@ -4,10 +4,16 @@ import { authenticateToken } from '../tools/middleware/authMiddleware';
 
 const router = Router();
 
-router.get('/:id', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+interface AuthenticatedRequest extends Request {
+    user: {
+        user_id: number;
+    }
+}
+
+router.get('/', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const id = parseInt(req.params.id, 10);
-        const netWorthData = await getUserNetWorthData(id);
+        const { user_id } = (req as AuthenticatedRequest).user;
+        const netWorthData = await getUserNetWorthData(user_id);
         return res.json(netWorthData);
     } catch (error) {
         next(error);
