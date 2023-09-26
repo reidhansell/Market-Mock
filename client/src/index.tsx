@@ -15,6 +15,7 @@ import './components/Common/Alert.css';
 import Portfolio from './components/Home/Portfolio';
 import Watchlist from './components/Home/Watchlist';
 import Quests from './components/Home/Quests';
+import OrderPlacer from './components/Home/OrderPlacer';
 import User from '../../models/User';
 import Nav from './components/Home/Nav';
 import { WatchlistProvider } from './components/Common/WatchlistProvider';
@@ -153,6 +154,7 @@ const App = () => {
             <Route path="/quests" element={auth ? <Quests /> : <Navigate to="/login" />} />
             <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
             <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
+            <Route path="/orderplacer/:ticker" element={auth ? <OrderPlacer /> : <Navigate to="/login" />} />
             <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
           </Routes>
         </WatchlistProvider>
