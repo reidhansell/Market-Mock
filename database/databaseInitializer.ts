@@ -2,7 +2,7 @@ import { executeQuery } from './queryExecutor';
 
 async function initializeDatabase(): Promise<void> {
     try {
-        /*  TODO Remove this code before deploying to production   
+        /*  TODO Remove this code before deploying to production 
         console.log("Beginning database initialization.");
         if (!config.production) {
             console.log("Dropping tables");
@@ -68,17 +68,6 @@ async function initializeDatabase(): Promise<void> {
                 FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol),
                 PRIMARY KEY (user_id, ticker_symbol)
             )`,
-            `CREATE TABLE IF NOT EXISTS Transaction (
-                transaction_id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id INT,
-                ticker_symbol VARCHAR(20),
-                transaction_type VARCHAR(4),
-                quantity INT,
-                price_per_share DECIMAL(8, 2),
-                transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES User(user_id),
-                FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
-            )`,
             `CREATE TABLE IF NOT EXISTS Watch_List (
                 user_id INT,
                 ticker_symbol VARCHAR(20),
@@ -94,9 +83,17 @@ async function initializeDatabase(): Promise<void> {
                 trigger_price DECIMAL(8, 2),
                 quantity INT,
                 fulfilled BOOLEAN DEFAULT FALSE,
+                cancelled BOOLEAN DEFAULT FALSE,
                 order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES User(user_id),
                 FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
+            )`,
+            `CREATE TABLE IF NOT EXISTS Transaction (
+                transaction_id INT AUTO_INCREMENT PRIMARY KEY,
+                order_id INT,
+                price_per_share DECIMAL(8, 2),
+                transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (order_id) REFERENCES Trade_Order(order_id)
             )`,
             `CREATE TABLE IF NOT EXISTS User_Reset (
                 reset_id INT AUTO_INCREMENT PRIMARY KEY,
