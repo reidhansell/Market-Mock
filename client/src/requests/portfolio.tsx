@@ -2,10 +2,10 @@ import Axios, { AxiosResponse } from 'axios';
 import config from '../config.json';
 import NetWorthData from '../../../models/NetWorthData';
 
-export const getUserNetWorthData = async (userId: number): Promise<NetWorthData[]> => {
+export const getUserNetWorthData = async (): Promise<NetWorthData[]> => {
     try {
         Axios.defaults.withCredentials = true;
-        const response = await Axios.get(`${config.serverURL}/api/portfolio/${userId}`);
+        const response = await Axios.get(`${config.serverURL}/api/portfolio/`);
         console.log(response.data);
         return response.data;
     } catch (error: any) {
