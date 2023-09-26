@@ -1,14 +1,16 @@
 import React, { useEffect, useState, useContext } from 'react';
 import Axios from 'axios';
 import TickerIntraday from '../../../../models/TickerIntraday';
-import { useParams } from 'react-router-dom';
+import TickerEndOfDay from '../../../../models/TickerEndOfDay';
+import { useParams, Link } from 'react-router-dom';
 import config from '../../config.json'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import LoadingCircle from '../Common/LoadingCircle';
 import ViewModeToggle from './ViewModeToggle';
 import { addTickerToWatchlist } from '../../requests/watchlist';
 import { removeTickerFromWatchlist } from '../../requests/watchlist';
 import { WatchlistContext } from '../Common/WatchlistProvider';
+import { AxiosResponse } from 'axios';
 
 type ViewMode = 'intraday' | 'EOD';
 
@@ -24,18 +26,19 @@ const Ticker: React.FC = () => {
         viewMode === 'intraday' ? setViewMode('EOD') : setViewMode('intraday');
     }
 
-    const [data, setData] = useState<TickerIntraday[]>([]);
+    const [intradayData, setIntradayData] = useState<TickerIntraday[]>([]);
+    const [EODData, setEODData] = useState<TickerEndOfDay[]>([]);
 
     const [loading, setLoading] = useState(false);
-
-
 
     const [inWatchlist, setInWatchlist] = useState<boolean>(false);
 
     const fetchData = async () => {
-        const response = await Axios.get(`${config.serverURL}/api/ticker/${viewMode}/${symbol}`);
+        const response = await Axios.get(`${config.serverURL}/api/ticker/${viewMode}/${symbol}`) as AxiosResponse;
         console.log(response);
-        setData(response.data);
+        viewMode === 'intraday'
+            ? setIntradayData((response.data as TickerIntraday[]).sort((a, b) => { return a.date < b.date ? -1 : 1 }))
+            : setEODData((response.data as TickerEndOfDay[]).sort((a, b) => { return a.date < b.date ? -1 : 1 }))
     };
 
     const handleAddToWatchlist = async () => {
@@ -69,18 +72,15 @@ const Ticker: React.FC = () => {
     useEffect(() => {
         fetchData();
         if (symbol && watchlist && watchlist.length > 0) {
-            console.log(symbol);
-            console.log(watchlist);
             setInWatchlist(watchlist.some(watchlist => watchlist.ticker_symbol === symbol));
         }
     }, [viewMode, symbol, watchlist]);
 
-    // Transforms the API response into a dataset suitable for Recharts
-    const transformToChartData = (data: TickerIntraday[]) => {
+    const transformToChartData = (data: TickerIntraday[] | TickerEndOfDay[]) => {
         return data.map(d => ({ name: new Date(d.date).toLocaleDateString(), price: d.close }));
     };
 
-    const chartData = transformToChartData(data);
+    const chartData = transformToChartData(viewMode === 'intraday' ? intradayData : EODData);
 
     return (
         <div className='dashboard-module dashboard-module-large'>
@@ -121,32 +121,47 @@ const Ticker: React.FC = () => {
                     (<button onClick={handleRemoveFromWatchlist}>
                         {loading ? <LoadingCircle /> : "Remove from Watchlist"}
                     </button>)}
-                < button onClick={() => { }}>Place Order</button>
+                <Link to={`/orderplacer/${symbol}`}>
+                    < button >Place Order</button>
+                </Link>
                 <br />
                 <br />
-                <h3>Current: {data.length > 0 ? data[data.length - 1].last : <LoadingCircle />}</h3>
-                <h3>Open: {data.length > 0 ? data[data.length - 1].open : <LoadingCircle />}</h3>
-                <h3>High: {data.length > 0 ? data[data.length - 1].high : <LoadingCircle />}</h3>
-                <h3>Low: {data.length > 0 ? data[data.length - 1].low : <LoadingCircle />}</h3>
-                <p>Change: {data.length > 0 ? (
-                    <>
-                        <span
-                            style={{
-                                color: data[data.length - 1].last - data[data.length - 1].open >= 0 ? "green" : "red",
-                            }}
-                        >
-                            {(
-                                (data[data.length - 1].last - data[data.length - 1].open) >= 0 ? "+" : ""
-                            )}
-                            {(data[data.length - 1].last - data[data.length - 1].open).toFixed(2)} (
-                            {(((data[data.length - 1].last - data[data.length - 1].open) / data[data.length - 1].open) * 100).toFixed(2)}%)
-                        </span>
-                    </>
-                ) : (
-                    <LoadingCircle />
-                )}
-                </p>
+                {viewMode === 'intraday' ? (<>
+                    <h3>Current: {intradayData.length > 0 ? intradayData[0].last : <LoadingCircle />}</h3>
+                    <h3>Open: {intradayData.length > 0 ? intradayData[0].open : <LoadingCircle />}</h3>
+                    <h3>High: {intradayData.length > 0 ? intradayData[0].high : <LoadingCircle />}</h3>
+                    <h3>Low: {intradayData.length > 0 ? intradayData[0].low : <LoadingCircle />}</h3>
+                    <p>Change: {intradayData.length > 0 ? (
+                        <>
+                            <span style={{ color: intradayData[0].last >= 0 ? "green" : "red" }}>
+                                {intradayData[0].last >= 0 ? "+" : ""}
+                                {intradayData[0].last.toFixed(2)} (
+                                {(intradayData[0].last / intradayData[0].open * 100).toFixed(2)}%)
+                            </span>
+                        </>
+                    ) : (
+                        <LoadingCircle />
+                    )}
+                    </p>
+                </>) : null}
 
+                {viewMode === 'EOD' ? (
+                    <>
+                        <h3>Open: {EODData.length > 0 ? EODData[0].open : <LoadingCircle />}</h3>
+                        <h3>Close: {EODData.length > 0 ? EODData[0].close : <LoadingCircle />}</h3>
+                        <h3>High: {EODData.length > 0 ? EODData[0].high : <LoadingCircle />}</h3>
+                        <h3>Low: {EODData.length > 0 ? EODData[0].low : <LoadingCircle />}</h3>
+                        <p>Change: {EODData.length > 0 ? (
+                            <span style={{ color: EODData[0].close - EODData[0].open >= 0 ? "green" : "red", }}>
+                                {(EODData[0].close - EODData[0].open >= 0 ? "+" : "")}
+                                {(EODData[0].close - EODData[0].open).toFixed(2)} (
+                                {((EODData[0].close - EODData[0].open) / intradayData[0].open * 100).toFixed(2)}%)
+                            </span>
+                        ) : (
+                            <LoadingCircle />
+                        )}
+                        </p>
+                    </>) : null}
             </div>
         </div >
     );
