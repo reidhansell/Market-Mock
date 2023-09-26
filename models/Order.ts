@@ -1,3 +1,5 @@
+import Transaction from "../models/Transaction";
+
 export default interface Order {
     order_id: number;
     user_id: number;
@@ -5,6 +7,7 @@ export default interface Order {
     order_type: string;
     trigger_price: number;
     quantity: number;
-    fulfilled: boolean;
+    cancelled: boolean;
     order_date: Date;
+    transaction?: Transaction;
 }
