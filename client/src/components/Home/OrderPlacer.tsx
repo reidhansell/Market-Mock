@@ -1,26 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Axios from 'axios';
 import config from '../../config.json';
 import LoadingCircle from '../Common/LoadingCircle';
 import TickerIntraday from '../../../../models/TickerIntraday';
 import { createOrder } from '../../requests/order';
 import Order from '../../../../models/Order';
+import Tooltip from '../Common/Tooltip';
+import './OrderPlacer.css';
+import Select from '../Common/Select';
 
 const OrderPlacer: React.FC = () => {
     const { ticker } = useParams();
     const [tickerData, setTickerData] = useState<TickerIntraday[]>([]);
     const [orderType, setOrderType] = useState('MARKET');
     const [quantity, setQuantity] = useState(1);
-    const [price, setPrice] = useState(0);
     const [triggerPrice, setTriggerPrice] = useState(0);
+    const [transactionType, setTransactionType] = useState('BUY');
+    const [submitting, setSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [transacted, setTransacted] = useState(false);
+    const transactionsOptions = ['BUY', 'SELL'];
+    const typeOptions = ['MARKET', 'LIMIT', 'STOP'];
+    const navigate = useNavigate();
+
+
+    const handleTransactionSelectChange = (selected: string) => {
+        setTransactionType(selected);
+    };
+
+    const handleTypeSelectChange = (selected: string) => {
+        setOrderType(selected);
+    };
 
     useEffect(() => {
         const fetchTickerData = async () => {
             try {
                 const response = await Axios.get(`${config.serverURL}/api/ticker/intraday/${ticker}`);
-                setTickerData(response.data);
-                setTriggerPrice(response.data[response.data.length - 1].last);
+                setTickerData((response.data as TickerIntraday[]).sort((a, b) => { return a.date < b.date ? -1 : 1 }));
+                setTriggerPrice(response.data[0].last);
             } catch (error) {
                 console.error('Error fetching ticker data', error);
             }
@@ -31,22 +49,35 @@ const OrderPlacer: React.FC = () => {
 
     const calculateTotalCostOrRevenue = () => {
         if (orderType === 'MARKET') {
-            return quantity * tickerData[tickerData.length - 1].last;
+            return quantity * tickerData[0].last;
         } else if (orderType === 'LIMIT' || orderType === 'STOP') {
-            return quantity * price;
+            return quantity * triggerPrice;
         } else {
             return 0;
         }
     };
 
-    const placeOrderHandler = () => {
+    const placeOrderHandler = async () => {
         if (tickerData.length > 0) {
-            createOrder({
-                ticker_symbol: tickerData[tickerData.length - 1].symbol,
-                order_type: orderType,
-                trigger_price: triggerPrice,
-                quantity: quantity
-            } as Partial<Order>)
+            const finalQuantity = transactionType === 'SELL' ? quantity * -1 : quantity;
+            setSubmitting(true);
+            try {
+                const order = await createOrder({
+                    ticker_symbol: ticker,
+                    order_type: orderType,
+                    trigger_price: triggerPrice,
+                    quantity: finalQuantity
+                } as Partial<Order>);
+                setSubmitting(false);
+                if (order.transaction_id) { setTransacted(true) } else { setSubmitted(true); }
+                setTimeout(() => {
+                    navigate('/ticker/' + ticker);
+                }, 2000);
+            } catch (error) {
+                console.error('Error placing order', error);
+                setSubmitting(false);
+            }
+
         }
     }
 
@@ -55,63 +86,72 @@ const OrderPlacer: React.FC = () => {
             <h1 className='dashboard-module-header dashboard-module-header-large'>
                 Order Placer
             </h1>
-            <div className='dashboard-module-content'>
+            {submitting ? <h1 style={{ width: "100%", textAlign: "center" }}><LoadingCircle /></h1> : submitted ? <h2>Order submitted and awaiting fulfillment! Redirecting...</h2> : transacted ? <h2>Order submitted and immediately fulfilled! Redirecting...</h2> : <><div className='dashboard-module-content'>
                 <div>
-                    <h2>Ticker Information</h2>
-                    <p>Current Price: {tickerData.length > 0 ? tickerData[tickerData.length - 1].last : <LoadingCircle />}</p>
-                    <p>Open: {tickerData.length > 0 ? tickerData[tickerData.length - 1].open : <LoadingCircle />}</p>
-                    <p>High: {tickerData.length > 0 ? tickerData[tickerData.length - 1].high : <LoadingCircle />}</p>
-                    <p>Low: {tickerData.length > 0 ? tickerData[tickerData.length - 1].low : <LoadingCircle />}</p>
-                    <p>Change: {tickerData.length > 0 ? tickerData[tickerData.length - 1].last - tickerData[tickerData.length - 1].open : <LoadingCircle />}</p>
+                    <h2>Ticker Information <Tooltip text={["Current: The stock's current price (includes pre/after market)",
+                        "",
+                        "Open: The stock's starting price for that day",
+                        "",
+                        "High/Low: The stock's highest/lowest price of the day",
+                        "",
+                        "Change: The change in price from open to current"]} /></h2>
+                    <p>Current Price: {tickerData.length > 0 ? tickerData[0].last : <LoadingCircle />}</p>
+                    <p>Open: {tickerData.length > 0 ? tickerData[0].open : <LoadingCircle />}</p>
+                    <p>High: {tickerData.length > 0 ? tickerData[0].high : <LoadingCircle />}</p>
+                    <p>Low: {tickerData.length > 0 ? tickerData[0].low : <LoadingCircle />}</p>
+                    <p>Change: {tickerData.length > 0 ? (
+                        <>
+                            <span style={{ color: (tickerData[0].last - tickerData[0].open) >= 0 ? "green" : "red" }}>
+                                {(tickerData[0].last - tickerData[0].open) >= 0 ? "+" : ""}
+                                {(tickerData[0].last - tickerData[0].open).toFixed(2)} (
+                                {((tickerData[0].last / tickerData[0].open * 100) - 100).toFixed(2)}%)
+                            </span>
+                        </>
+                    ) : (
+                        <LoadingCircle />
+                    )}
+                    </p>
                 </div>
-
-                <div>
+                <br />
+                <div className="order-options">
+                    <h2>Order Options</h2>
                     <label>
-                        Order Type:
-                        <select value={orderType} onChange={(e) => setOrderType(e.target.value)}>
-                            <option value="MARKET">Market</option>
-                            <option value="LIMIT">Limit</option>
-                            <option value="STOP">Stop</option>
-                        </select>
+                        Transaction type:<br />
+                        <Select options={transactionsOptions} onChange={handleTransactionSelectChange} />
                     </label>
-                </div>
-
-                <div>
+                    <br />
                     <label>
-                        Quantity:
-                        <button onClick={() => setQuantity(quantity - 1)}>-</button>
-                        <input type="number" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
-                        <button onClick={() => setQuantity(quantity + 1)}>+</button>
+                        Order Type:<br />
+                        <Select options={typeOptions} onChange={handleTypeSelectChange} />
                     </label>
-                </div>
-                {(orderType === 'LIMIT' || orderType === 'STOP') ? (<div>
+                    <br />
                     <label>
-                        Trigger Price:
-                        <button onClick={() => setTriggerPrice(triggerPrice - 0.01)}>-</button>
-                        <input type="number" value={triggerPrice} onChange={(e) => setTriggerPrice(Number(e.target.value))} />
-                        <button onClick={() => setTriggerPrice(triggerPrice + 0.01)}>+</button>
+                        Quantity:<br />
+                        <button className="quantity" onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}>-</button>
+                        {" "}
+                        <input type="number" className="quantity" value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value) > 1 ? parseInt(e.target.value) : 1)} />
+                        {" "}
+                        <button className="quantity" onClick={() => setQuantity(quantity + 1)}>+</button>
                     </label>
-                </div>) : null}
-
-
-                {(orderType === 'LIMIT' || orderType === 'STOP') && (
-                    <div>
+                    <br />
+                    {(orderType === 'LIMIT' || orderType === 'STOP') ? (
                         <label>
-                            Price:
-                            <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
-                        </label>
-                    </div>
-                )}
-
-                <div>
-                    <h2>Total Cost/Revenue</h2>
-                    <p>Total Cost/Revenue: {tickerData.length > 0 ? calculateTotalCostOrRevenue() : <LoadingCircle />}</p>
+                            Trigger Price:<br />
+                            <button className="quantity" onClick={() => setTriggerPrice(parseFloat((triggerPrice - 0.01).toFixed(2)))}>-</button>
+                            {" "}
+                            <input type="number" className="price" value={triggerPrice} onChange={(e) => setTriggerPrice(Number(e.target.value))} />
+                            {" "}
+                            <button className="quantity" onClick={() => setTriggerPrice(parseFloat((triggerPrice + 0.01).toFixed(2)))}>+</button>
+                        </label>) : null}
+                    <br />
                 </div>
-
+                <div>
+                    <h2>Total {transactionType === "BUY" ? "Cost" : "Revenue"}: {tickerData.length > 0 ? parseFloat(calculateTotalCostOrRevenue().toFixed(2)) : <LoadingCircle />}</h2>
+                </div>
                 <div>
                     <button onClick={placeOrderHandler}>Place Order</button>
                 </div>
-            </div>
+            </div></>}
         </div>
     );
 };
