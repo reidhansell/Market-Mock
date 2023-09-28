@@ -1,6 +1,6 @@
-import Transaction from "../models/Transaction";
+import { OptionalTransaction } from "../models/Transaction";
 
-export default interface Order {
+export default interface Order extends OptionalTransaction {
     order_id: number;
     user_id: number;
     ticker_symbol: string;
@@ -9,5 +9,4 @@ export default interface Order {
     quantity: number;
     cancelled: boolean;
     order_date: Date;
-    transaction?: Transaction;
 }
