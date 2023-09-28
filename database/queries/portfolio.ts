@@ -1,6 +1,6 @@
 import { executeQuery } from '../queryExecutor';
 import NetWorthData from '../../models/NetWorthData';
-import { User_Stock } from '../../models/User_Stock';
+import User_Stock from '../../models/User_Stock';
 import { Connection } from 'mysql';
 
 async function getUserNetWorthData(user_id: number): Promise<NetWorthData[]> {
@@ -13,6 +13,16 @@ async function getUserNetWorthData(user_id: number): Promise<NetWorthData[]> {
   `;
   const parameters = [user_id];
   const results = await executeQuery(query, parameters) as NetWorthData[];
+  return results;
+}
+
+async function getUserStocks(user_id: number): Promise<User_Stock[]> {
+  const query = `SELECT *
+    FROM User_Stocks
+    WHERE user_id = ?
+    AND quantity > 0`;
+  const parameters = [user_id];
+  const results = await executeQuery(query, parameters) as User_Stock[];
   return results;
 }
 
@@ -51,6 +61,7 @@ async function removeUserStocks(userId: number, tickerSymbol: string, connection
 
 export {
   getUserNetWorthData,
+  getUserStocks,
   updateUserBalance,
   updateUserStocks,
   removeUserStocks
