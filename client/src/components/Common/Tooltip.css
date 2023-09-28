@@ -1,0 +1,35 @@
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    background-image: url('../../icons/circle-question-regular.svg');
+    width: 1rem; 
+    height: 1rem; 
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  
+  .tooltip .tooltiptext {
+    font-size: 0.75rem;
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    padding: 0.5rem 0;
+    border-radius: 5px;
+  
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; 
+    left: 50%;
+    margin-left: -60px; 
+  
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+  }
