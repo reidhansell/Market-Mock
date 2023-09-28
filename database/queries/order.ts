@@ -79,6 +79,7 @@ async function insertTransaction(transaction: Transaction, connection?: Connecti
     `;
 
     const joinedOrderResult = await executeQuery(selectJoinedOrderQuery, [transactionId], connection) as Order[];
+    console.log(joinedOrderResult);
     const joinedOrder = joinedOrderResult[0] as Order;
 
     if (!joinedOrder) {
@@ -92,7 +93,7 @@ async function cancelOrder(orderId: number, connection?: Connection): Promise<bo
     const cancelQuery = `
         UPDATE Trade_Order 
         SET cancelled = true
-        WHERE order_id = ? AND cancelled = false AND fulfilled = false
+        WHERE order_id = ? AND cancelled = false
     `;
     const parameters = [orderId];
     const queryResults = await executeQuery(cancelQuery, parameters, connection) as ResultObject;
