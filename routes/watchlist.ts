@@ -31,7 +31,6 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
             }
         }
 
-        console.log(watchlistWithData);
         res.status(200).json(watchlistWithData);
     } catch (error) {
         next(error);
