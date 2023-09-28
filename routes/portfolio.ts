@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { getUserNetWorthData } from '../database/queries/portfolio';
+import { getUserNetWorthData, getUserStocks } from '../database/queries/portfolio';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 
 const router = Router();
@@ -14,7 +14,8 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
     try {
         const { user_id } = (req as AuthenticatedRequest).user;
         const netWorthData = await getUserNetWorthData(user_id);
-        return res.json(netWorthData);
+        const userStocks = await getUserStocks(user_id);
+        return res.json({ netWorthData: netWorthData, userStocks: userStocks });
     } catch (error) {
         next(error);
     }
