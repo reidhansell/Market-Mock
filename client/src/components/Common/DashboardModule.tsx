@@ -1,25 +1,26 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Portfolio from '../Home/Portfolio';
 import Watchlist from '../Home/Watchlist';
 import Quests from '../Home/Quests';
 import './DashboardModule.css';
-import User from '../../../../models/User';
+import { UserContext } from './UserProvider';
 
 interface Props {
     type: 'portfolio' | 'watchlist' | 'quests';
-    user: User;
 }
 
-const DashboardModule: React.FC<Props> = ({ type, user }) => {
+const DashboardModule: React.FC<Props> = ({ type }) => {
     const navigate = useNavigate();
+
+    const user = useContext(UserContext);
 
     const getContent = () => {
         switch (type) {
             case 'portfolio':
-                return <Portfolio user={user} />;
+                return <Portfolio />;
             case 'watchlist':
-                return <Watchlist user={user} />;
+                return <Watchlist />;
             case 'quests':
                 return <Quests />;
             default:

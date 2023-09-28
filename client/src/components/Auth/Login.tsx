@@ -1,20 +1,20 @@
-import React, { useState, FC } from 'react';
+import React, { useState, FC, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 import { login } from '../../requests/auth';
 import Axios from 'axios';
 import config from '../../config.json';
-import User from '../../../../models/User';
+import { UserContext } from '../Common/UserProvider';
 
 interface LoginProps {
     setAuth: (auth: boolean) => void;
-    setUser: (user: User) => void;
 }
 
-const Login: FC<LoginProps> = ({ setAuth, setUser }) => {
+const Login: FC<LoginProps> = ({ setAuth }) => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const navigate = useNavigate();
+    const { setUser } = useContext(UserContext);
 
     const handleLogin = async (event: React.FormEvent) => {
         event.preventDefault();

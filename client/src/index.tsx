@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
 import Axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import { UserContext } from './components/Common/UserProvider';
 import Home from './components/Home/Home';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
@@ -9,16 +10,15 @@ import VerifyEmail from './components/Auth/VerifyEmail';
 import AlertComponent from './components/Common/Alert';
 import Ticker from './components/Home/Ticker';
 import TickerSearch from './components/Home/TickerSearch';
-import { getUser, logout } from './requests/auth';
+import { logout, getUser } from './requests/auth';
 import './index.css';
 import './components/Common/Alert.css';
 import Portfolio from './components/Home/Portfolio';
 import Watchlist from './components/Home/Watchlist';
 import Quests from './components/Home/Quests';
 import OrderPlacer from './components/Home/OrderPlacer';
-import User from '../../models/User';
 import Nav from './components/Home/Nav';
-import { WatchlistProvider } from './components/Common/WatchlistProvider';
+import { UserProvider } from './components/Common/UserProvider';
 import LoadingCircle from './components/Common/LoadingCircle';
 
 /*
@@ -42,8 +42,8 @@ interface Alert {
 const App = () => {
   const [auth, setAuth] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { setUser } = useContext(UserContext);
 
   const generateId = (): string => {
     return Math.random().toString(36).substr(2, 9);
@@ -104,8 +104,7 @@ const App = () => {
 
     getUser()
       .then(response => {
-        const userData = response.data;
-        setUser(userData);
+        setUser(response.data);
         setAuth(true);
       })
       .catch(error => {
@@ -143,21 +142,21 @@ const App = () => {
           ))}
         </div>
 
-        <WatchlistProvider>
-          <Routes>
-            <Route path="/login" element={!auth ? <Login setAuth={setAuth} setUser={setUser} /> : <Navigate to="/" />} />
-            <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
-            <Route path="/verify/:token" element={<VerifyEmail />} />
-            <Route path="/" element={(auth && user) ? <Home user={user} /> : <Navigate to="/login" />} />
-            <Route path="/portfolio" element={auth && user ? <Portfolio user={user} /> : <Navigate to="/login" />} />
-            <Route path="/watchlist" element={auth && user ? <Watchlist user={user} /> : <Navigate to="/login" />} />
-            <Route path="/quests" element={auth ? <Quests /> : <Navigate to="/login" />} />
-            <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
-            <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
-            <Route path="/orderplacer/:ticker" element={auth ? <OrderPlacer /> : <Navigate to="/login" />} />
-            <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
-          </Routes>
-        </WatchlistProvider>
+
+        <Routes>
+          <Route path="/login" element={!auth ? <Login setAuth={setAuth} /> : <Navigate to="/" />} />
+          <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
+          <Route path="/verify/:token" element={<VerifyEmail />} />
+          <Route path="/" element={auth ? <Home /> : <Navigate to="/login" />} />
+          <Route path="/portfolio" element={auth ? <Portfolio /> : <Navigate to="/login" />} />
+          <Route path="/watchlist" element={auth ? <Watchlist /> : <Navigate to="/login" />} />
+          <Route path="/quests" element={auth ? <Quests /> : <Navigate to="/login" />} />
+          <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
+          <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
+          <Route path="/orderplacer/:ticker" element={auth ? <OrderPlacer /> : <Navigate to="/login" />} />
+          <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
+        </Routes>
+
       </div>
     </Router>
   );
@@ -168,4 +167,4 @@ if (!rootElement) {
   throw new Error("Could not find root element");
 }
 
-createRoot(rootElement).render(<App />);
+createRoot(rootElement).render(<UserProvider><App /></UserProvider>);
