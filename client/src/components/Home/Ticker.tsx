@@ -9,16 +9,15 @@ import LoadingCircle from '../Common/LoadingCircle';
 import ViewModeToggle from './ViewModeToggle';
 import { addTickerToWatchlist } from '../../requests/watchlist';
 import { removeTickerFromWatchlist } from '../../requests/watchlist';
-import { WatchlistContext } from '../Common/WatchlistProvider';
+import { UserContext } from '../Common/UserProvider';
 import { AxiosResponse } from 'axios';
+import MyTooltip from '../Common/Tooltip';
 
 type ViewMode = 'intraday' | 'EOD';
 
 const Ticker: React.FC = () => {
     const { symbol } = useParams();
-    const { addTicker, removeTicker } = useContext(WatchlistContext);
-    const watchlist = useContext(WatchlistContext).data;
-    console.log(watchlist);
+    const { addTicker, removeTicker, watchlist } = useContext(UserContext);
 
     const [viewMode, setViewMode] = useState<ViewMode>('intraday');
 
@@ -35,7 +34,6 @@ const Ticker: React.FC = () => {
 
     const fetchData = async () => {
         const response = await Axios.get(`${config.serverURL}/api/ticker/${viewMode}/${symbol}`) as AxiosResponse;
-        console.log(response);
         viewMode === 'intraday'
             ? setIntradayData((response.data as TickerIntraday[]).sort((a, b) => { return a.date < b.date ? -1 : 1 }))
             : setEODData((response.data as TickerEndOfDay[]).sort((a, b) => { return a.date < b.date ? -1 : 1 }))
@@ -121,22 +119,30 @@ const Ticker: React.FC = () => {
                     (<button onClick={handleRemoveFromWatchlist}>
                         {loading ? <LoadingCircle /> : "Remove from Watchlist"}
                     </button>)}
+                {" "}
                 <Link to={`/orderplacer/${symbol}`}>
                     < button >Place Order</button>
                 </Link>
                 <br />
                 <br />
                 {viewMode === 'intraday' ? (<>
+                    <h2>Stock information <MyTooltip text={["Current: The stock's current price (includes pre/after market)",
+                        "",
+                        "Open: The stock's starting price for that day",
+                        "",
+                        "High/Low: The stock's highest/lowest price of the day",
+                        "",
+                        "Change: The change in price from open to current"]} /></h2>
                     <h3>Current: {intradayData.length > 0 ? intradayData[0].last : <LoadingCircle />}</h3>
                     <h3>Open: {intradayData.length > 0 ? intradayData[0].open : <LoadingCircle />}</h3>
                     <h3>High: {intradayData.length > 0 ? intradayData[0].high : <LoadingCircle />}</h3>
                     <h3>Low: {intradayData.length > 0 ? intradayData[0].low : <LoadingCircle />}</h3>
                     <p>Change: {intradayData.length > 0 ? (
                         <>
-                            <span style={{ color: intradayData[0].last >= 0 ? "green" : "red" }}>
-                                {intradayData[0].last >= 0 ? "+" : ""}
-                                {intradayData[0].last.toFixed(2)} (
-                                {(intradayData[0].last / intradayData[0].open * 100).toFixed(2)}%)
+                            <span style={{ color: (intradayData[0].last - intradayData[0].open) >= 0 ? "green" : "red" }}>
+                                {(intradayData[0].last - intradayData[0].open) >= 0 ? "+" : ""}
+                                {(intradayData[0].last - intradayData[0].open).toFixed(2)} (
+                                {((intradayData[0].last / intradayData[0].open * 100) - 100).toFixed(2)}%)
                             </span>
                         </>
                     ) : (
@@ -147,6 +153,11 @@ const Ticker: React.FC = () => {
 
                 {viewMode === 'EOD' ? (
                     <>
+                        <h2>Stock information <MyTooltip text={["Open/Close: The stock's starting/ending price for that day",
+                            "",
+                            "High/Low: The stock's highest/lowest price of the day",
+                            "",
+                            "Change: The change in price from open to current"]} /></h2>
                         <h3>Open: {EODData.length > 0 ? EODData[0].open : <LoadingCircle />}</h3>
                         <h3>Close: {EODData.length > 0 ? EODData[0].close : <LoadingCircle />}</h3>
                         <h3>High: {EODData.length > 0 ? EODData[0].high : <LoadingCircle />}</h3>
@@ -155,7 +166,7 @@ const Ticker: React.FC = () => {
                             <span style={{ color: EODData[0].close - EODData[0].open >= 0 ? "green" : "red", }}>
                                 {(EODData[0].close - EODData[0].open >= 0 ? "+" : "")}
                                 {(EODData[0].close - EODData[0].open).toFixed(2)} (
-                                {((EODData[0].close - EODData[0].open) / intradayData[0].open * 100).toFixed(2)}%)
+                                {((EODData[0].close - EODData[0].open) / EODData[0].open * 100).toFixed(2)}%)
                             </span>
                         ) : (
                             <LoadingCircle />

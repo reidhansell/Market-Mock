@@ -1,24 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUserNetWorthData } from '../../requests/portfolio';
+import { getUserPortfolio } from '../../requests/portfolio';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import NetWorthData from '../../../../models/NetWorthData';
-import User from '../../../../models/User';
 import LoadingCircle from '../Common/LoadingCircle';
+import { UserContext } from '../Common/UserProvider';
 
-interface Props {
-    user: User;
-}
-
-const Portfolio: React.FC<Props> = ({ user }) => {
+const Portfolio: React.FC = () => {
     const navigate = useNavigate();
-    const [data, setData] = useState<NetWorthData[] | null>(null);
+
+    const { netWorth, setNetWorth, setStocks, user } = useContext(UserContext);
 
     const fetchData = async () => {
         try {
-            const netWorthData = await getUserNetWorthData();
-            console.log(netWorthData);
-            setData(netWorthData);
+            const portfolioData = await getUserPortfolio();
+            setNetWorth(portfolioData.netWorthData);
+            setStocks(portfolioData.userStocks);
         } catch (error) {
             console.error('Failed to fetch net worth data', error);
         }
@@ -34,8 +31,8 @@ const Portfolio: React.FC<Props> = ({ user }) => {
 
     let chartData: { date: string; netWorth: number }[] = [];
 
-    if (data) {
-        chartData = transformToChartData(data);
+    if (netWorth) {
+        chartData = transformToChartData(netWorth);
     }
 
     return (
@@ -71,22 +68,23 @@ const Portfolio: React.FC<Props> = ({ user }) => {
             </div>
             <br />
             <p>
-                Initial Investment:&nbsp;
-                <strong>${user.starting_amount}</strong>
+                Initial Investment:<br />
+                <strong>${user ? user.starting_amount : <LoadingCircle />}</strong>
             </p>
             <br />
             <p>
-                Current Wallet Balance:&nbsp;
-                <strong>${user.current_balance}</strong>
+                Current Wallet Balance:<br />
+                <strong>${user ? user.current_balance : <LoadingCircle />}</strong>
             </p>
             <br />
             <p>
-                Current Net Worth:&nbsp;
-                <strong style={{
-                    color: data && data[0].net_worth >= user.starting_amount ? '#3cb043' : '#e74c3c'
-                }}>
-                    {data ? `$${data[0].net_worth} (+$${data[0].net_worth - user.starting_amount} / +%${data[0].net_worth / user.starting_amount * 100 - 100})` : <LoadingCircle />}
-                </strong>
+                Current Net Worth:<br />
+                {user ? (
+                    <strong style={{
+                        color: netWorth.length > 0 && netWorth[0].net_worth >= user.starting_amount ? '#3cb043' : '#e74c3c'
+                    }}>
+                        {netWorth.length > 0 ? `$${netWorth[0].net_worth} (${(netWorth[0].net_worth - user.starting_amount) >= 0 ? '+' : '-'}$${Math.abs(netWorth[0].net_worth - user.starting_amount).toFixed(2)} / ${(netWorth[0].net_worth - user.starting_amount) >= 0 ? '+' : '-'}${Math.abs(netWorth[0].net_worth / user.starting_amount * 100 - 100).toFixed(2)}%)` : <LoadingCircle />}
+                    </strong>) : <LoadingCircle />}
             </p>
         </>
     );
