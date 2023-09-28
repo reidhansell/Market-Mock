@@ -12,7 +12,7 @@ import { getIntradayDataForTicker } from "../tools/services/intradayService";
 import Transaction from '../models/Transaction';
 import { getUserData } from '../database/queries/auth';
 import { getTransactionConnection } from '../database/databaseConnector';
-import { updateUserBalance, updateUserStocks } from '../database/queries/portfolio';
+import { updateUserBalance, updateUserStocks, getUserStocks } from '../database/queries/portfolio';
 
 interface AuthenticatedRequest extends Request {
     user: {
@@ -52,8 +52,8 @@ router.post('/', authenticateToken, async (req: Request, res: Response, next: Ne
             throw new ExpectedError("Invalid trigger price", 400, "Order creation failed with invalid trigger price");
         }
 
-        if (!quantity || typeof quantity !== 'number') {
-            throw new ExpectedError("Invalid quantity. Quantity must be a number.", 400, "Order creation failed with invalid quantity");
+        if (!quantity || typeof quantity !== 'number' || quantity === 0) {
+            throw new ExpectedError("Invalid quantity. Quantity must be a non-zero number.", 400, "Order creation failed with invalid quantity");
         }
 
         transactionConnection.beginTransaction();
@@ -66,10 +66,19 @@ router.post('/', authenticateToken, async (req: Request, res: Response, next: Ne
             quantity,
         } as Order, transactionConnection);
 
+        if (quantity < 0) {
+            const userStocks = await getUserStocks(user_id);
+            const userStock = userStocks.find(stock => stock.ticker_symbol === ticker_symbol);
+            if (!userStock || userStock.quantity < Math.abs(quantity)) {
+                await cancelOrder(order.order_id, transactionConnection);
+                throw new ExpectedError("Insufficient stocks", 400, "Order was placed but cannot be fulfilled due to insufficient stocks and therefore has been cancelled");
+            }
+        }
+
         const tickerData = await getIntradayDataForTicker(ticker_symbol);
         const userData = await getUserData(user_id);
         const currentPrice = tickerData[tickerData.length - 1].close;
-        const totalCost = currentPrice * quantity * -1;
+        const totalCost = currentPrice * quantity
 
         if (userData.current_balance < totalCost) {
             await cancelOrder(order.order_id, transactionConnection);
