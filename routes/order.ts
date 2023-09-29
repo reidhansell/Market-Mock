@@ -4,15 +4,12 @@ import ExpectedError from '../tools/utils/ExpectedError';
 import {
     getOrdersAndTransactionsByUserId,
     insertOrder,
-    insertTransaction,
     cancelOrder
 } from '../database/queries/order';
-import Order from '../models/Order';
-import { getIntradayDataForTicker } from "../tools/services/intradayService";
-import Transaction from '../models/Transaction';
-import { getUserData } from '../database/queries/auth';
+import Order, { FulfilledOrder } from '../models/Order';
 import { getTransactionConnection } from '../database/databaseConnector';
 import { updateUserBalance, updateUserStocks, getUserStocks } from '../database/queries/portfolio';
+import { processOrder } from '../tools/services/orderFulfillmentService'
 
 interface AuthenticatedRequest extends Request {
     user: {
@@ -75,31 +72,10 @@ router.post('/', authenticateToken, async (req: Request, res: Response, next: Ne
             }
         }
 
-        const tickerData = await getIntradayDataForTicker(ticker_symbol);
-        const userData = await getUserData(user_id);
-        const currentPrice = tickerData[tickerData.length - 1].close;
-        const totalCost = currentPrice * quantity
-
-        if (userData.current_balance < totalCost) {
-            await cancelOrder(order.order_id, transactionConnection);
-            throw new ExpectedError("Insufficient funds", 400, "Order was placed but cannot be fulfilled due to insufficient funds and therefore has been cancelled");
-        }
-
-        let fulfilledOrder;
-        if (order_type === 'MARKET') {
-            fulfilledOrder = await insertTransaction({ order_id: order.order_id, price_per_share: currentPrice } as Transaction, transactionConnection);
-        } else if (order_type === 'LIMIT') {
-            if ((quantity > 0 && currentPrice <= trigger_price) || (quantity < 0 && currentPrice >= trigger_price)) {
-                fulfilledOrder = await insertTransaction({ order_id: order.order_id, price_per_share: currentPrice } as Transaction, transactionConnection);
-            }
-        } else if (order_type === 'STOP') {
-            if ((quantity > 0 && currentPrice >= trigger_price) || (quantity < 0 && currentPrice <= trigger_price)) {
-                fulfilledOrder = await insertTransaction({ order_id: order.order_id, price_per_share: currentPrice } as Transaction, transactionConnection);
-            }
-        }
+        const fulfilledOrder = await processOrder(order, transactionConnection) as FulfilledOrder;
 
         if (fulfilledOrder) {
-            updateUserBalance(user_id, totalCost, transactionConnection);
+            updateUserBalance(user_id, fulfilledOrder.price_per_share * fulfilledOrder.quantity, transactionConnection);
             updateUserStocks(user_id, ticker_symbol, quantity, transactionConnection);
             transactionConnection.commit();
             return res.json(fulfilledOrder);
