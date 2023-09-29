@@ -3,6 +3,7 @@ import { cleanupExpiredTokens } from '../../database/queries/auth';
 import { syncTickers } from '../services/tickersSyncService';
 import ExpectedError from '../utils/ExpectedError';
 import { calculateAndSaveUserNetWorth } from '../services/NetWorthService';
+import { fulfillOpenOrders } from '../services/orderFulfillmentService';
 
 export default class CronJobs {
     static scheduleJobs() {
@@ -10,6 +11,7 @@ export default class CronJobs {
         this.scheduleCleanupTokens();
         this.scheduleSyncTickers();
         this.scheduleCalculateNetWorth();
+        this.scheduleFulfillOpenOrders();
         console.log('Successfully scheduled cron jobs');
     }
 
@@ -46,6 +48,18 @@ export default class CronJobs {
             console.log('Calculating net worth...');
             await calculateAndSaveUserNetWorth();
             console.log('Done calculating net worth');
+        }));
+    }
+
+    static async scheduleFulfillOpenOrders() {
+        console.log('Fulfilling open orders...');
+        await fulfillOpenOrders();
+        console.log('Done fulfilling open orders');
+
+        cron.schedule(/* TODO change this to /5 */'*/1 * * * *', this.wrapJob(async () => {
+            console.log('Fulfilling open orders...');
+            await fulfillOpenOrders();
+            console.log('Done fulfilling open orders');
         }));
     }
 
