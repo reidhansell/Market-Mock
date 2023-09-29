@@ -10,3 +10,10 @@ export default interface Order extends OptionalTransaction {
     cancelled: boolean;
     order_date: Date;
 }
+
+export interface FulfilledOrder extends Order {
+    transaction_id: number;
+    order_id: number;
+    price_per_share: number;
+    transaction_date: Date;
+}
