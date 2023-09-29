@@ -37,7 +37,7 @@ async function searchTickersByCompanyName(company_name: string): Promise<Ticker[
 }
 
 async function insertEODData(eodData: TickerEndOfDay): Promise<void> {
-    const query = 'INSERT INTO Ticker_End_Of_Day (ticker_symbol, open_price, high_price, low_price, close_price, volume, adjusted_open, adjusted_high, adjusted_low, adjusted_close, adjusted_volume, split_factor, dividend, exchange, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const query = 'INSERT INTO Ticker_End_Of_Day (ticker_symbol, open, high, low, close, volume, adjusted_open, adjusted_high, adjusted_low, adjusted_close, adjusted_volume, split_factor, dividend, exchange, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     const parameters = [eodData.symbol, eodData.open, eodData.high, eodData.low, eodData.close, eodData.volume, eodData.adj_open, eodData.adj_high, eodData.adj_low, eodData.adj_close, eodData.adj_volume, eodData.split_factor, eodData.dividend, eodData.exchange, eodData.date];
     const queryResults = await executeQuery(query, parameters) as ResultObject;
     if (queryResults.affectedRows === 0) {
@@ -46,7 +46,7 @@ async function insertEODData(eodData: TickerEndOfDay): Promise<void> {
 }
 
 async function insertIntradayData(intradayData: TickerIntraday): Promise<void> {
-    const query = 'INSERT INTO Ticker_Intraday (ticker_symbol, open_price, high_price, low_price, last_price, close_price, volume, exchange, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const query = 'INSERT INTO Ticker_Intraday (ticker_symbol, open, high, low, last, close, volume, exchange, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
     const parameters = [intradayData.symbol, intradayData.open, intradayData.high, intradayData.low, intradayData.last, intradayData.close, intradayData.volume, intradayData.exchange, intradayData.date];
     const queryResults = await executeQuery(query, parameters) as ResultObject;
     if (queryResults.affectedRows === 0) {

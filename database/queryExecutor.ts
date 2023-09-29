@@ -1,5 +1,5 @@
 import { getDatabaseConnection } from './databaseConnector';
-import { MysqlError } from 'mysql';
+import { MysqlError, Connection } from 'mysql';
 
 /*  Convert callback-based queries into Promises    */
 
@@ -15,8 +15,12 @@ interface ResultObject {
     changedRows: number;
 }
 
-async function executeQuery(query: string, parameters: any[] = []): Promise<Array<any> | ResultObject> {
-    const databaseConnection = await getDatabaseConnection();
+async function executeQuery(
+    query: string,
+    parameters: any[] = [],
+    connection?: Connection
+): Promise<Array<any> | ResultObject> {
+    const databaseConnection = connection || await getDatabaseConnection();
     return new Promise((resolve, reject) => {
         databaseConnection.query(query, parameters, (error: MysqlError | null, results: Array<any> | ResultObject) => {
             if (error) {

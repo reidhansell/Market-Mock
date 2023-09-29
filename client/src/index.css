@@ -57,15 +57,16 @@ body, h1, h2, h3, h4, h5, h6, p, ol, ul {
   flex-direction: column;
   align-items: center;
   text-align: left;
-  min-width: 320px;
+  min-width: 20rem;
   margin: 0 auto;
-  padding: 20px;
+  padding: 1.25rem;
   height: 100%;
 }
 
 button, input, textarea, select, option {
   font-family: 'Roboto', sans-serif;
   font-size: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 button, input {
