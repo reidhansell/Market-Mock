@@ -1,6 +1,6 @@
 import { executeQuery, ResultObject } from '../queryExecutor';
 import ExpectedError from '../../tools/utils/ExpectedError';
-import Order from '../../models/Order';
+import Order, { FulfilledOrder } from '../../models/Order';
 import Transaction from '../../models/Transaction';
 import { Connection } from 'mysql';
 
@@ -34,11 +34,20 @@ async function getOrdersAndTransactionsByUserId(user_id: number): Promise<Order[
     }));
 }
 
+async function getOpenOrders(): Promise<Order[]> {
+    const insertQuery = `SELECT o.*
+    FROM Trade_Order o
+    LEFT JOIN Transaction t ON o.order_id = t.order_id
+    WHERE t.order_id IS NULL
+    AND o.cancelled IS FALSE;`;
+    const queryResults = await executeQuery(insertQuery, []) as Order[];
+    return queryResults;
+}
+
 async function insertOrder(order: Order, connection?: Connection): Promise<Order> {
     const insertQuery = `
         INSERT INTO Trade_Order (user_id, ticker_symbol, order_type, trigger_price, quantity)
-        VALUES (?, ?, ?, ?, ?)
-    `;
+        VALUES (?, ?, ?, ?, ?)`;
     const parameters = [order.user_id, order.ticker_symbol, order.order_type, order.trigger_price, order.quantity];
     const queryResults = await executeQuery(insertQuery, parameters, connection) as ResultObject;
 
@@ -57,7 +66,7 @@ async function insertOrder(order: Order, connection?: Connection): Promise<Order
     return orderResults[0] as Order;
 }
 
-async function insertTransaction(transaction: Transaction, connection?: Connection): Promise<Order> {
+async function insertTransaction(transaction: Transaction, connection?: Connection): Promise<FulfilledOrder> {
     const insertQuery = `
         INSERT INTO Transaction (order_id, price_per_share)
         VALUES (?, ?)
@@ -80,7 +89,7 @@ async function insertTransaction(transaction: Transaction, connection?: Connecti
 
     const joinedOrderResult = await executeQuery(selectJoinedOrderQuery, [transactionId], connection) as Order[];
     console.log(joinedOrderResult);
-    const joinedOrder = joinedOrderResult[0] as Order;
+    const joinedOrder = joinedOrderResult[0] as FulfilledOrder;
 
     if (!joinedOrder) {
         throw new ExpectedError('Failed to fetch the joined order', 500, `Failed to fetch the joined order with transaction_id: "${transactionId}"`);
@@ -96,8 +105,7 @@ async function cancelOrder(orderId: number, connection?: Connection): Promise<bo
         WHERE order_id = ? AND cancelled = false
     `;
     const parameters = [orderId];
-    const queryResults = await executeQuery(cancelQuery, parameters, connection) as ResultObject;
-
+    const queryResults = connection ? await executeQuery(cancelQuery, parameters, connection) as ResultObject : await executeQuery(cancelQuery, parameters) as ResultObject;
     if (queryResults.affectedRows === 0) {
         throw new ExpectedError('Failed to cancel the order', 500, `Failed to cancel the order with ID: ${orderId}`);
     }
@@ -107,6 +115,7 @@ async function cancelOrder(orderId: number, connection?: Connection): Promise<bo
 
 export {
     getOrdersAndTransactionsByUserId,
+    getOpenOrders,
     insertOrder,
     insertTransaction,
     cancelOrder
