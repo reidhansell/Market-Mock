@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { logout } from '../../requests/auth';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser } from '@fortawesome/free-solid-svg-icons';
 import './Nav.css';
 
 interface NavProps {
@@ -31,8 +29,8 @@ const Navigation: React.FC<NavProps> = ({ setAuth }) => {
                 <Link to="/"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</Link>
             </div>
             <div className="user-menu-container">
-                <div className="user-icon" onClick={toggleUserMenu}>
-                    <FontAwesomeIcon icon={faUser} />
+                <div className="icon-wrapper" onClick={toggleUserMenu}>
+                    <div className="bars-icon" />
                 </div>
                 {showUserMenu && (
                     <ul className="user-menu">

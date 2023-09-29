@@ -31,7 +31,6 @@ export const login = async (email: string, password: string): Promise<AxiosRespo
         if (response.data && response.data.token) {
             Axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
             localStorage.setItem('token', response.data.token);
-            console.log('Login successful');
         }
 
         return response;
@@ -63,7 +62,6 @@ export const logout = async (): Promise<AxiosResponse<ResponseData>> => {
         localStorage.removeItem('token');
         delete Axios.defaults.headers.common['Authorization'];
         const response = await Axios.post<ResponseData>('/api/auth/session/logout');
-        console.log('Logout successful');
         return response;
     } catch (error: any) {
         throw error.response.data.error;

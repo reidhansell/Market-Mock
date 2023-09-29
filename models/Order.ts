@@ -1,10 +1,19 @@
-export default interface Order {
+import { OptionalTransaction } from "../models/Transaction";
+
+export default interface Order extends OptionalTransaction {
     order_id: number;
     user_id: number;
     ticker_symbol: string;
     order_type: string;
     trigger_price: number;
     quantity: number;
-    fulfilled: boolean;
+    cancelled: boolean;
     order_date: Date;
+}
+
+export interface FulfilledOrder extends Order {
+    transaction_id: number;
+    order_id: number;
+    price_per_share: number;
+    transaction_date: Date;
 }
