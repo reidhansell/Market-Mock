@@ -121,6 +121,7 @@ async function initializeDatabase(): Promise<void> {
                 content VARCHAR(255),
                 user_id INT,
                 success BOOLEAN,
+                viewed BOOLEAN DEFAULT FALSE,
                 FOREIGN KEY (user_id) REFERENCES User(user_id)
             )`
         ];
