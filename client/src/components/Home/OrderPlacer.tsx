@@ -125,24 +125,25 @@ const OrderPlacer: React.FC = () => {
                         <Select options={typeOptions} onChange={handleTypeSelectChange} />
                     </label>
                     <br />
-                    <label>
-                        Quantity:<br />
-                        <button className="quantity" onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}>-</button>
-                        {" "}
-                        <input type="number" className="quantity" value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value) > 1 ? parseInt(e.target.value) : 1)} />
-                        {" "}
-                        <button className="quantity" onClick={() => setQuantity(quantity + 1)}>+</button>
-                    </label>
+                    <label>Quantity:</label>
+                    <br />
+                    <button className="quantity" onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}>-</button>
+                    {" "}
+                    <input type="number" className="quantity" value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value) > 1 ? parseInt(e.target.value) : 1)} />
+                    {" "}
+                    <button className="quantity" onClick={() => setQuantity(quantity + 1)}>+</button>
+
                     <br />
                     {(orderType === 'LIMIT' || orderType === 'STOP') ? (
-                        <label>
-                            Trigger Price:<br />
+                        <>
+                            <label>Trigger Price:</label>
+                            <br />
                             <button className="quantity" onClick={() => setTriggerPrice(parseFloat((triggerPrice - 0.01).toFixed(2)))}>-</button>
                             {" "}
                             <input type="number" className="price" value={triggerPrice} onChange={(e) => setTriggerPrice(Number(e.target.value))} />
                             {" "}
                             <button className="quantity" onClick={() => setTriggerPrice(parseFloat((triggerPrice + 0.01).toFixed(2)))}>+</button>
-                        </label>) : null}
+                        </>) : null}
                     <br />
                 </div>
                 <div>
