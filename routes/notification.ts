@@ -36,9 +36,11 @@ router.put('/:notification_id', authenticateToken, async (req: Request, res: Res
     try {
         const { notification_id } = req.params;
 
-        const success = await markNotificationAsRead(parseInt(notification_id));
-        res.json(success);
+        await markNotificationAsRead(parseInt(notification_id));
+        res.json();
     } catch (error) {
         next(error);
     }
 });
+
+export default router;
