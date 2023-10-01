@@ -28,6 +28,8 @@ import Transaction from '../../models/Transaction';
 import Order from '../../models/Order';
 import { Connection } from 'mysql';
 import { calculateAndSaveUserNetWorth } from './NetWorthService';
+import { addNotification } from '../../database/queries/notification';
+import Notification from '../../models/Notification';
 
 const processOrder = async (order: Order, transactionConnection: Connection) => {
     const tickerData = await getIntradayDataForTicker(order.ticker_symbol);
@@ -85,6 +87,7 @@ const processOrder = async (order: Order, transactionConnection: Connection) => 
         await calculateAndSaveUserNetWorth(order.user_id);
     }
     console.log(`Processed order ${order.order_id} and got ${fulfilledOrder}`);
+    addNotification({ user_id: order.user_id, content: `Your order for ${order.quantity} shares of ${order.ticker_symbol} has been fulfilled.`, success: true } as Notification)
     return fulfilledOrder;
 }
 
