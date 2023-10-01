@@ -10,8 +10,8 @@ async function getNotificiations(user_id: number): Promise<Notification[]> {
 }
 
 async function addNotification(notification: Notification): Promise<Notification> {
-    const addQuery = `INSERT INTO Notification (content, user_id) VALUES (?, ?)`;
-    const parameters = [notification.content, notification.user_id];
+    const addQuery = `INSERT INTO Notification (content, user_id, success) VALUES (?, ?, ?)`;
+    const parameters = [notification.content, notification.user_id, notification.success];
     const queryResults = await executeQuery(addQuery, parameters) as ResultObject;
     if (queryResults.affectedRows === 0) {
         throw new ExpectedError('Failed to add notification', 500, `Failed query: "${addQuery}" with parameters: "${parameters}"`);
