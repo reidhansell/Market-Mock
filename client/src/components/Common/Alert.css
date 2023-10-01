@@ -17,6 +17,10 @@
     margin-bottom: 10px;
     border-radius: 5px;
   }
+
+  .success {
+    background-color: #4CAF50;
+  }
   
   .closebtn {
     margin-right: 10px;

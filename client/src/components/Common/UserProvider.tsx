@@ -1,22 +1,23 @@
-import React, { useState, useEffect, ReactNode, useCallback } from 'react';
-import { getWatchlist } from '../../requests/watchlist';
+import React, { useState, ReactNode, useCallback } from 'react';
 import WatchList from '../../../../models/WatchList';
 import User from '../../../../models/User';
 import NetWorthData from '../../../../models/NetWorthData';
 import User_Stock from '../../../../models/User_Stock';
-import { getUser as getUserRequest } from '../../requests/auth';
+import Notification from '../../../../models/Notification';
 
 interface UserContext {
     user: User | null;
     watchlist: WatchList[];
     netWorth: NetWorthData[];
     stocks: User_Stock[];
+    notifications: Notification[];
     addTicker: (ticker: WatchList) => void;
     removeTicker: (tickerSymbol: string) => void;
     setUser: (user: User) => void;
     setWatchlist: (watchlist: WatchList[]) => void;
     setNetWorth: (netWorth: NetWorthData[]) => void;
     setStocks: (stocks: User_Stock[]) => void;
+    setNotifications: (notifications: Notification[]) => void;
 }
 
 const defaultContext = {
@@ -24,12 +25,14 @@ const defaultContext = {
     watchlist: [],
     netWorth: [],
     stocks: [],
+    notifications: [],
     addTicker: () => { },
     removeTicker: () => { },
     setUser: () => { },
     setWatchlist: () => { },
     setNetWorth: () => { },
-    setStocks: () => { }
+    setStocks: () => { },
+    setNotifications: () => { }
 };
 
 export const UserContext = React.createContext<UserContext>(defaultContext);
@@ -43,6 +46,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [watchlist, setWatchlist] = useState<WatchList[]>([]);
     const [netWorth, setNetWorth] = useState<NetWorthData[]>([]);
     const [stocks, setStocks] = useState<User_Stock[]>([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
 
     const addTicker = useCallback((ticker: WatchList) => {
         setWatchlist(prevData => [...prevData, ticker]);
@@ -52,27 +56,19 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         setWatchlist(prevData => prevData.filter(t => t.ticker_symbol !== tickerSymbol));
     }, []);
 
-    const getUser = async (): Promise<Boolean> => {
-        try {
-            const response = await getUserRequest();
-            setUser(response.data);
-            return true;
-        } catch (error) {
-            return false;
-        }
-    }
-
     const contextValue = {
         user,
         watchlist,
         netWorth,
         stocks,
+        notifications,
         addTicker,
         removeTicker,
         setUser,
         setWatchlist,
         setNetWorth,
         setStocks,
+        setNotifications
     };
 
     return (
