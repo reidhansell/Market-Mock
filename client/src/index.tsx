@@ -20,6 +20,7 @@ import OrderPlacer from './components/Home/OrderPlacer';
 import Nav from './components/Home/Nav';
 import { UserProvider } from './components/Common/UserProvider';
 import LoadingCircle from './components/Common/LoadingCircle';
+import { markNotificationAsRead } from './requests/notification';
 
 /*
  * Alert System and Axios Interceptors:
@@ -43,7 +44,7 @@ const App = () => {
   const [auth, setAuth] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
-  const { setUser } = useContext(UserContext);
+  const { setUser, notifications, setNotifications } = useContext(UserContext);
 
   const generateId = (): string => {
     return Math.random().toString(36).substr(2, 9);
@@ -137,11 +138,18 @@ const App = () => {
 
       <div className="app-container">
         <div className='alert-container'>
+          {notifications.map((notification) => (
+            <AlertComponent key={notification.notification_id} message={notification.content} success={notification.success} onClose={() => {
+              setNotifications([...notifications.filter(n => { return notification.notification_id != n.notification_id })])
+            }} customOnClick={() => {
+              setNotifications([...notifications.filter(n => { return notification.notification_id != n.notification_id })])
+              markNotificationAsRead(notification.notification_id);
+            }} />
+          ))}
           {alerts.map((alert) => (
             <AlertComponent key={alert.id} message={alert.message} onClose={() => removeAlert(alert.id)} />
           ))}
         </div>
-
 
         <Routes>
           <Route path="/login" element={!auth ? <Login setAuth={setAuth} /> : <Navigate to="/" />} />
