@@ -2,13 +2,13 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { getUserNetWorthData, getUserStocks } from '../database/queries/portfolio';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 
-const router = Router();
-
 interface AuthenticatedRequest extends Request {
     user: {
         user_id: number;
     }
 }
+
+const router = Router();
 
 router.get('/', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
     try {
