@@ -3,21 +3,25 @@ import React, { useEffect } from 'react';
 interface AlertProps {
     message: string;
     onClose: () => void;
+    success?: boolean;
+    customOnClick?: () => void;
 }
 
-const Alert: React.FC<AlertProps> = ({ message, onClose }) => {
+const Alert: React.FC<AlertProps> = ({ message, onClose, success, customOnClick }) => {
     useEffect(() => {
-        const timer = setTimeout(() => {
-            onClose();
-        }, 3000);
-        return () => {
-            clearTimeout(timer);
-        };
+        if (!customOnClick) {
+            const timer = setTimeout(() => {
+                onClose();
+            }, 5000);
+            return () => {
+                clearTimeout(timer);
+            };
+        }
     }, [onClose]);
 
     return (
-        <div className='alert'>
-            <h3><span className="closebtn" onClick={onClose}>&times;</span></h3>
+        <div className={`alert ${success ? 'success' : null}`}>
+            {<h3><span className="closebtn" onClick={customOnClick ? customOnClick : onClose}>&times;</span></h3>}
             {message}
         </div>
     );
