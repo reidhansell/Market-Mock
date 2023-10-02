@@ -1,11 +1,11 @@
 import Axios, { AxiosResponse } from 'axios';
 import config from '../config.json';
 import NetWorthData from '../../../models/NetWorthData';
-import User_Stock from '../../../models/User_Stock';
+import User_Stock, { UserStockWithPrices } from '../../../models/UserStock';
 
 interface PortfolioDataResponse {
     netWorthData: NetWorthData[];
-    userStocks: User_Stock[];
+    userStocks: UserStockWithPrices[];
 }
 
 export const getUserPortfolio = async (): Promise<PortfolioDataResponse> => {
