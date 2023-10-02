@@ -13,7 +13,7 @@ const isIntradayDataRecent = (intradayData: TickerIntraday[]): boolean => {
     return differenceInHours <= 1;
 };
 
-export async function getIntradayDataForTicker(ticker: string) {
+export async function getIntradayDataForTicker(ticker: string): Promise<TickerIntraday[]> {
     let intradayData = await getLatestIntradayData(ticker);
 
     if (!intradayData || !isIntradayDataRecent(intradayData)) {

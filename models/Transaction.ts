@@ -11,3 +11,7 @@ export interface OptionalTransaction {
     price_per_share?: number;
     transaction_date?: Date;
 }
+
+export interface TransactionWithQuantity extends Transaction {
+    quantity: number;
+}

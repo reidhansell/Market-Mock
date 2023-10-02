@@ -37,7 +37,7 @@ const OrderPlacer: React.FC = () => {
         const fetchTickerData = async () => {
             try {
                 const response = await Axios.get(`${config.serverURL}/api/ticker/intraday/${ticker}`);
-                setTickerData((response.data as TickerIntraday[]).sort((a, b) => { return a.date < b.date ? -1 : 1 }));
+                setTickerData((response.data as TickerIntraday[]));
                 setTriggerPrice(response.data[0].last);
             } catch (error) {
                 console.error('Error fetching ticker data', error);
