@@ -4,6 +4,7 @@ import User from '../../../../models/User';
 import NetWorthData from '../../../../models/NetWorthData';
 import User_Stock, { UserStockWithPrices } from '../../../../models/UserStock';
 import Notification from '../../../../models/Notification';
+import { FulfilledOrder } from '../../../../models/Order';
 
 interface UserContext {
     user: User | null;
@@ -11,6 +12,7 @@ interface UserContext {
     netWorth: NetWorthData[];
     stocks: UserStockWithPrices[];
     notifications: Notification[];
+    orders: FulfilledOrder[];
     addTicker: (ticker: WatchList) => void;
     removeTicker: (tickerSymbol: string) => void;
     setUser: (user: User) => void;
@@ -18,6 +20,7 @@ interface UserContext {
     setNetWorth: (netWorth: NetWorthData[]) => void;
     setStocks: (stocks: UserStockWithPrices[]) => void;
     setNotifications: (notifications: Notification[]) => void;
+    setOrders: (orders: FulfilledOrder[]) => void;
 }
 
 const defaultContext = {
@@ -26,13 +29,15 @@ const defaultContext = {
     netWorth: [],
     stocks: [],
     notifications: [],
+    orders: [],
     addTicker: () => { },
     removeTicker: () => { },
     setUser: () => { },
     setWatchlist: () => { },
     setNetWorth: () => { },
     setStocks: () => { },
-    setNotifications: () => { }
+    setNotifications: () => { },
+    setOrders: () => { }
 };
 
 export const UserContext = React.createContext<UserContext>(defaultContext);
@@ -47,6 +52,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [netWorth, setNetWorth] = useState<NetWorthData[]>([]);
     const [stocks, setStocks] = useState<UserStockWithPrices[]>([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [orders, setOrders] = useState<FulfilledOrder[]>([]);
 
     const addTicker = useCallback((ticker: WatchList) => {
         setWatchlist(prevData => [...prevData, ticker]);
@@ -62,13 +68,15 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         netWorth,
         stocks,
         notifications,
+        orders,
         addTicker,
         removeTicker,
         setUser,
         setWatchlist,
         setNetWorth,
         setStocks,
-        setNotifications
+        setNotifications,
+        setOrders
     };
 
     return (
