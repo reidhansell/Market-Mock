@@ -65,6 +65,7 @@ ol, ul {
   margin: 0 auto;
   padding: 1.25rem;
   height: 100%;
+  padding-top: 2.5rem; /* height of nav */
 }
 
 button, input, textarea, select, option {
