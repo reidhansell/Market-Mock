@@ -21,6 +21,7 @@ import Nav from './components/Home/Nav';
 import { UserProvider } from './components/Common/UserProvider';
 import LoadingCircle from './components/Common/LoadingCircle';
 import { markNotificationAsRead } from './requests/notification';
+import DashboardModule from './components/Common/DashboardModule';
 
 /*
  * Alert System and Axios Interceptors:
@@ -140,9 +141,9 @@ const App = () => {
         <div className='alert-container'>
           {notifications.map((notification) => (
             <AlertComponent key={notification.notification_id} message={notification.content} success={notification.success} onClose={() => {
-              setNotifications([...notifications.filter(n => { return notification.notification_id != n.notification_id })])
+              setNotifications([...notifications.filter(n => { return notification.notification_id !== n.notification_id })])
             }} customOnClick={() => {
-              setNotifications([...notifications.filter(n => { return notification.notification_id != n.notification_id })])
+              setNotifications([...notifications.filter(n => { return notification.notification_id !== n.notification_id })])
               markNotificationAsRead(notification.notification_id);
             }} />
           ))}
@@ -151,20 +152,25 @@ const App = () => {
           ))}
         </div>
 
+        {/**
+         * Currently, components displayed in fullscreen are wrapped in a DashboardModule 
+         * to standardize presentation. Future iterations may explore direct component 
+         * rendering for a more streamlined approach.
+         */
+        }
         <Routes>
           <Route path="/login" element={!auth ? <Login setAuth={setAuth} /> : <Navigate to="/" />} />
           <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
           <Route path="/verify/:token" element={<VerifyEmail />} />
           <Route path="/" element={auth ? <Home /> : <Navigate to="/login" />} />
-          <Route path="/portfolio" element={auth ? <Portfolio /> : <Navigate to="/login" />} />
-          <Route path="/watchlist" element={auth ? <Watchlist /> : <Navigate to="/login" />} />
-          <Route path="/quests" element={auth ? <Quests /> : <Navigate to="/login" />} />
+          <Route path="/portfolio" element={auth ? <DashboardModule title="Portfolio" content={<Portfolio fullscreen={true} />} fullscreen={true} /> : <Navigate to="/login" />} />
+          <Route path="/watchlist" element={auth ? <DashboardModule title="Watchlist" content={<Watchlist />} fullscreen={true} /> : <Navigate to="/login" />} />
+          <Route path="/quests" element={auth ? <DashboardModule title="Quests" content={<Quests />} fullscreen={true} /> : <Navigate to="/login" />} />
           <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
           <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
           <Route path="/orderplacer/:ticker" element={auth ? <OrderPlacer /> : <Navigate to="/login" />} />
           <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
         </Routes>
-
       </div>
     </Router>
   );

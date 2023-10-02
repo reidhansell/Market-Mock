@@ -1,44 +1,27 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Portfolio from '../Home/Portfolio';
-import Watchlist from '../Home/Watchlist';
-import Quests from '../Home/Quests';
 import './DashboardModule.css';
-import { UserContext } from './UserProvider';
 
 interface Props {
-    type: 'portfolio' | 'watchlist' | 'quests';
+    title: string;
+    content: React.ReactNode;
+    fullscreen?: boolean;
 }
 
-const DashboardModule: React.FC<Props> = ({ type }) => {
+const DashboardModule: React.FC<Props> = ({ title, content, fullscreen = false }) => {
     const navigate = useNavigate();
 
-    const user = useContext(UserContext);
-
-    const getContent = () => {
-        switch (type) {
-            case 'portfolio':
-                return <Portfolio />;
-            case 'watchlist':
-                return <Watchlist />;
-            case 'quests':
-                return <Quests />;
-            default:
-                return null;
-        }
-    };
-
     const toggleFullscreen = () => {
-        navigate(type === 'portfolio' ? '/portfolio' : type === 'watchlist' ? '/watchlist' : '/quests');
+        navigate(`/${title.toLowerCase()}`);
     }
 
     return (
-        <div className="dashboard-module">
-            <h1 className="dashboard-module-header" onClick={toggleFullscreen}>
-                {type === 'portfolio' ? 'Portfolio' : type === 'watchlist' ? 'Watchlist' : 'Quests'}
+        <div className={`dashboard-module ${fullscreen ? 'dashboard-module-large' : ''}`}>
+            <h1 className={`dashboard-module-header ${fullscreen ? 'dashboard-module-header-large' : ''}`} onClick={toggleFullscreen}>
+                {title}
             </h1>
-            <div className="dashboard-module-content">
-                {getContent()}
+            <div className={`dashboard-module-content ${fullscreen ? 'dashboard-module-content-large' : ''}`}>
+                {content}
             </div>
         </div>
     );
