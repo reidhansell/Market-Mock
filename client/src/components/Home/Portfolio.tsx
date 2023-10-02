@@ -6,6 +6,7 @@ import NetWorthData from '../../../../models/NetWorthData';
 import LoadingCircle from '../Common/LoadingCircle';
 import { UserContext } from '../Common/UserProvider';
 import "./Portfolio.css"
+import { getUserOrders } from '../../requests/order';
 
 interface PortfolioProps {
     fullscreen?: boolean;
@@ -14,13 +15,15 @@ interface PortfolioProps {
 const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
     const navigate = useNavigate();
 
-    const { netWorth, setNetWorth, setStocks, user, stocks } = useContext(UserContext);
+    const { netWorth, setNetWorth, setStocks, user, stocks, orders, setOrders } = useContext(UserContext);
 
     const fetchData = async () => {
         try {
             const portfolioData = await getUserPortfolio();
+            const orderData = await getUserOrders();
             setNetWorth(portfolioData.netWorthData);
             setStocks(portfolioData.userStocks);
+            setOrders(orderData);
         } catch (error) {
             console.error('Failed to fetch net worth data', error);
         }
@@ -104,7 +107,19 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
                         </li>
                     ))}
                 </ul>
+                <br />
+                <h1>Order History</h1>
+                <ul className='owned-stocks-list'>
+                    {orders.map((order) => (
+                        <li className='owned-stock' key={order.order_id} onClick={() => navigate(`/order/${order.order_id}`)}>
+                            <h3 style={{ color: order.quantity < 0 ? "red" : "var(--brand)" }} className='owned-stock-header'>{`${order.ticker_symbol} (${Math.abs(order.quantity)})`}</h3>
+                            <p>Status: {order.cancelled ? "Cancelled" : order.transaction_id ? "Fulfilled" : "Open"}</p>
+                            <p>Price: {order.transaction_id ? order.price_per_share : order.trigger_price}</p>
+                        </li>
+                    ))}
+                </ul>
             </>) : null}
+            <br />
         </>
     );
 };
