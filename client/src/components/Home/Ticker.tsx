@@ -1,22 +1,20 @@
 import React, { useEffect, useState, useContext } from 'react';
-import Axios from 'axios';
 import TickerIntraday from '../../../../models/TickerIntraday';
 import TickerEndOfDay from '../../../../models/TickerEndOfDay';
 import { useParams, Link } from 'react-router-dom';
-import config from '../../config.json'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import LoadingCircle from '../Common/LoadingCircle';
 import ViewModeToggle from './ViewModeToggle';
 import { addTickerToWatchlist } from '../../requests/watchlist';
 import { removeTickerFromWatchlist } from '../../requests/watchlist';
 import { UserContext } from '../Common/UserProvider';
-import { AxiosResponse } from 'axios';
 import MyTooltip from '../Common/Tooltip';
+import { getTickerData } from '../../requests/Ticker';
 
 type ViewMode = 'intraday' | 'EOD';
 
 const Ticker: React.FC = () => {
-    const { symbol } = useParams();
+    const { symbol } = useParams() as { symbol: string };
     const { addTicker, removeTicker, watchlist } = useContext(UserContext);
 
     const [viewMode, setViewMode] = useState<ViewMode>('intraday');
@@ -33,10 +31,14 @@ const Ticker: React.FC = () => {
     const [inWatchlist, setInWatchlist] = useState<boolean>(false);
 
     const fetchData = async () => {
-        const response = await Axios.get(`${config.serverURL}/api/ticker/${viewMode}/${symbol}`) as AxiosResponse;
-        viewMode === 'intraday'
-            ? setIntradayData((response.data as TickerIntraday[]).sort((a, b) => { return a.date < b.date ? -1 : 1 }))
-            : setEODData((response.data as TickerEndOfDay[]).sort((a, b) => { return a.date < b.date ? -1 : 1 }))
+        if (viewMode === 'intraday') {
+            const tickerData = await getTickerData(symbol, viewMode) as TickerIntraday[]
+            console.log("TICKERDATA: " + tickerData);
+            setIntradayData(tickerData)
+        } else {
+            const tickerData = await getTickerData(symbol, viewMode) as TickerEndOfDay[];
+            setEODData(tickerData)
+        }
     };
 
     const handleAddToWatchlist = async () => {
