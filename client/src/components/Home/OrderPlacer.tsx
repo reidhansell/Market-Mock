@@ -114,7 +114,11 @@ const OrderPlacer: React.FC = () => {
                 </div>
                 <br />
                 <div className="order-options">
-                    <h2>Order Options</h2>
+                    <h2>Order Options <Tooltip text={["Market: The order will be fulfilled at the current market price",
+                        "",
+                        "Limit: The order will be fulfilled at the specified price or better (lower for buy, higher for sell)",
+                        "",
+                        "Stop: The order will be fulfilled at the specified price or worse (higher for buy, lower for sell)"]} /></h2>
                     <label>
                         Transaction type:<br />
                         <Select options={transactionsOptions} onChange={handleTransactionSelectChange} />
