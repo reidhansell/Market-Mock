@@ -1,15 +1,20 @@
 import React, { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserPortfolio } from '../../requests/portfolio';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import NetWorthData from '../../../../models/NetWorthData';
 import LoadingCircle from '../Common/LoadingCircle';
 import { UserContext } from '../Common/UserProvider';
+import "./Portfolio.css"
 
-const Portfolio: React.FC = () => {
+interface PortfolioProps {
+    fullscreen?: boolean;
+}
+
+const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
     const navigate = useNavigate();
 
-    const { netWorth, setNetWorth, setStocks, user } = useContext(UserContext);
+    const { netWorth, setNetWorth, setStocks, user, stocks } = useContext(UserContext);
 
     const fetchData = async () => {
         try {
@@ -26,7 +31,7 @@ const Portfolio: React.FC = () => {
     }, []);
 
     const transformToChartData = (data: NetWorthData[]) => {
-        return data.map(d => ({ date: new Date(d.recorded_at).toISOString(), netWorth: d.net_worth })).sort((a, b) => { return a.date < b.date ? -1 : 1 });
+        return data.map(d => ({ date: new Date(d.recorded_at).toISOString(), netWorth: d.net_worth })).reverse();
     };
 
     let chartData: { date: string; netWorth: number }[] = [];
@@ -67,6 +72,7 @@ const Portfolio: React.FC = () => {
                 </ResponsiveContainer>
             </div>
             <br />
+            <h1>Wallet</h1>
             <p>
                 Initial Investment:<br />
                 <strong>${user ? user.starting_amount : <LoadingCircle />}</strong>
@@ -86,6 +92,19 @@ const Portfolio: React.FC = () => {
                         {netWorth.length > 0 ? `$${netWorth[0].net_worth} (${(netWorth[0].net_worth - user.starting_amount) >= 0 ? '+' : '-'}$${Math.abs(netWorth[0].net_worth - user.starting_amount).toFixed(2)} / ${(netWorth[0].net_worth - user.starting_amount) >= 0 ? '+' : '-'}${Math.abs(netWorth[0].net_worth / user.starting_amount * 100 - 100).toFixed(2)}%)` : <LoadingCircle />}
                     </strong>) : <LoadingCircle />}
             </p>
+            <br />
+            {fullscreen ? (<>
+                <h1>Owned Stocks</h1>
+                <ul className='owned-stocks-list'>
+                    {stocks.map((stock) => (
+                        <li className='owned-stock' key={stock.ticker_symbol} onClick={() => navigate(`/ticker/${stock.ticker_symbol}`)}>
+                            <h3 className='owned-stock-header'>{`${stock.ticker_symbol} (${stock.quantity})`}</h3>
+                            <p style={{ color: stock.last > stock.open ? "var(--brand)" : "red" }}>Today: {`${stock.last > stock.open ? '+' : '-'}$${Math.abs(stock.last - stock.open).toFixed(2)} (${stock.last > stock.open ? '+' : '-'}$${(Math.abs(stock.last - stock.open) * stock.quantity).toFixed(2)})`}</p>
+                            <p style={{ color: stock.last > stock.purchased_price ? "var(--brand)" : "red" }}>All-Time: {`${stock.last > stock.purchased_price ? '+' : '-'}$${Math.abs(stock.last - stock.purchased_price).toFixed(2)} (${stock.last > stock.purchased_price ? '+' : '-'}$${(Math.abs(stock.last - stock.purchased_price) * stock.quantity).toFixed(2)})`}</p>
+                        </li>
+                    ))}
+                </ul>
+            </>) : null}
         </>
     );
 };
