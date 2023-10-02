@@ -87,7 +87,7 @@ const processOrder = async (order: Order, transactionConnection: Connection) => 
         await calculateAndSaveUserNetWorth(order.user_id);
     }
     console.log(`Processed order ${order.order_id} and got ${fulfilledOrder}`);
-    addNotification({ user_id: order.user_id, content: `Your order for ${order.quantity} shares of ${order.ticker_symbol} has been fulfilled.`, success: true } as Notification)
+    fulfilledOrder ? addNotification({ user_id: order.user_id, content: `Your order for ${order.quantity} shares of ${order.ticker_symbol} has been fulfilled.`, success: true } as Notification) : null
     return fulfilledOrder;
 }
 

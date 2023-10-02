@@ -1,8 +1,8 @@
 import Axios, { AxiosResponse } from 'axios';
 import config from '../config.json';
-import Order from '../../../models/Order';
+import Order, { FulfilledOrder } from '../../../models/Order';
 
-export const getUserOrders = async (): Promise<Order[]> => {
+export const getUserOrders = async (): Promise<FulfilledOrder[]> => {
     try {
         Axios.defaults.withCredentials = true;
         const response = await Axios.get(`${config.serverURL}/api/order/`);
