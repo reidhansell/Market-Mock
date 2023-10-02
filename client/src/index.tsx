@@ -17,6 +17,7 @@ import Portfolio from './components/Home/Portfolio';
 import Watchlist from './components/Home/Watchlist';
 import Quests from './components/Home/Quests';
 import OrderPlacer from './components/Home/OrderPlacer';
+import Order from './components/Home/Order';
 import Nav from './components/Home/Nav';
 import { UserProvider } from './components/Common/UserProvider';
 import LoadingCircle from './components/Common/LoadingCircle';
@@ -169,6 +170,7 @@ const App = () => {
           <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
           <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
           <Route path="/orderplacer/:ticker" element={auth ? <OrderPlacer /> : <Navigate to="/login" />} />
+          <Route path="/order/:order" element={auth ? <Order /> : <Navigate to="/login" />} />
           <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
         </Routes>
       </div>
