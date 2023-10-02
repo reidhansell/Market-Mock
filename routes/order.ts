@@ -24,7 +24,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
         const { user_id } = (req as AuthenticatedRequest).user;
 
         const orders = await getOrdersAndTransactionsByUserId(user_id);
-        res.json({ orders: orders });
+        res.json(orders);
     } catch (error) {
         next(error);
     }
