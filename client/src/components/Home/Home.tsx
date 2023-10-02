@@ -3,6 +3,9 @@ import DashboardModule from '../Common/DashboardModule';
 import './Home.css';
 import { getNotifications } from '../../requests/notification';
 import { UserContext } from '../Common/UserProvider';
+import Portfolio from './Portfolio';
+import Watchlist from './Watchlist';
+import Quests from './Quests';
 
 const Home: React.FC = () => {
 
@@ -22,9 +25,9 @@ const Home: React.FC = () => {
 
     return (
         <div className="home-container">
-            <DashboardModule type="portfolio" />
-            <DashboardModule type="watchlist" />
-            <DashboardModule type="quests" />
+            <DashboardModule title="Portfolio" content={<Portfolio fullscreen={false} />} />
+            <DashboardModule title="Portfolio" content={<Watchlist />} />
+            <DashboardModule title="Portfolio" content={<Quests />} />
         </div>
     );
 };
