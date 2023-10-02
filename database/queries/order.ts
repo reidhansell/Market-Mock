@@ -15,23 +15,7 @@ async function getOrdersAndTransactionsByUserId(user_id: number): Promise<Order[
     `;
     const parameters = [user_id];
     const results = await executeQuery(query, parameters) as any[];
-    return results.map(result => ({
-        order_id: result.order_id,
-        user_id: result.user_id,
-        ticker_symbol: result.ticker_symbol,
-        order_type: result.order_type,
-        trigger_price: result.trigger_price,
-        quantity: result.quantity,
-        fulfilled: result.fulfilled,
-        cancelled: result.cancelled,
-        order_date: result.order_date,
-        transaction: result.transaction_id ? {
-            transaction_id: result.transaction_id,
-            order_id: result.order_id,
-            price_per_share: result.price_per_share,
-            transaction_date: result.transaction_date
-        } : undefined
-    }));
+    return results;
 }
 
 async function getOpenOrders(): Promise<Order[]> {
