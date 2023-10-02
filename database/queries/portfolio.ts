@@ -1,7 +1,8 @@
 import { executeQuery } from '../queryExecutor';
 import NetWorthData from '../../models/NetWorthData';
-import User_Stock from '../../models/User_Stock';
+import UserStock from '../../models/UserStock';
 import { Connection } from 'mysql';
+import Transaction, { TransactionWithQuantity } from '../../models/Transaction';
 
 async function getUserNetWorthData(user_id: number): Promise<NetWorthData[]> {
   const query = `
@@ -16,13 +17,13 @@ async function getUserNetWorthData(user_id: number): Promise<NetWorthData[]> {
   return results;
 }
 
-async function getUserStocks(user_id: number): Promise<User_Stock[]> {
+async function getUserStocks(user_id: number): Promise<UserStock[]> {
   const query = `SELECT *
     FROM User_Stocks
     WHERE user_id = ?
     AND quantity > 0`;
   const parameters = [user_id];
-  const results = await executeQuery(query, parameters) as User_Stock[];
+  const results = await executeQuery(query, parameters) as UserStock[];
   return results;
 }
 
@@ -39,7 +40,7 @@ async function updateUserBalance(userId: number, amount: number, connection?: Co
 async function updateUserStocks(userId: number, tickerSymbol: string, quantity: number, connection?: Connection): Promise<void> {
   const checkQuery = `SELECT * FROM User_Stocks WHERE user_id = ? AND ticker_symbol = ?`;
   const checkParameters = [userId, tickerSymbol];
-  const result = await executeQuery(checkQuery, checkParameters, connection) as User_Stock[];
+  const result = await executeQuery(checkQuery, checkParameters, connection) as UserStock[];
 
   if (result.length > 0) {
     const updateQuery = `UPDATE User_Stocks SET quantity = quantity + ? WHERE user_id = ? AND ticker_symbol = ?`;
@@ -58,11 +59,23 @@ async function removeUserStocks(userId: number, tickerSymbol: string, connection
   await executeQuery(query, parameters, connection);
 }
 
+async function getStockTransactions(userId: number, tickerSymbol: string) {
+  const query = `SELECT Transaction.transaction_id, Transaction.price_per_share, Trade_Order.quantity, Transaction.transaction_date 
+  FROM Transaction
+  INNER JOIN Trade_Order ON Transaction.order_id = Trade_Order.order_id
+  WHERE Trade_Order.ticker_symbol = ? AND Trade_Order.user_id = ? AND Trade_Order.quantity > 0
+  ORDER BY Transaction.transaction_date ASC;
+  `;
+  const parameters = [tickerSymbol, userId];
+  const result = await executeQuery(query, parameters) as TransactionWithQuantity[];
+  return result;
+}
 
 export {
   getUserNetWorthData,
   getUserStocks,
   updateUserBalance,
   updateUserStocks,
-  removeUserStocks
+  removeUserStocks,
+  getStockTransactions
 };
