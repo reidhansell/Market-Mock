@@ -80,7 +80,7 @@ const processOrder = async (order: Order, transactionConnection: Connection) => 
         console.log(`Order ${order.order_id} is not a market order and current price ${currentPrice} is not within trigger price ${order.trigger_price}`);
     }
 
-    if (fulfilledOrder != null) {
+    if (fulfilledOrder !== null) {
         console.log(`Fulfilled order ${order.order_id} with transaction ${fulfilledOrder.transaction_id}`);
         await updateUserBalance(order.user_id, totalCost, transactionConnection);
         await updateUserStocks(order.user_id, order.ticker_symbol, order.quantity, transactionConnection);
@@ -103,7 +103,7 @@ const fulfillOpenOrders = async () => {
             transactionConnection.beginTransaction();
             const fulfilledOrder = await processOrder(order, transactionConnection);
             console.log(`Tried to process ${order.order_id} and got ${fulfilledOrder}`);
-            if (fulfilledOrder != null) {
+            if (fulfilledOrder !== null) {
                 if (fulfilledOrder.cancelled) {
                     console.log(`Order ${order.order_id} was cancelled`);
                 } else { console.log(`Fulfilled order ${order.order_id}`); }
