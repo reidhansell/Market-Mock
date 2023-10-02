@@ -1,0 +1,15 @@
+ul.owned-stocks-list{
+    width: 100%;
+    border-radius: 5px 5px 0 0;
+    overflow: auto;
+}
+
+li.owned-stock{
+cursor: pointer;
+border-bottom: 1px solid var(--text1-dark);
+padding: 0.5rem;
+}
+
+li.owned-stock:hover{
+    background-color: var(--surface3-dark);
+}
