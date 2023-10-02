@@ -2,21 +2,21 @@ import React, { useState, ReactNode, useCallback } from 'react';
 import WatchList from '../../../../models/WatchList';
 import User from '../../../../models/User';
 import NetWorthData from '../../../../models/NetWorthData';
-import User_Stock from '../../../../models/User_Stock';
+import User_Stock, { UserStockWithPrices } from '../../../../models/UserStock';
 import Notification from '../../../../models/Notification';
 
 interface UserContext {
     user: User | null;
     watchlist: WatchList[];
     netWorth: NetWorthData[];
-    stocks: User_Stock[];
+    stocks: UserStockWithPrices[];
     notifications: Notification[];
     addTicker: (ticker: WatchList) => void;
     removeTicker: (tickerSymbol: string) => void;
     setUser: (user: User) => void;
     setWatchlist: (watchlist: WatchList[]) => void;
     setNetWorth: (netWorth: NetWorthData[]) => void;
-    setStocks: (stocks: User_Stock[]) => void;
+    setStocks: (stocks: UserStockWithPrices[]) => void;
     setNotifications: (notifications: Notification[]) => void;
 }
 
@@ -45,7 +45,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [watchlist, setWatchlist] = useState<WatchList[]>([]);
     const [netWorth, setNetWorth] = useState<NetWorthData[]>([]);
-    const [stocks, setStocks] = useState<User_Stock[]>([]);
+    const [stocks, setStocks] = useState<UserStockWithPrices[]>([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
     const addTicker = useCallback((ticker: WatchList) => {
