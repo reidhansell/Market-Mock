@@ -1,6 +1,7 @@
 .ticker-search-container {
     display: flex;
     flex-direction: column;
+    margin: 1rem;
     min-width: 20rem;
     max-width: 30rem;
     width: 25vw;
