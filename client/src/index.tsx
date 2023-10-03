@@ -184,3 +184,5 @@ if (!rootElement) {
 }
 
 createRoot(rootElement).render(<UserProvider><App /></UserProvider>);
+
+export default App;

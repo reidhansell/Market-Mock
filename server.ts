@@ -1,33 +1,60 @@
 import express from 'express';
-import config from './config.json';
-import { initializeDatabaseConnection } from './database/databaseConnector';
+import { port } from './config.json';
+import { initializeDatabaseConnection, closeDatabaseConnection, closeTransactionPool } from './database/databaseConnector';
 import initializeDatabase from './database/databaseInitializer';
 import Logger from './tools/utils/Logger';
 import Router from './tools/utils/Router';
 import CronJobs from './tools/jobs/CronJobs';
 
 const app = express();
-const port = config.port;
 
 async function initialize() {
-    console.log('Beginning initialization...');
+    try {
+        console.log('Beginning initialization...');
 
-    Logger.initialize();
-    Router.initialize(app);
+        Logger.initialize();
+        Router.initialize(app);
 
-    app.listen(port, () => {
-        console.log(`Server is running on port ${port}`);
-    });
+        /* await: Cron jobs depend on DB */
+        await initializeDatabaseConnection();
+        await initializeDatabase();
 
-    await initializeDatabaseConnection();
-    await initializeDatabase();
+        CronJobs.scheduleJobs();
 
-    CronJobs.scheduleJobs();
+        const server = app.listen(port, () => {
+            console.log(`Server is running on port ${port}`);
+        });
 
-    console.log('Initialization successful');
+        console.log('Initialization successful');
+
+        return server;
+    } catch (error) {
+        console.log('Initialization failed with the following error');
+        console.log(error);
+    }
 }
 
-initialize();
+(async () => {
+    const server = await initialize() as any;
+
+    process.on('SIGTERM', () => {
+        console.log('SIGTERM signal received: closing HTTP server');
+        server.close(async () => {
+            console.log('HTTP server closed');
+
+            // Assuming you have a method to close your database connection
+            await closeDatabaseConnection();
+            await closeTransactionPool();
+            console.log('Database connection closed');
+
+            // Assuming you have a method to cancel your cron jobs
+            CronJobs.stopAll();
+            console.log('Cron jobs cancelled');
+
+            process.exit(0);
+        });
+    });
+
+})();
 
 export default app;
-

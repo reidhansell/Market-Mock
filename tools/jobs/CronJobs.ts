@@ -77,4 +77,10 @@ export default class CronJobs {
             }
         };
     }
+
+    static stopAll() {
+        console.log('Stopping all cron jobs...');
+        cron.getTasks().forEach(task => task.stop());
+        console.log('Successfully stopped all cron jobs');
+    }
 }

@@ -61,10 +61,40 @@ function getTransactionConnection(): Promise<Connection> {
     });
 }
 
+function closeDatabaseConnection(): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (!databaseConnection) {
+            reject(new Error('Database connection has not been initialized.'));
+        } else {
+            databaseConnection.end((error) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        }
+    });
+}
+
+function closeTransactionPool(): Promise<void> {
+    return new Promise((resolve, reject) => {
+        transactionPool.end((error) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
 initializeTransactionPool();
 
 export {
     initializeDatabaseConnection,
     getDatabaseConnection,
     getTransactionConnection,
+    closeDatabaseConnection,
+    closeTransactionPool,
 };
