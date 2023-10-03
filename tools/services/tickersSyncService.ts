@@ -3,7 +3,6 @@ import config from '../../config.json';
 import ExpectedError from '../utils/ExpectedError';
 import { insertTicker, checkTickerExists } from '../../database/queries/ticker';
 import { ExchangeTickersResponse } from '../../models/MarketStackResponses';
-import Ticker from '../../models/Ticker';
 
 interface MarketStackTicker {
     name: string;

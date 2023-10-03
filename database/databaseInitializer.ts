@@ -1,7 +1,6 @@
 import { executeQuery } from './queryExecutor';
 import quests from './quests.json';
 import Quest from '../models/Quest';
-import config from '../config.json';
 
 async function initializeDatabase(): Promise<void> {
     try {

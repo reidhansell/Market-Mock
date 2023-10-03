@@ -1,4 +1,4 @@
-import axios, { Axios, AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { getLatestEODData, insertEODData } from '../../database/queries/ticker';
 import TickerEndOfDay from '../../models/TickerEndOfDay';
 import { EODResponse } from '../../models/MarketStackResponses';
