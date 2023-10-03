@@ -1,0 +1,28 @@
+ul.quests{
+    width: 100%;
+    border-radius: 5px 5px 0 0;
+    overflow: auto;
+    max-height: 25rem;
+}
+
+li.quest{
+cursor: pointer;
+border-bottom: 1px solid var(--text1-dark);
+padding: 0.5rem;
+}
+
+li.completed h3, li.completed p{
+    text-decoration: line-through;
+}
+
+li.quest:hover{
+    background-color: var(--surface3-dark);
+}
+
+h3.quest-header{
+    color: var(--brand);
+}
+
+ul.quests::-webkit-scrollbar-track {
+    border-radius: 0 5px 5px 0;
+}
