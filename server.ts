@@ -35,22 +35,17 @@ async function initialize() {
 }
 
 (async () => {
-    const server = await initialize() as any;
+    const server = process.env.NODE_ENV !== 'test' ? await initialize() as any : null;
 
     process.on('SIGTERM', () => {
         console.log('SIGTERM signal received: closing HTTP server');
         server.close(async () => {
             console.log('HTTP server closed');
-
-            // Assuming you have a method to close your database connection
+            CronJobs.stopAll();
+            console.log('Cron jobs stopped');
             await closeDatabaseConnection();
             await closeTransactionPool();
             console.log('Database connection closed');
-
-            // Assuming you have a method to cancel your cron jobs
-            CronJobs.stopAll();
-            console.log('Cron jobs cancelled');
-
             process.exit(0);
         });
     });
