@@ -9,6 +9,7 @@ import { authenticateToken } from '../tools/middleware/authMiddleware';
 import ExpectedError from '../tools/utils/ExpectedError';
 import { findUserByEmail, findUserByUsername, registerUser, updateVerificationToken, getUserData, findUserSensitiveByEmail, storeRefreshToken, findUserById, updateEmailVerificationStatus, isRefreshTokenStored, deleteRefreshToken } from '../database/queries/auth';
 import config from '../config.json';
+import { calculateAndSaveUserNetWorth } from '../tools/services/NetWorthService';
 
 interface AuthenticatedRequest extends Request {
     user: {
@@ -70,6 +71,7 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
         const verificationToken = generateVerificationToken(user_id);
         await updateVerificationToken(user_id, verificationToken);
         await sendVerificationEmail(email, verificationToken);
+        await calculateAndSaveUserNetWorth(user_id);
 
         res.status(200).json(null);
     } catch (error) {
