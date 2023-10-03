@@ -30,6 +30,7 @@ import { Connection } from 'mysql';
 import { calculateAndSaveUserNetWorth } from './NetWorthService';
 import { addNotification } from '../../database/queries/notification';
 import Notification from '../../models/Notification';
+import { getQuests, updateQuest } from '../../database/queries/quests';
 
 const processOrder = async (order: Order, transactionConnection: Connection) => {
     const tickerData = await getIntradayDataForTicker(order.ticker_symbol);
@@ -81,13 +82,21 @@ const processOrder = async (order: Order, transactionConnection: Connection) => 
     }
 
     if (fulfilledOrder !== null) {
+        const quests = await getQuests(userData.user_id);
+        const fulfillBuyOrderQuest = quests.find(quest => quest.name === 'Fulfill a buy order');
+        const fulfillSellOrderQuest = quests.find(quest => quest.name === 'Fulfill a sell order');
+        const profitQuest = quests.find(quest => quest.name === 'Make a profit');
+        fulfillBuyOrderQuest && fulfillBuyOrderQuest.completion_date === null && fulfilledOrder.quantity > 0 ? await updateQuest(order.user_id, fulfillBuyOrderQuest.quest_id, transactionConnection) : null;
+        fulfillSellOrderQuest && fulfillSellOrderQuest.completion_date === null && fulfilledOrder.quantity < 0 ? await updateQuest(order.user_id, fulfillSellOrderQuest.quest_id, transactionConnection) : null;
+        profitQuest && profitQuest.completion_date === null && fulfilledOrder.price_per_share > order.trigger_price && fulfilledOrder.quantity < 0 ? await updateQuest(order.user_id, profitQuest.quest_id, transactionConnection) : null;
         console.log(`Fulfilled order ${order.order_id} with transaction ${fulfilledOrder.transaction_id}`);
         await updateUserBalance(order.user_id, totalCost, transactionConnection);
         await updateUserStocks(order.user_id, order.ticker_symbol, order.quantity, transactionConnection);
+
         await calculateAndSaveUserNetWorth(order.user_id);
     }
     console.log(`Processed order ${order.order_id} and got ${fulfilledOrder}`);
-    fulfilledOrder ? addNotification({ user_id: order.user_id, content: `Your order for ${order.quantity} shares of ${order.ticker_symbol} has been fulfilled.`, success: true } as Notification) : null
+    fulfilledOrder ? addNotification({ user_id: order.user_id, content: `Your order for ${order.quantity} shares of ${order.ticker_symbol} has been fulfilled.`, success: true } as Notification, transactionConnection) : null
     return fulfilledOrder;
 }
 
