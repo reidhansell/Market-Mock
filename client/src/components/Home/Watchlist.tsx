@@ -13,11 +13,9 @@ const Watchlist: React.FC = () => {
     const [search, setSearch] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const sortedWatchlist = useMemo(() => {
-        // Create a set of ticker_symbols the user owns
         const ownedStocksSet = new Set(stocks.map(stock => stock.ticker_symbol));
 
         return [...watchlist].sort((a, b) => {
-            // Check if the user owns the stocks by looking up in the set
             const userOwnsA = ownedStocksSet.has(a.ticker_symbol);
             const userOwnsB = ownedStocksSet.has(b.ticker_symbol);
 
@@ -68,7 +66,7 @@ const Watchlist: React.FC = () => {
                     <>
                         <br />
                         <p className="no-tickers">
-                            No tickers found. Click the + to add a ticker.
+                            No tickers found. Click the + to add a ticker to your watch list.
                         </p>
                     </>
                     :

@@ -1,6 +1,7 @@
 import { executeQuery, ResultObject } from '../queryExecutor';
 import ExpectedError from '../../tools/utils/ExpectedError';
 import Notification from '../../models/Notification';
+import { Connection } from 'mysql';
 
 async function getNotificiations(user_id: number): Promise<Notification[]> {
     const getQuery = `SELECT * FROM Notification WHERE user_id = ? AND viewed = false`;
@@ -9,10 +10,10 @@ async function getNotificiations(user_id: number): Promise<Notification[]> {
     return queryResults;
 }
 
-async function addNotification(notification: Notification): Promise<Notification> {
+async function addNotification(notification: Notification, connection?: Connection): Promise<Notification> {
     const addQuery = `INSERT INTO Notification (content, user_id, success) VALUES (?, ?, ?)`;
     const parameters = [notification.content, notification.user_id, notification.success];
-    const queryResults = await executeQuery(addQuery, parameters) as ResultObject;
+    const queryResults = connection ? await executeQuery(addQuery, parameters, connection) as ResultObject : await executeQuery(addQuery, parameters) as ResultObject;
     if (queryResults.affectedRows === 0) {
         throw new ExpectedError('Failed to add notification', 500, `Failed query: "${addQuery}" with parameters: "${parameters}"`);
     }

@@ -1,13 +1,16 @@
 import { executeQuery } from './queryExecutor';
+import quests from './quests.json';
+import Quest from '../models/Quest';
+import config from '../config.json';
 
 async function initializeDatabase(): Promise<void> {
     try {
-        /*  TODO Remove this code before deploying to production 
         console.log("Beginning database initialization.");
+        /*TODO Remove this code before deploying to production 
         if (!config.production) {
             console.log("Dropping tables");
             await executeQuery('SET FOREIGN_KEY_CHECKS = 0');
-            await executeQuery('DROP TABLE IF EXISTS Refresh_Token, User_Reset, Trade_Order, Watch_List, Transaction, User, Ticker_End_Of_Day, Ticker_Intraday, Ticker, User_Stocks, User_Net_Worth, Notification');
+            await executeQuery('DROP TABLE IF EXISTS Refresh_Token, User_Reset, Trade_Order, Watch_List, Transaction, User, Ticker_End_Of_Day, Ticker_Intraday, Ticker, User_Stocks, User_Net_Worth, Notification, User_Quest, Quest');
             await executeQuery('SET FOREIGN_KEY_CHECKS = 1');
             console.log('Tables dropped successfully.');
         }
@@ -116,12 +119,25 @@ async function initializeDatabase(): Promise<void> {
                 PRIMARY KEY (user_id, recorded_at),
                 FOREIGN KEY (user_id) REFERENCES User(user_id)
             )`,
-            `CREATE TABLE IF NOT EXISTS Notification(
+            `CREATE TABLE IF NOT EXISTS Notification (
                 notification_id INT AUTO_INCREMENT PRIMARY KEY,
                 content VARCHAR(255),
                 user_id INT,
                 success BOOLEAN,
                 viewed BOOLEAN DEFAULT FALSE,
+                FOREIGN KEY (user_id) REFERENCES User(user_id)
+            )`,
+            `CREATE TABLE IF NOT EXISTS Quest (
+                quest_id INT PRIMARY KEY AUTO_INCREMENT,
+                name VARCHAR(255) NOT NULL,
+                description TEXT NOT NULL
+            )`,
+            `CREATE TABLE IF NOT EXISTS User_Quest (
+                user_id INT NOT NULL,
+                quest_id INT NOT NULL,
+                completion_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, quest_id),
+                FOREIGN KEY (quest_id) REFERENCES Quest(quest_id),
                 FOREIGN KEY (user_id) REFERENCES User(user_id)
             )`
         ];
@@ -132,6 +148,17 @@ async function initializeDatabase(): Promise<void> {
             console.log(`Table ${table_definition.split(' ')[5]} created`);
         }
 
+        const existingQuests = await executeQuery('SELECT * FROM Quest') as Quest[];
+        if (existingQuests.length > 0) {
+            console.log("Quests already exist, skipping quest data insertion");
+        } else {
+            console.log("Inserting quest data");
+            for (const quest of quests) {
+                const query = `INSERT INTO Quest (name, description) VALUES (?, ?)`;
+                await executeQuery(query, [quest.name, quest.description]);
+                console.log(`Inserted quest: ${quest.name}`);
+            }
+        }
         console.log("Database initialized!");
 
     } catch (error: any) {

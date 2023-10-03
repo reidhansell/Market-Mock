@@ -75,7 +75,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
                 </ResponsiveContainer>
             </div>
             <br />
-            <h1>Wallet</h1>
+            {fullscreen ? <h1>Wallet</h1> : null}
             <p>
                 Initial Investment:<br />
                 <strong>${user ? user.starting_amount : <LoadingCircle />}</strong>
@@ -99,24 +99,24 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
             {fullscreen ? (<>
                 <h1>Owned Stocks</h1>
                 <ul className='owned-stocks-list'>
-                    {stocks.map((stock) => (
+                    {stocks.length > 0 ? stocks.map((stock) => (
                         <li className='owned-stock' key={stock.ticker_symbol} onClick={() => navigate(`/ticker/${stock.ticker_symbol}`)}>
                             <h3 className='owned-stock-header'>{`${stock.ticker_symbol} (${stock.quantity})`}</h3>
                             <p style={{ color: stock.last > stock.open ? "var(--brand)" : "red" }}>Today: {`${stock.last > stock.open ? '+' : '-'}$${Math.abs(stock.last - stock.open).toFixed(2)} (${stock.last > stock.open ? '+' : '-'}$${(Math.abs(stock.last - stock.open) * stock.quantity).toFixed(2)})`}</p>
                             <p style={{ color: stock.last > stock.purchased_price ? "var(--brand)" : "red" }}>All-Time: {`${stock.last > stock.purchased_price ? '+' : '-'}$${Math.abs(stock.last - stock.purchased_price).toFixed(2)} (${stock.last > stock.purchased_price ? '+' : '-'}$${(Math.abs(stock.last - stock.purchased_price) * stock.quantity).toFixed(2)})`}</p>
                         </li>
-                    ))}
+                    )) : <p style={{ padding: "0.5rem" }}>No stocks currently owned</p>}
                 </ul>
                 <br />
                 <h1>Order History</h1>
                 <ul className='owned-stocks-list'>
-                    {orders.map((order) => (
+                    {orders.length > 0 ? orders.map((order) => (
                         <li className='owned-stock' key={order.order_id} onClick={() => navigate(`/order/${order.order_id}`)}>
                             <h3 style={{ color: order.quantity < 0 ? "red" : "var(--brand)" }} className='owned-stock-header'>{`${order.ticker_symbol} (${Math.abs(order.quantity)})`}</h3>
                             <p>Status: {order.cancelled ? "Cancelled" : order.transaction_id ? "Fulfilled" : "Open"}</p>
                             <p>Price: {order.transaction_id ? order.price_per_share : order.trigger_price}</p>
                         </li>
-                    ))}
+                    )) : <p style={{ padding: "0.5rem" }}>No orders have been placed</p>}
                 </ul>
             </>) : null}
             <br />

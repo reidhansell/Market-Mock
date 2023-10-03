@@ -1,0 +1,46 @@
+[
+    {
+        "name": "Add a stock to your watchlist",
+        "description": "Add a stock to your watchlist by going to the home page and selecting the + button in the top right corner. This will bring you to the ticker search page. Search for a stock by name or ticker symbol and select a stock. This will bring you to the stock details page. Lastly, select Add To Watchlist to complete your quest!"
+    },
+    {
+        "name": "Place a buy order",
+        "description": "Go to the home page and click on a stock in your Watchlist or use the ticker search. This will bring you to the stock details page. Select 'Place Order' and then view the tool tips to determine what type of order you want to place. A Market order is recommended for beginners."
+    },
+    {
+        "name": "Fulfill a buy order",
+        "description": "After placing your first buy order, wait for it to be fulfilled. Keep an eye on your order status to see when it completes."
+    },
+    {
+        "name": "Place a sell order",
+        "description": "To sell a stock you own, go to the stock details page from your portfolio or Watchlist. Select 'Place Order' and choose the 'Sell' option. Determine the type and quantity of the order and confirm your sell order."
+    },
+    {
+        "name": "Fulfill a sell order",
+        "description": "Once you've placed your first sell order, patiently wait for the market conditions to fulfill it. Monitor your order status to see when your stocks are sold."
+    },
+    {
+        "name": "Diversify your portfolio",
+        "description": "A diversified portfolio can help reduce risks. Purchase shares from at least 3 different stocks to achieve a diversified portfolio and complete this quest."
+    },
+    {
+        "name": "Make a profit",
+        "description": "Selling a stock for more than you purchased it for results in a profit. Aim to make a profit on your next sale to complete this quest."
+    },
+    {
+        "name": "Double your money",
+        "description": "Aim to double your starting balance through smart buying and selling decisions. Monitor your balance and aim for that 2x milestone!"
+    },
+    {
+        "name": "Place a Stop Order",
+        "description": "A stop order allows you to buy or sell a stock once it reaches a certain price, known as the stop price. This is useful to limit losses or secure profits. Navigate to the 'Place Order' section and select 'Stop Order'. Set your desired stop price and complete the order. This way, your order will only execute once the stock reaches your set price, giving you more control over your trades."
+    },
+    {
+        "name": "Place a Limit Order",
+        "description": "A limit order allows you to specify the maximum price you're willing to buy or the minimum price you're willing to sell a stock. It's a great tool for investors who are specific about their entry or exit price. Head over to the 'Place Order' section, choose 'Limit Order', and define your price limits. Your order will only execute when the stock's price matches your specified limit, ensuring you get the price you want."
+    },
+    {
+        "name": "Diamond Hands",
+        "description": "In trading lingo, 'diamond hands' refers to someone who holds onto a stock or investment even during market volatility, believing in its long-term potential. For this quest, pick a stock you believe in, purchase it, and hold onto it for at least a month. Remember, long-term investing requires patience and belief in your choices!"
+    }
+]

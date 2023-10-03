@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { getWatchList, addTickerToWatchList, removeTickerFromWatchList } from '../database/queries/watchlist';
 import { getIntradayDataForTicker } from '../tools/services/intradayService'; // import your new service here
 import { authenticateToken } from '../tools/middleware/authMiddleware';
+import { getQuests, updateQuest } from '../database/queries/quests';
 
 interface AuthenticatedRequest extends Request {
     user: {
@@ -42,6 +43,13 @@ router.post('/add/:ticker_symbol', authenticateToken, async (req: Request, res: 
         const { user_id } = (req as AuthenticatedRequest).user;
         const { ticker_symbol } = req.params;
         await addTickerToWatchList(user_id, ticker_symbol);
+        const quests = await getQuests(user_id);
+        console.log(quests);
+        const watchlistQuest = quests.find(quest => quest.name === 'Add a stock to your watchlist');
+        console.log(watchlistQuest);
+        if (watchlistQuest && watchlistQuest.completion_date === null) {
+            await updateQuest(user_id, watchlistQuest.quest_id);
+        }
         res.status(200).json({ message: 'Ticker added to watchlist successfully' });
     } catch (error) {
         next(error);
