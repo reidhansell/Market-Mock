@@ -1,7 +1,7 @@
-import Axios, { AxiosResponse } from 'axios';
+import Axios from 'axios';
 import config from '../config.json';
 import NetWorthData from '../../../models/NetWorthData';
-import User_Stock, { UserStockWithPrices } from '../../../models/UserStock';
+import { UserStockWithPrices } from '../../../models/UserStock';
 
 interface PortfolioDataResponse {
     netWorthData: NetWorthData[];
