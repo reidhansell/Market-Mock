@@ -10,6 +10,7 @@ import Order, { FulfilledOrder } from '../models/Order';
 import { getTransactionConnection } from '../database/databaseConnector';
 import { updateUserBalance, updateUserStocks, getUserStocks } from '../database/queries/portfolio';
 import { processOrder } from '../tools/services/orderFulfillmentService'
+import { getQuests, updateQuest } from '../database/queries/quests';
 
 interface AuthenticatedRequest extends Request {
     user: {
@@ -72,14 +73,28 @@ router.post('/', authenticateToken, async (req: Request, res: Response, next: Ne
             }
         }
 
+        const quests = await getQuests(user_id);
+        const buyOrderQuest = quests.find(quest => quest.name === 'Place a buy order');
+        const sellOrderQuest = quests.find(quest => quest.name === 'Place a sell order');
+        const limitOrderQuest = quests.find(quest => quest.name === 'Place a limit order');
+        const stopOrderQuest = quests.find(quest => quest.name === 'Place a stop order');
+        const marketOrderQuest = quests.find(quest => quest.name === 'Place a market order');
+
+        buyOrderQuest && buyOrderQuest.completion_date === null && order.quantity > 0 ? await updateQuest(user_id, buyOrderQuest.quest_id, transactionConnection) : null;
+        sellOrderQuest && sellOrderQuest.completion_date === null && order.quantity < 0 ? await updateQuest(user_id, sellOrderQuest.quest_id, transactionConnection) : null;
+        limitOrderQuest && limitOrderQuest.completion_date === null && order.order_type === 'LIMIT' ? await updateQuest(user_id, limitOrderQuest.quest_id, transactionConnection) : null;
+        stopOrderQuest && stopOrderQuest.completion_date === null && order.order_type === 'STOP' ? await updateQuest(user_id, stopOrderQuest.quest_id, transactionConnection) : null;
+        marketOrderQuest && marketOrderQuest.completion_date === null && order.order_type === 'MARKET' ? await updateQuest(user_id, marketOrderQuest.quest_id, transactionConnection) : null;
+
         const fulfilledOrder = await processOrder(order, transactionConnection) as FulfilledOrder;
 
         if (fulfilledOrder) {
-            updateUserBalance(user_id, fulfilledOrder.price_per_share * fulfilledOrder.quantity, transactionConnection);
-            updateUserStocks(user_id, ticker_symbol, quantity, transactionConnection);
+            await updateUserBalance(user_id, fulfilledOrder.price_per_share * fulfilledOrder.quantity, transactionConnection);
+            await updateUserStocks(user_id, ticker_symbol, quantity, transactionConnection);
             transactionConnection.commit();
             return res.json(fulfilledOrder);
         } else {
+            transactionConnection.commit();
             return res.json(order);
         }
     } catch (error) {
