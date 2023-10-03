@@ -51,14 +51,14 @@ const TickerSearch = () => {
                 />
             </div>
             <ul className="ticker-list">
-                {searchResults.map((ticker: Ticker, index) => (
+                {searchResults.length > 0 ? searchResults.map((ticker: Ticker, index) => (
                     <Link key={index} to={`/ticker/${ticker.ticker_symbol}`} className="ticker-link">
                         <li className="ticker-item">
                             {`${ticker.ticker_symbol}: ${ticker.company_name.slice(0, 25)}`}
                         </li>
                     </Link>
 
-                ))}
+                )) : <p style={{ padding: "0.5rem" }}>Enter a ticker symbol or company name to begin searching</p>}
             </ul>
         </div>
     );
