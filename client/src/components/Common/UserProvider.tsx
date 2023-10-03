@@ -2,9 +2,10 @@ import React, { useState, ReactNode, useCallback } from 'react';
 import WatchList from '../../../../models/WatchList';
 import User from '../../../../models/User';
 import NetWorthData from '../../../../models/NetWorthData';
-import User_Stock, { UserStockWithPrices } from '../../../../models/UserStock';
+import { UserStockWithPrices } from '../../../../models/UserStock';
 import Notification from '../../../../models/Notification';
 import { FulfilledOrder } from '../../../../models/Order';
+import { UserQuest } from '../../../../models/Quest';
 
 interface UserContext {
     user: User | null;
@@ -13,6 +14,7 @@ interface UserContext {
     stocks: UserStockWithPrices[];
     notifications: Notification[];
     orders: FulfilledOrder[];
+    quests: UserQuest[];
     addTicker: (ticker: WatchList) => void;
     removeTicker: (tickerSymbol: string) => void;
     setUser: (user: User) => void;
@@ -21,6 +23,7 @@ interface UserContext {
     setStocks: (stocks: UserStockWithPrices[]) => void;
     setNotifications: (notifications: Notification[]) => void;
     setOrders: (orders: FulfilledOrder[]) => void;
+    setQuests: (quests: UserQuest[]) => void;
 }
 
 const defaultContext = {
@@ -30,6 +33,7 @@ const defaultContext = {
     stocks: [],
     notifications: [],
     orders: [],
+    quests: [],
     addTicker: () => { },
     removeTicker: () => { },
     setUser: () => { },
@@ -37,7 +41,8 @@ const defaultContext = {
     setNetWorth: () => { },
     setStocks: () => { },
     setNotifications: () => { },
-    setOrders: () => { }
+    setOrders: () => { },
+    setQuests: () => { }
 };
 
 export const UserContext = React.createContext<UserContext>(defaultContext);
@@ -53,6 +58,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [stocks, setStocks] = useState<UserStockWithPrices[]>([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [orders, setOrders] = useState<FulfilledOrder[]>([]);
+    const [quests, setQuests] = useState<UserQuest[]>([]);
 
     const addTicker = useCallback((ticker: WatchList) => {
         setWatchlist(prevData => [...prevData, ticker]);
@@ -69,6 +75,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         stocks,
         notifications,
         orders,
+        quests,
         addTicker,
         removeTicker,
         setUser,
@@ -76,7 +83,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         setNetWorth,
         setStocks,
         setNotifications,
-        setOrders
+        setOrders,
+        setQuests
     };
 
     return (
