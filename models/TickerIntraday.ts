@@ -7,5 +7,5 @@ export default interface TickerIntraday {
     volume: number;
     symbol: string;
     exchange: string;
-    date: string;
+    date: number;
 }
