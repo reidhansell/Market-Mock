@@ -44,9 +44,7 @@ router.post('/add/:ticker_symbol', authenticateToken, async (req: Request, res: 
         const { ticker_symbol } = req.params;
         await addTickerToWatchList(user_id, ticker_symbol);
         const quests = await getQuests(user_id);
-        console.log(quests);
         const watchlistQuest = quests.find(quest => quest.name === 'Add a stock to your watchlist');
-        console.log(watchlistQuest);
         if (watchlistQuest && watchlistQuest.completion_date === null) {
             await updateQuest(user_id, watchlistQuest.quest_id);
         }
