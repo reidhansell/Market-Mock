@@ -9,7 +9,7 @@ import { authenticateToken } from '../tools/middleware/authMiddleware';
 import ExpectedError from '../tools/utils/ExpectedError';
 import { findUserByEmail, findUserByUsername, registerUser, updateVerificationToken, getUserData, findUserSensitiveByEmail, storeRefreshToken, findUserById, updateEmailVerificationStatus, isRefreshTokenStored, deleteRefreshToken } from '../database/queries/auth';
 import config from '../config.json';
-import { calculateAndSaveUserNetWorth } from '../tools/services/NetWorthService';
+import { calculateAndSaveUserNetWorth } from '../tools/services/netWorthService';
 
 interface AuthenticatedRequest extends Request {
     user: {
