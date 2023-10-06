@@ -24,6 +24,7 @@ async function initializeDatabaseConnection(): Promise<Connection> {
                 reject(error);
             } else {
                 console.log('Database connection successful.');
+                initializeTransactionPool();
                 resolve(databaseConnection as Connection);
             }
         });
@@ -88,8 +89,6 @@ function closeTransactionPool(): Promise<void> {
         });
     });
 }
-
-initializeTransactionPool();
 
 export {
     initializeDatabaseConnection,
