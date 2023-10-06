@@ -5,5 +5,9 @@ export default interface Quest {
 }
 
 export interface UserQuest extends Quest {
-    completion_date: Date;
+    completion_date: number;
+}
+
+export interface UserQuestUnchecked extends Quest {
+    completion_date: number | null;
 }

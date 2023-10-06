@@ -2,7 +2,7 @@ export default interface User {
     user_id: number;
     username: string;
     email: string;
-    registration_date: Date;
+    registration_date: number;
     starting_amount: number;
     current_balance: number;
     is_email_verified: boolean;

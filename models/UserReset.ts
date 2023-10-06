@@ -3,5 +3,5 @@ export default interface UserReset {
     user_id: number;
     starting_amount: number;
     end_amount: number;
-    reset_date: Date;
+    reset_date: number;
 }

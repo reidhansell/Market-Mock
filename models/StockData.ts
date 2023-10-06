@@ -10,5 +10,5 @@ export default interface StockData {
     market_cap: number;
     PE_ratio: number;
     dividend_yield: number;
-    updated_at: Date;
+    updated_at: number;
 }
