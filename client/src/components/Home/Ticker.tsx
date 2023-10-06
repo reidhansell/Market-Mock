@@ -33,7 +33,6 @@ const Ticker: React.FC = () => {
     const fetchData = async () => {
         if (viewMode === 'intraday') {
             const tickerData = await getTickerData(symbol, viewMode) as TickerIntraday[]
-            console.log("TICKERDATA: " + tickerData);
             setIntradayData(tickerData)
         } else {
             const tickerData = await getTickerData(symbol, viewMode) as TickerEndOfDay[];
