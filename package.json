@@ -13,9 +13,8 @@
         "start": "npm run build && npm run client-build && npm run server",
         "build": "tsc",
         "server:ts": "tsc-watch --onSuccess \"node dist/server.js\"",
-        "test": "jest",
+        "test": "jest --coverage --no-clearConsole",
         "test:watch": "jest --watch",
-        "test:coverage": "jest --coverage",
         "test:frontend": "npm --prefix client test",
         "test:all": "npm test && npm run test:frontend"
     },
@@ -34,7 +33,6 @@
         "mysql": "^2.18.1",
         "node-cron": "^3.0.2",
         "nodemailer": "^6.9.3",
-        "uuid": "^9.0.0",
         "validator": "^13.9.0",
         "winston": "^3.9.0"
     },
