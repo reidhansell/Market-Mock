@@ -3,15 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { getUserQuests } from '../../requests/quest';
 import { UserContext } from '../Common/UserProvider';
 import "./Quests.css"
+import DashboardModule from '../Common/DashboardModule';
 
-const Quests: React.FC = () => {
+interface QuestProps {
+    fullscreen: boolean;
+}
+
+const Quests: React.FC<QuestProps> = ({ fullscreen }) => {
     const navigate = useNavigate();
 
     const { quests, setQuests } = useContext(UserContext);
 
     const fetchData = async () => {
         const userQuestData = await getUserQuests();
-        console.log(userQuestData);
         setQuests(userQuestData.sort((a, b) => a.completion_date && !b.completion_date ? 1 : b.completion_date && !a.completion_date ? -1 : 0));
     }
 
@@ -19,17 +23,19 @@ const Quests: React.FC = () => {
         fetchData();
     }, []);
 
+    const content = (<div>
+        <ul className={`quests`}>
+            {quests.map((quest) => (
+                <li className={`quest ${quest.completion_date ? "completed" : ''}`} key={quest.quest_id} onClick={() => navigate("/quests")}>
+                    <h3 className='quest-header'>{`${quest.name}`}</h3>
+                    <p>{quest.description}</p>
+                </li>
+            ))}
+        </ul>
+    </div>)
+
     return (
-        <div>
-            <ul className={`quests`}>
-                {quests.map((quest) => (
-                    <li className={`quest ${quest.completion_date ? "completed" : ''}`} key={quest.quest_id} onClick={() => navigate("/quests")}>
-                        <h3 className='quest-header'>{`${quest.name}`}</h3>
-                        <p>{quest.description}</p>
-                    </li>
-                ))}
-            </ul>
-        </div>
+        <DashboardModule title="Quests" content={content} fullscreen={fullscreen} />
     );
 };
 

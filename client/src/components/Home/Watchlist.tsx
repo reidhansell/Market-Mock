@@ -5,9 +5,13 @@ import WatchList from '../../../../models/WatchList';
 import './Watchlist.css';
 import { UserContext } from '../Common/UserProvider';
 import { getWatchlist } from '../../requests/watchlist';
+import DashboardModule from '../Common/DashboardModule';
 
+interface WatchlistProps {
+    fullscreen: boolean;
+}
 
-const Watchlist: React.FC = () => {
+const Watchlist: React.FC<WatchlistProps> = ({ fullscreen }) => {
     const navigate = useNavigate();
     const { watchlist, stocks, setWatchlist } = useContext(UserContext);
     const [search, setSearch] = useState<string>("");
@@ -42,46 +46,48 @@ const Watchlist: React.FC = () => {
         fetchData();
     }, []);
 
-    return (
-        <>
-            <div className="top-bar">
-                <input
-                    type="text"
-                    className="search-input"
-                    placeholder="Search your watchlist..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-                &nbsp;
-                <button
-                    className="button"
-                    onClick={() => navigate('/tickersearch')}
-                >
-                    +
-                </button>
-            </div>
+    const content = (<>
+        <div className="top-bar">
+            <input
+                type="text"
+                className="search-input"
+                placeholder="Search your watchlist..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+            />
+            &nbsp;
+            <button
+                className="button"
+                onClick={() => navigate('/tickersearch')}
+            >
+                +
+            </button>
+        </div>
 
-            {loading ? <h1 style={{ width: "100%", textAlign: "center" }}><LoadingCircle /></h1> : (
-                watchlist.length < 1 ?
-                    <>
-                        <br />
-                        <p className="no-tickers">
-                            No tickers found. Click the + to add a ticker to your watch list.
-                        </p>
-                    </>
-                    :
-                    <ul className="ticker-list">
-                        {sortedWatchlist.map((ticker: WatchList, index) => (
-                            <Link key={index} to={`/ticker/${ticker.ticker_symbol}`} className="ticker-link">
-                                <li className="ticker-item">
-                                    {`${ticker.ticker_symbol}: ${ticker.company_name ? ticker.company_name.slice(0, 25) : 'Name not found'}`}
-                                    {stocks.filter(stock => stock.ticker_symbol === ticker.ticker_symbol).length > 0 ? <div className='wallet-icon' /> : null}
-                                </li>
-                            </Link>
-                        ))}
-                    </ul>
-            )}
-        </>
+        {loading ? <h1 style={{ width: "100%", textAlign: "center" }}><LoadingCircle /></h1> : (
+            watchlist.length < 1 ?
+                <>
+                    <br />
+                    <p className="no-tickers">
+                        No tickers found. Click the + to add a ticker to your watch list.
+                    </p>
+                </>
+                :
+                <ul className="ticker-list">
+                    {sortedWatchlist.map((ticker: WatchList, index) => (
+                        <Link key={index} to={`/ticker/${ticker.ticker_symbol}`} className="ticker-link">
+                            <li className="ticker-item">
+                                {`${ticker.ticker_symbol}: ${ticker.company_name ? ticker.company_name.slice(0, 25) : 'Name not found'}`}
+                                {stocks.filter(stock => stock.ticker_symbol === ticker.ticker_symbol).length > 0 ? <div className='wallet-icon' /> : null}
+                            </li>
+                        </Link>
+                    ))}
+                </ul>
+        )}
+    </>);
+
+    return (
+        <DashboardModule title="Watchlist" content={content} fullscreen={fullscreen} />
     );
 };
 
