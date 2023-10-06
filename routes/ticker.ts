@@ -6,7 +6,8 @@ import ExpectedError from '../tools/utils/ExpectedError';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 import TickerIntraday from '../models/TickerIntraday';
 import { IntradayResponse } from '../models/MarketStackResponses';
-import { getEODDataForTicker } from '../tools/services/EODDataService';
+import { getEODDataForTicker } from '../tools/services/endOfDayService';
+import { toUnixTimestamp } from '../tools/utils/timeConverter';
 
 
 const router = Router();
@@ -67,7 +68,7 @@ router.get('/intraday/:ticker', authenticateToken, async (req: Request, res: Res
             const response = axiosResponse.data as IntradayResponse;
             for (let dataPoint of response.data) {
                 dataPoint.date = formatTimestampForMySQL(dataPoint.date);
-                await insertIntradayData(dataPoint as TickerIntraday);
+                await insertIntradayData({ ...dataPoint, date: toUnixTimestamp(dataPoint.date) } as TickerIntraday);
             }
             return res.json(response.data);
         }
