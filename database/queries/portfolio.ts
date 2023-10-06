@@ -3,6 +3,7 @@ import NetWorthData from '../../models/NetWorthData';
 import UserStock from '../../models/UserStock';
 import { Connection } from 'mysql';
 import Transaction, { TransactionWithQuantity } from '../../models/Transaction';
+import User from '../../models/User';
 
 async function getUserNetWorthData(user_id: number): Promise<NetWorthData[]> {
   const query = `
@@ -71,11 +72,48 @@ async function getStockTransactions(userId: number, tickerSymbol: string) {
   return result;
 }
 
+async function getUserBalance(userId: number): Promise<{ current_balance: number, starting_amount: number }> {
+  const query = `SELECT current_balance, starting_amount FROM User WHERE user_id = ?`;
+  const parameters = [userId];
+  const result = await executeQuery(query, parameters) as { current_balance: number, starting_amount: number }[];
+  return result[0]
+}
+
+async function getAllUserBalances(): Promise<{ user_id: number, current_balance: number, starting_amount: number }[]> {
+  const query = `SELECT user_id, current_balance, starting_amount FROM User`;
+  const result = await executeQuery(query) as { user_id: number, current_balance: number, starting_amount: number }[];
+  return result;
+}
+
+async function getUserNetWorth(userId: number, date: Date): Promise<number[]> {
+  const query = `SELECT net_worth FROM User_Net_Worth WHERE user_id = ? AND recorded_at = ?`;
+  const parameters = [userId, date];
+  const result = await executeQuery(query, parameters) as number[];
+  return result;
+}
+
+async function updateUserNetWorth(userId: number, netWorth: number, date: Date): Promise<void> {
+  const query = `UPDATE User_Net_Worth SET net_worth = ? WHERE user_id = ? AND recorded_at = ?`;
+  const parameters = [netWorth, userId, date];
+  await executeQuery(query, parameters);
+}
+
+async function insertUserNetWorth(userId: number, netWorth: number, date: Date): Promise<void> {
+  const query = `INSERT INTO User_Net_Worth (user_id, net_worth, recorded_at) VALUES (?, ?, ?)`;
+  const parameters = [userId, netWorth, date];
+  await executeQuery(query, parameters);
+}
+
 export {
   getUserNetWorthData,
   getUserStocks,
   updateUserBalance,
   updateUserStocks,
   removeUserStocks,
-  getStockTransactions
+  getStockTransactions,
+  getUserBalance,
+  getAllUserBalances,
+  getUserNetWorth,
+  updateUserNetWorth,
+  insertUserNetWorth
 };
