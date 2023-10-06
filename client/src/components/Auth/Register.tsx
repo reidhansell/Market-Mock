@@ -59,7 +59,7 @@ const Register: FC = () => {
                         </button>
                         <div className="auth-link">
                             <small><i>Already have an account?</i></small>
-                            <button type="button" style={{ width: '100%' }} onClick={() => navigate('/login')}>Login</button>
+                            <button data-testid="register-page-login-button" type="button" style={{ width: '100%' }} onClick={() => navigate('/login')}>Login</button>
                         </div>
                     </form>
                 </>
