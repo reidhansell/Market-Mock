@@ -25,9 +25,9 @@ const Home: React.FC = () => {
 
     return (
         <div className="home-container">
-            <DashboardModule title="Portfolio" content={<Portfolio fullscreen={false} />} />
-            <DashboardModule title="Watchlist" content={<Watchlist />} />
-            <DashboardModule title="Quests" content={<Quests />} />
+            <Portfolio fullscreen={false} />
+            <Watchlist fullscreen={false} />
+            <Quests fullscreen={false} />
         </div>
     );
 };
