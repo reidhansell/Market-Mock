@@ -9,7 +9,6 @@ const isEODDataRecent = (eodData: TickerEndOfDay[]): boolean => {
     const dataTime = eodData[0].date;
     const currentTime = Math.floor(Date.now() / 1000);
     const differenceInHours = Math.abs(currentTime - dataTime) / 3600;
-    console.log(`Difference in hours: ${differenceInHours} for ${eodData[0].symbol} on ${dataTime} and ${currentTime}`);
     return differenceInHours <= 24;
 };
 
