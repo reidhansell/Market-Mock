@@ -9,7 +9,6 @@ const isIntradayDataRecent = (intradayData: TickerIntraday[]): boolean => {
     const dataTime = intradayData[0].date;
     const currentTime = Math.floor(Date.now() / 1000);
     const differenceInHours = Math.abs(currentTime - dataTime) / 3600;
-    console.log(`Difference in hours: ${differenceInHours} for ${intradayData[0].symbol} on ${dataTime} and ${currentTime}`);
     return differenceInHours <= 1;
 };
 
