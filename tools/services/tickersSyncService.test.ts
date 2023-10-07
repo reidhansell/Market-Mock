@@ -59,6 +59,7 @@ describe('syncTickers', () => {
     });
 
     it('should handle a ticker with a changed company name', async () => {
+
         (axios.get as jest.Mock).mockResolvedValueOnce({
             data: {
                 tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
@@ -75,7 +76,10 @@ describe('syncTickers', () => {
 
         (checkTickerExists as jest.Mock).mockResolvedValueOnce({ ticker_symbol: 'AAPL', company_name: 'Apple' });
         (insertTicker as jest.Mock).mockResolvedValueOnce(true);
-
+        console.log('*** EXPECTED TEST NOTICE: There should be an error below ***');
+        /*  This is one of the only times that we want to see an error in the console. 
+            This is because we want to know if a company name has changed. 
+            This is not a problem, but we want to be aware of it.   */
         await expect(syncTickers()).resolves.not.toThrow();
     });
 });
