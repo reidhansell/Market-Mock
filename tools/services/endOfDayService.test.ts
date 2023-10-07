@@ -104,8 +104,6 @@ describe('endOfDayService', () => {
         mockedAxios.get.mockResolvedValueOnce({ data: { data: dummyEODDataFromMarketStack } });
 
         const result = await getEODDataForTicker('AAPL');
-        console.log(result);
-        console.log(dummyEODDataFromDB);
         expect(result).toEqual(dummyEODDataFromDB);
         expect(mockedAxios.get).toHaveBeenCalled();
         expect(mockedInsertEODData).toHaveBeenCalled();
@@ -135,8 +133,6 @@ describe('endOfDayService', () => {
         mockedAxios.get.mockResolvedValueOnce({ data: { data: dummyEODDataFromMarketStack } });
 
         const result = await getEODDataForTicker('AAPL');
-        console.log(result);
-        console.log(dummyEODDataFromDB);
         expect(result).toEqual(dummyEODDataFromDB);
         expect(mockedAxios.get).toHaveBeenCalled();
         expect(mockedInsertEODData).toHaveBeenCalled();
