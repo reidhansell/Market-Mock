@@ -23,6 +23,32 @@ const USERNAME_PATTERN = /^[a-zA-Z0-9]{3,20}$/;
 const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,255}$/;
 const FILTER = new Filter();
 
+const USER_ERRORS = {
+    MISSING_FIELDS: "Missing required fields.",
+    INVALID_USERNAME: "Username must be alphanumeric, between 3 to 20 characters.",
+    INAPPROPRIATE_USERNAME: "Username contains inappropriate content.",
+    INVALID_EMAIL: "Invalid email format.",
+    INVALID_PASSWORD: "Password must include 8-255 characters, at least one uppercase letter, one lowercase letter, one number, and one special character.",
+    EMAIL_EXISTS: "Email already exists",
+    USERNAME_EXISTS: "Username already exists",
+    INVALID_CREDENTIALS: "Invalid credentials",
+    EMAIL_NOT_VERIFIED: "Email not verified"
+};
+
+const validateUsername = (username: string, route: string): void => {
+    if (!USERNAME_PATTERN.test(username)) throw new ExpectedError(USER_ERRORS.INVALID_USERNAME, 400, `${route} failed with invalid username`);
+    if (FILTER.clean(username) !== username) throw new ExpectedError(USER_ERRORS.INAPPROPRIATE_USERNAME, 400, `${route} failed with inappropriate username`);
+};
+
+const validateEmail = (email: string, route: string): void => {
+    if (!isEmail(email)) throw new ExpectedError(USER_ERRORS.INVALID_EMAIL, 400, `/${route} failed with invalid email`);
+
+};
+
+const validatePassword = (password: string, route: string): void => {
+    if (password && !PASSWORD_PATTERN.test(password)) throw new ExpectedError(USER_ERRORS.INVALID_PASSWORD, 400, `/${route} failed with invalid password`);
+}
+
 router.get('/', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user_id: number = (req as AuthenticatedRequest).user.user_id;
@@ -38,34 +64,20 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
         const { username, email, password } = req.body;
 
         if (!username || !email || !password) {
-            throw new ExpectedError("Missing required fields.", 400, "/register failed with missing fields");
+            throw new ExpectedError(USER_ERRORS.MISSING_FIELDS, 400, "/register failed with missing fields");
         }
 
-        if (!USERNAME_PATTERN.test(username)) {
-            throw new ExpectedError("Username must be alphanumeric, between 3 to 20 characters.", 400, "/register failed with invalid username");
-        }
-
-        const filteredUsername = FILTER.clean(username);
-        if (filteredUsername !== username) {
-            throw new ExpectedError("Username contains inappropriate content.", 400, "/register failed with inappropriate username");
-        }
-
-        if (!isEmail(email)) {
-            throw new ExpectedError("Invalid email format.", 400, "/register failed with invalid email");
-        }
-
-        if (!PASSWORD_PATTERN.test(password)) {
-            throw new ExpectedError("Password must include 8-255 characters, at least one uppercase letter, one lowercase letter, one number, and one special character.", 400, "/register failed with invalid password");
-        }
+        validateUsername(username, "register");
+        validateEmail(email, "register");
+        validatePassword(password, "register");
 
         if (await findUserByEmail(email)) {
-            throw new ExpectedError("Email already exists", 400, "/register failed with existing email");
+            throw new ExpectedError(USER_ERRORS.EMAIL_EXISTS, 400, "/register failed with existing email");
         }
 
         if (await findUserByUsername(username)) {
-            throw new ExpectedError("Username already exists", 400, "/register failed with existing username");
+            throw new ExpectedError(USER_ERRORS.USERNAME_EXISTS, 400, "/register failed with existing username");
         }
-
         const hashedPassword = await bcrypt.hash(password, 10);
         const user_id = await registerUser(username, email, hashedPassword);
         const verificationToken = generateVerificationToken(user_id);
@@ -83,26 +95,25 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
     try {
         const { email, password } = req.body;
 
-        if (!email || !isEmail(email)) {
-            throw new ExpectedError("Invalid credentials", 400, "/login failed with invalid email");
+        if (!email || !password) {
+            throw new ExpectedError(USER_ERRORS.MISSING_FIELDS, 400, "/login failed with missing fields");
         }
 
-        if (!password) {
-            throw new ExpectedError("Invalid credentials", 400, "/login failed with missing password");
-        }
+        validateEmail(email, "login");
+        validatePassword(password, "login");
 
         const user = await findUserSensitiveByEmail(email);
         if (!user) {
-            throw new ExpectedError('Invalid credentials', 401, "/login failed with invalid credentials");
+            throw new ExpectedError(USER_ERRORS.INVALID_CREDENTIALS, 401, "/login failed with invalid credentials");
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            throw new ExpectedError('Invalid credentials', 401, "/login failed with invalid credentials");
+            throw new ExpectedError(USER_ERRORS.INVALID_CREDENTIALS, 401, "/login failed with invalid credentials");
         }
 
         if (!user.is_email_verified) {
-            throw new ExpectedError('Email not verified', 401, "/login failed with unverified email");
+            throw new ExpectedError(USER_ERRORS.EMAIL_NOT_VERIFIED, 401, "/login failed with unverified email");
         }
 
         const token = jwt.sign({
@@ -134,8 +145,20 @@ router.post('/verify/:token', async (req: Request, res: Response, next: NextFunc
             decoded = jwt.verify(token, config.jwtSecret);
         } catch (error) {
             if (error instanceof jwt.TokenExpiredError) {
-                throw new ExpectedError("Verification token expired. Please verify your email again.", 401, "/verify failed with expired token");
-                //TODO generate a new token and send a new email
+                const unsafeDecoded = jwt.decode(token);
+                const { user_id } = unsafeDecoded as User;
+
+                const user = await findUserById(user_id);
+                if (!user) {
+                    throw new ExpectedError("Invalid user.", 400, "/verify failed with invalid user");
+                }
+
+                const newVerificationToken = generateVerificationToken(user_id);
+                await updateVerificationToken(user_id, newVerificationToken);
+
+                await sendVerificationEmail(user.email, newVerificationToken);
+
+                throw new ExpectedError("Verification token expired. A new verification email has been sent.", 401, "/verify failed with expired token");
             } else if (error instanceof jwt.JsonWebTokenError) {
                 throw new ExpectedError("Invalid Verification token.", 400, "/verify failed with invalid token");
             } else {
