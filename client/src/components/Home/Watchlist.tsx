@@ -1,7 +1,6 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import LoadingCircle from '../Common/LoadingCircle';
-import WatchList from '../../../../models/WatchList';
 import './Watchlist.css';
 import { UserContext } from '../Common/UserProvider';
 import { getWatchlist } from '../../requests/watchlist';
@@ -53,7 +52,7 @@ const Watchlist: React.FC<WatchlistProps> = ({ fullscreen }) => {
                 className="search-input"
                 placeholder="Search your watchlist..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { console.log(e.target.value); setSearch(e.target.value) }}
             />
             &nbsp;
             <button
@@ -74,14 +73,19 @@ const Watchlist: React.FC<WatchlistProps> = ({ fullscreen }) => {
                 </>
                 :
                 <ul className="ticker-list">
-                    {sortedWatchlist.map((ticker: WatchList, index) => (
-                        <Link key={index} to={`/ticker/${ticker.ticker_symbol}`} className="ticker-link">
-                            <li className="ticker-item">
-                                {`${ticker.ticker_symbol}: ${ticker.company_name ? ticker.company_name.slice(0, 25) : 'Name not found'}`}
-                                {stocks.filter(stock => stock.ticker_symbol === ticker.ticker_symbol).length > 0 ? <div className='wallet-icon' /> : null}
-                            </li>
-                        </Link>
-                    ))}
+                    {sortedWatchlist.filter(ticker => search === "" ||
+                        ticker.company_name?.toLowerCase().includes(search) ||
+                        ticker.ticker_symbol.toLowerCase().includes(search)).map((ticker, index) => (
+                            <Link key={index} to={`/ticker/${ticker.ticker_symbol}`} className="ticker-link">
+                                <li className="ticker-item">
+                                    {`${ticker.ticker_symbol}: ${ticker.company_name ? ticker.company_name.slice(0, 25) : 'Name not found'}`}
+                                    {stocks.filter(stock => stock.ticker_symbol === ticker.ticker_symbol).length > 0 ? <div className='wallet-icon' /> : null}
+                                </li>
+                            </Link>
+                        ))}
+                    {sortedWatchlist.filter(ticker => search === "" ||
+                        ticker.company_name?.toLowerCase().includes(search) ||
+                        ticker.ticker_symbol.toLowerCase().includes(search)).length === 0 ? <p style={{ paddingTop: "0.5rem" }}>Nothing in your watchlist matched the search provided. Did you mean use <a style={{ color: "var(--brand)", cursor: "pointer" }} onClick={() => navigate("/tickersearch")}>Ticker Search</a>?</p> : null}
                 </ul>
         )}
     </>);
