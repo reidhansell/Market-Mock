@@ -5,30 +5,38 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   }
   
-  .selected-option {
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    cursor: pointer;
-  }
-  
-  .options-container {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    border: 1px solid #ccc;
-    z-index: 1;
-    background-color: var(--surface3-dark);
-    width: 100%;
-    box-shadow: 0 15px 15px rgba(0, 0, 0, 0.5);
-  }
-  
-  .option {
-    padding: 0.5rem;
-    cursor: pointer;
-  }
-  
-  .option:hover {
-    background-color: var(--brand);
-    color: var(--text1-light);
-  }
+.selected-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.arrow {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.options-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  border: 1px solid #ccc;
+  z-index: 1;
+  background-color: var(--surface3-dark);
+  width: 100%;
+  box-shadow: 0 15px 15px rgba(0, 0, 0, 0.5);
+}
+
+.option {
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.option:hover {
+  background-color: var(--brand);
+  color: var(--text1-light);
+}
   
