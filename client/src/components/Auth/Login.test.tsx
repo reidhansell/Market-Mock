@@ -17,7 +17,7 @@ describe('Login Component', () => {
             <Routes>
                 <Route path="/" element={<Login setAuth={() => { }} />} />
                 <Route path="/login" element={<Login setAuth={() => { }} />} />
-                <Route path="/register" element={<Register />} />
+                <Route path="/register" element={<Register addAlert={() => { return undefined }} />} />
             </Routes>
         </Router>)
     });
