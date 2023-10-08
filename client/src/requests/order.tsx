@@ -1,6 +1,6 @@
 import Axios from 'axios';
 import config from '../config.json';
-import Order, { FulfilledOrder } from '../../../models/Order';
+import Order, { FulfilledOrder, OrderClientSubmission, OrderSubmission } from '../../../models/Order';
 
 export const getUserOrders = async (): Promise<FulfilledOrder[]> => {
     try {
@@ -12,7 +12,7 @@ export const getUserOrders = async (): Promise<FulfilledOrder[]> => {
     }
 };
 
-export const createOrder = async (orderData: Partial<Order>): Promise<Order> => {
+export const createOrder = async (orderData: OrderClientSubmission): Promise<Order | FulfilledOrder> => {
     try {
         Axios.defaults.withCredentials = true;
         const response = await Axios.post(`${config.serverURL}/api/order/`, {
