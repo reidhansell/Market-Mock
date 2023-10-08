@@ -23,16 +23,16 @@ async function checkTickerExists(symbol: string): Promise<Ticker | null> {
     return results[0];
 }
 
-async function searchTickersByCompanyName(company_name: string): Promise<Ticker[]> {
+async function searchTickers(searchTerm: string): Promise<Ticker[]> {
     const sql = `
       SELECT ticker_symbol, company_name
       FROM Ticker
       WHERE company_name LIKE ?
+      OR ticker_symbol LIKE ?
       LIMIT 50
     `;
-    const searchTerm = `%${company_name}%`;
-    const results = await executeQuery(sql, [searchTerm]) as Ticker[];
-    /* Empty set acceptable, not looking for a particular record */
+    const searchTermSQL = `%${searchTerm}%`;
+    const results = await executeQuery(sql, [searchTermSQL, searchTermSQL]) as Ticker[];
     return results;
 }
 
@@ -77,7 +77,7 @@ async function getLatestIntradayData(ticker_symbol: string): Promise<TickerIntra
 export {
     insertTicker,
     checkTickerExists,
-    searchTickersByCompanyName,
+    searchTickers,
     insertEODData,
     insertIntradayData,
     getLatestEODData,
