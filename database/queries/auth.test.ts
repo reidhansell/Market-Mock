@@ -1,3 +1,5 @@
+jest.mock('../queryExecutor');
+
 import {
     registerUser,
     getUserData,
@@ -7,8 +9,6 @@ import {
 } from './auth';
 import { executeQuery } from '../queryExecutor';
 import ExpectedError from '../../tools/utils/ExpectedError';
-
-jest.mock('../queryExecutor');
 
 describe('User Management', () => {
     beforeEach(() => {
