@@ -10,12 +10,13 @@ import { removeTickerFromWatchlist } from '../../requests/watchlist';
 import { UserContext } from '../Common/UserProvider';
 import MyTooltip from '../Common/Tooltip';
 import { getTickerData } from '../../requests/Ticker';
+import { getWatchlist } from '../../requests/watchlist';
 
 type ViewMode = 'intraday' | 'EOD';
 
 const Ticker: React.FC = () => {
     const { symbol } = useParams() as { symbol: string };
-    const { addTicker, removeTicker, watchlist, stocks } = useContext(UserContext);
+    const { removeTicker, stocks, setWatchlist } = useContext(UserContext);
 
     const [viewMode, setViewMode] = useState<ViewMode>('intraday');
 
@@ -31,24 +32,42 @@ const Ticker: React.FC = () => {
     const [inWatchlist, setInWatchlist] = useState<boolean>(false);
 
     const fetchData = async () => {
-        if (viewMode === 'intraday') {
-            const tickerData = await getTickerData(symbol, viewMode) as TickerIntraday[]
-            setIntradayData(tickerData.reverse())
-        } else {
-            const tickerData = await getTickerData(symbol, viewMode) as TickerEndOfDay[];
-            setEODData(tickerData.reverse())
+        const watchlistPromise = getWatchlist();
+        const tickerDataPromise = getTickerData(symbol, viewMode);
+
+        try {
+            const [watchlistResponse, tickerDataResponse] = await Promise.all([watchlistPromise, tickerDataPromise]);
+            setWatchlist(watchlistResponse);
+
+            if (viewMode === 'intraday') {
+                setIntradayData((tickerDataResponse as TickerIntraday[]).reverse());
+            } else {
+                setEODData((tickerDataResponse as TickerEndOfDay[]).reverse());
+            }
+
+            if (symbol && watchlistResponse) {
+                setInWatchlist(watchlistResponse.some(item => item.ticker_symbol === symbol));
+            }
+
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        } finally {
+            setLoading(false);
         }
     };
+
+    useEffect(() => {
+        setLoading(true);
+        fetchData();
+    }, []);
+
 
     const handleAddToWatchlist = async () => {
         setLoading(true);
         try {
             if (symbol) {
-                const result = await addTickerToWatchlist(symbol);
-                if (result) {
-                    addTicker({ ticker_symbol: symbol });
-                    setInWatchlist(true);
-                }
+                await addTickerToWatchlist(symbol);
+                setInWatchlist(true);
             }
         } catch (error) {
         } finally {
@@ -60,22 +79,17 @@ const Ticker: React.FC = () => {
         setLoading(true);
         try {
             if (symbol) {
-                await removeTickerFromWatchlist(symbol);
-                removeTicker(symbol);
-                setInWatchlist(false);
+                const result = await removeTickerFromWatchlist(symbol);
+                if (result) {
+                    removeTicker(symbol);
+                    setInWatchlist(false);
+                }
             }
         } catch (error) {
         } finally {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        fetchData();
-        if (symbol && watchlist && watchlist.length > 0) {
-            setInWatchlist(watchlist.some(watchlist => watchlist.ticker_symbol === symbol));
-        }
-    }, [viewMode, symbol, watchlist]);
 
     const transformToChartData = (data: TickerIntraday[] | TickerEndOfDay[]) => {
         return data.map(d => ({ name: new Date(d.date).toISOString(), price: d.close }));
