@@ -1,10 +1,9 @@
 .tooltip {
     position: relative;
     display: inline-block;
-    cursor: pointer;
     background-image: url('../../icons/circle-question-regular.svg');
-    width: 1rem; 
-    height: 1rem; 
+    width: 0.75em; 
+    height: 0.75em; 
     background-size: contain;
     background-repeat: no-repeat;
   }
@@ -12,7 +11,7 @@
   .tooltip .tooltiptext {
     font-size: 0.75rem;
     visibility: hidden;
-    width: 120px;
+    width: 7.5rem;
     background-color: #555;
     color: #fff;
     text-align: center;
