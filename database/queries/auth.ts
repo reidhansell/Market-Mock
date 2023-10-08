@@ -3,40 +3,6 @@ import ExpectedError from '../../tools/utils/ExpectedError';
 import User, { UserSensitive } from '../../models/User';
 import RefreshToken from '../../models/RefreshToken';
 
-function convertDatabaseBoolToJS(dbBool: number): boolean {
-    return dbBool === 1;
-}
-
-function convertJSToDatabaseBool(jsBool: boolean): number {
-    return jsBool ? 1 : 0;
-}
-
-function mapUserResult(userData: any): User {
-    return {
-        user_id: userData.user_id,
-        username: userData.username,
-        email: userData.email,
-        registration_date: userData.registration_date,
-        starting_amount: userData.starting_amount,
-        current_balance: userData.current_balance,
-        is_email_verified: convertDatabaseBoolToJS(userData.is_email_verified),
-    };
-}
-
-function mapUserSensitiveResult(userData: any): UserSensitive {
-    return {
-        user_id: userData.user_id,
-        username: userData.username,
-        email: userData.email,
-        registration_date: userData.registration_date,
-        starting_amount: userData.starting_amount,
-        current_balance: userData.current_balance,
-        is_email_verified: convertDatabaseBoolToJS(userData.is_email_verified),
-        password: userData.password,
-        verification_token: userData.verification_token,
-    };
-}
-
 async function registerUser(username: string, email: string, password: string): Promise<number> {
     const query = 'INSERT INTO User (username, email, password) VALUES (?, ?, ?)';
     const parameters = [username, email, password];
@@ -66,7 +32,7 @@ async function getUserData(user_id: number): Promise<User> {
             `Failed query: "${query}" with parameters: "${parameters}"`
         );
     } else {
-        return mapUserResult(results[0]);
+        return results[0];
     }
 }
 
@@ -90,7 +56,7 @@ async function findUserByEmail(email: string): Promise<User | null> {
     if (results.length === 0) {
         return null;
     }
-    return mapUserResult(results[0]);
+    return results[0];
 }
 
 async function findUserSensitiveByEmail(email: string): Promise<UserSensitive | null> {
@@ -100,7 +66,7 @@ async function findUserSensitiveByEmail(email: string): Promise<UserSensitive | 
     if (results.length === 0) {
         return null;
     }
-    return mapUserSensitiveResult(results[0]);
+    return { ...results[0], password: results[0].password, verification_token: results[0].verification_token }
 }
 
 async function findUserByUsername(username: string): Promise<User | null> {
@@ -110,7 +76,7 @@ async function findUserByUsername(username: string): Promise<User | null> {
     if (results.length === 0) {
         return null;
     }
-    return mapUserResult(results[0]);
+    return results[0];
 }
 
 async function findUserById(id: number): Promise<User | null> {
@@ -120,12 +86,12 @@ async function findUserById(id: number): Promise<User | null> {
     if (results.length === 0) {
         return null;
     }
-    return mapUserResult(results[0]);
+    return results[0];
 }
 
 async function updateEmailVerificationStatus(user_id: number): Promise<void> {
     const query = 'UPDATE User SET is_email_verified = ? WHERE user_id = ?';
-    const parameters = [convertJSToDatabaseBool(true), user_id];
+    const parameters = [true, user_id];
     const results = await executeQuery(query, parameters) as ResultObject;
     if (results.affectedRows === 0) {
         throw new ExpectedError(
@@ -137,7 +103,7 @@ async function updateEmailVerificationStatus(user_id: number): Promise<void> {
 }
 
 async function storeRefreshToken(token: string, user_id: number): Promise<number> {
-    const expiry_date = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000);
+    const expiry_date = Math.floor(new Date().getTime() / 1000 + (7 * 24 * 60 * 60 * 1000));
     const query = 'INSERT INTO Refresh_Token (user_id, token, expiry_date) VALUES (?, ?, ?)';
     const parameters = [user_id, token, expiry_date];
     const results = await executeQuery(query, parameters) as ResultObject;
@@ -175,7 +141,7 @@ async function deleteRefreshToken(token: string): Promise<void> {
 }
 
 async function cleanupExpiredTokens(): Promise<void> {
-    const query = 'DELETE FROM Refresh_Token WHERE expiry_date < NOW()';
+    const query = 'DELETE FROM Refresh_Token WHERE expiry_date < UNIX_TIMESTAMP(NOW()) * 1000';
     await executeQuery(query);
 }
 
