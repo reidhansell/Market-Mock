@@ -1,11 +1,11 @@
-jest.mock('./endOfDayService');
+jest.mock('./intradayService');
 jest.mock('../../database/queries/quests');
 jest.mock('../../database/queries/order');
 jest.mock('../../database/queries/portfolio');
 jest.mock('../../database/databaseConnector')
 
 import { calculateAndSaveUserNetWorth } from './netWorthService';
-import { getEODDataForTicker } from './endOfDayService';
+import { getIntradayDataForTicker } from './intradayService';
 import { getQuests, updateQuest } from '../../database/queries/quests';
 import { fetchBuyTransactionsHeldFor30Days } from '../../database/queries/order';
 import { getUserBalance, getAllUserBalances, getUserNetWorth, insertUserNetWorth, getUserStocks, updateUserNetWorth } from '../../database/queries/portfolio';
@@ -19,7 +19,7 @@ describe('netWorthService', () => {
     it('should calculate and save user net worth for a specific user', async () => {
         (getUserBalance as jest.Mock).mockResolvedValue({ current_balance: 100, starting_amount: 50 });
         (getUserStocks as jest.Mock).mockResolvedValue([{ ticker_symbol: 'TICK', quantity: 5 }]);
-        (getEODDataForTicker as jest.Mock).mockResolvedValue([{ close: 10 }]);
+        (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ last: 10 }]);
         (getUserNetWorth as jest.Mock).mockResolvedValue([]);
         (insertUserNetWorth as jest.Mock).mockResolvedValue(undefined);
         (fetchBuyTransactionsHeldFor30Days as jest.Mock).mockResolvedValue([{}]);
@@ -33,7 +33,7 @@ describe('netWorthService', () => {
         await calculateAndSaveUserNetWorth(1);
 
         expect(getUserBalance).toHaveBeenCalledWith(1);
-        expect(getEODDataForTicker).toHaveBeenCalledWith('TICK');
+        expect(getIntradayDataForTicker).toHaveBeenCalledWith('TICK');
         expect(insertUserNetWorth).toHaveBeenCalled();
     });
 
@@ -41,7 +41,7 @@ describe('netWorthService', () => {
         (getUserBalance as jest.Mock).mockResolvedValue({ current_balance: 100, starting_amount: 50 });
         (getAllUserBalances as jest.Mock).mockResolvedValue([{ user_id: 1, current_balance: 100, starting_amount: 50 }]);
         (getUserStocks as jest.Mock).mockResolvedValue([{ ticker_symbol: 'TICK', quantity: 5 }]);
-        (getEODDataForTicker as jest.Mock).mockResolvedValue([{ close: 10 }]);
+        (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ last: 10 }]);
         (getUserNetWorth as jest.Mock).mockResolvedValue([]);
         (fetchBuyTransactionsHeldFor30Days as jest.Mock).mockResolvedValue([{}]);
         (getQuests as jest.Mock).mockResolvedValue([
