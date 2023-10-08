@@ -15,16 +15,17 @@ export const getWatchlist = async (): Promise<WatchList[]> => {
 export const addTickerToWatchlist = async (tickerSymbol: string): Promise<void> => {
     try {
         Axios.defaults.withCredentials = true;
-        const response = await Axios.post(`${config.serverURL}/api/watchlist/add/${tickerSymbol}`);
+        await Axios.post(`${config.serverURL}/api/watchlist/add/${tickerSymbol}`);
     } catch (error: any) {
         throw error.response.data.error;
     }
 };
 
-export const removeTickerFromWatchlist = async (tickerSymbol: string): Promise<void> => {
+export const removeTickerFromWatchlist = async (tickerSymbol: string): Promise<boolean> => {
     try {
         Axios.defaults.withCredentials = true;
         const response = await Axios.delete(`${config.serverURL}/api/watchlist/remove/${tickerSymbol}`);
+        return response.status === 200 ? true : false;
     } catch (error: any) {
         throw error.response.data.error;
     }
