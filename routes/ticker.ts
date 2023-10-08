@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import axios from 'axios';
 import { marketStackKey } from '../config.json';
-import { getLatestIntradayData, searchTickersByCompanyName, insertIntradayData } from '../database/queries/ticker';
+import { getLatestIntradayData, searchTickers, insertIntradayData } from '../database/queries/ticker';
 import ExpectedError from '../tools/utils/ExpectedError';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 import TickerIntraday from '../models/TickerIntraday';
@@ -16,10 +16,10 @@ const COMPANYNAME_PATTERN = /^[a-zA-Z0-9\s.'-]{1,100}$/;
 
 const isIntradayDataRecent = (intradayData: TickerIntraday[]): boolean => {
     if (!intradayData.length) return false;
-    const dataTime = new Date(intradayData[0].date);
-    const currentTime = new Date();
-    const timeDifference = Math.abs(currentTime.getTime() - dataTime.getTime());
-    const differenceInHours = timeDifference / (1000 * 3600);
+    const dataTime = intradayData[0].date;
+    const currentTime = Math.floor(new Date().getTime() / 1000);
+    const timeDifference = currentTime - dataTime;
+    const differenceInHours = timeDifference / 3600;
     return differenceInHours <= 1;
 };
 
@@ -31,17 +31,17 @@ function formatTimestampForMySQL(timestamp: string) {
     return formatted;
 }
 
-router.get('/search/:company_name', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/search/:search_term', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
     try {
 
-        const companyName: string = req.params.company_name as string;
-        if (!companyName || !companyName.trim()) {
-            throw new ExpectedError('Company name is required', 400, "Missing companyName in /search route");
+        const search_term: string = req.params.search_term as string;
+        if (!search_term || !search_term.trim()) {
+            throw new ExpectedError('Search term is required', 400, "Missing search term in /search route");
         }
-        if (!COMPANYNAME_PATTERN.test(companyName)) {
-            throw new ExpectedError('Invalid company name', 400, "Invalid companyName in /search route");
+        if (!COMPANYNAME_PATTERN.test(search_term)) {
+            throw new ExpectedError('Invalid search term', 400, "Invalid search term in /search route");
         }
-        const tickers = await searchTickersByCompanyName(companyName);
+        const tickers = await searchTickers(search_term);
         res.json({ tickers: tickers });
     } catch (error) {
         next(error);
