@@ -24,9 +24,18 @@ const Quests: React.FC<QuestProps> = ({ fullscreen }) => {
     }, []);
 
     const content = (<div>
+        {fullscreen ? (<>
+            <h2>About</h2>
+            <p>Quests serve as Market Mock's tutorial. Start from the top (or not) and work your way down!</p>
+            <br />
+            <i><small>Still confused? Fear not! Nerd Wallet has a great article <a className="quest-link" target="_blank" href="https://www.nerdwallet.com/article/investing/how-to-buy-stocks">here</a> that can help you get started. You can also look out for tooltip icons throughout the app that will explain terms, just hover your mouse over them!</small></i>
+            <br />
+            <br />
+            <h2>Your Quests</h2>
+        </>) : null}
         <ul className={`quests`}>
             {quests.map((quest) => (
-                <li className={`quest ${quest.completion_date ? "completed" : ''}`} key={quest.quest_id} onClick={() => navigate("/quests")}>
+                <li className={`quest ${quest.completion_date ? "completed" : ''} ${fullscreen ? "fullscreen" : ''}`} key={quest.quest_id} onClick={() => navigate("/quests")}>
                     <h3 className='quest-header'>{`${quest.name}`}</h3>
                     <p>{quest.description}</p>
                 </li>
