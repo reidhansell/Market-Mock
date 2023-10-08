@@ -6,6 +6,7 @@ jest.mock('../../tools/services/intradayService');
 jest.mock('./netWorthService');
 jest.mock('../../database/queries/notification');
 jest.mock('../../database/queries/quests');
+jest.mock('../../database/queries/watchlist');
 
 import { processOrder } from './orderFulfillmentService';
 import { FulfilledOrder, OrderSubmission } from '../../models/Order';
@@ -19,6 +20,7 @@ import { addNotification } from '../../database/queries/notification';
 import { getQuests, updateQuest } from '../../database/queries/quests';
 import quests from "../../database/quests.json"
 import { getTransactionConnection } from '../../database/databaseConnector';
+import { addTickerToWatchList } from '../../database/queries/watchlist';
 
 describe('orderFulfillmentService', () => {
 
@@ -73,12 +75,17 @@ describe('orderFulfillmentService', () => {
             (insertTransaction as jest.Mock).mockResolvedValue(FulfilledOrder);
             (updateUserBalance as jest.Mock).mockResolvedValue(undefined);
             (updateUserStocks as jest.Mock).mockResolvedValue(undefined);
+            (addTickerToWatchList as jest.Mock).mockResolvedValue(undefined);
             (calculateAndSaveUserNetWorth as jest.Mock).mockResolvedValue(undefined);
             (addNotification as jest.Mock).mockResolvedValue(undefined);
             (getQuests as jest.Mock).mockResolvedValue(quests as UserQuest[]);
             (updateQuest as jest.Mock).mockResolvedValue(undefined);
-            (getTransactionConnection as jest.Mock).mockResolvedValue({} as any);
-            const result = await processOrder(validOrder, {} as any);
+            (getTransactionConnection as jest.Mock).mockResolvedValue({
+                beginTransaction: jest.fn(),
+                commit: jest.fn(),
+                rollback: jest.fn(),
+            } as any);
+            const result = await processOrder(validOrder);
             expect(result).toEqual(FulfilledOrder);
         });
 
@@ -104,7 +111,7 @@ describe('orderFulfillmentService', () => {
                 date: Math.floor(Date.now() / 1000)
             }]);
 
-            const result = await processOrder(limitBuyOrder, {} as any);
+            const result = await processOrder(limitBuyOrder);
             expect(result).toBeTruthy();
         });
 
@@ -130,7 +137,7 @@ describe('orderFulfillmentService', () => {
                 date: Math.floor(Date.now() / 1000)
             }]);
 
-            const result = await processOrder(limitBuyOrder, {} as any);
+            const result = await processOrder(limitBuyOrder);
             expect(result).toBeNull();
         });
 
@@ -144,12 +151,12 @@ describe('orderFulfillmentService', () => {
                 quantity: -1,
             };
 
-            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ close: 150 }]);
+            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ last: 150 }]);
             (getUserData as jest.Mock).mockResolvedValue({ current_balance: 200 });
             (getUserStocks as jest.Mock).mockResolvedValue([{ ticker_symbol: "AAPL", quantity: 10 }]);
             (insertTransaction as jest.Mock).mockResolvedValue({ ...order, price_per_share: 150 });
 
-            const result = await processOrder(order, {} as any);
+            const result = await processOrder(order);
             expect(result).toBeTruthy();
         });
 
@@ -163,11 +170,11 @@ describe('orderFulfillmentService', () => {
                 quantity: -1,
             };
 
-            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ close: 150 }]);
+            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ last: 150 }]);
             (getUserData as jest.Mock).mockResolvedValue({ current_balance: 200 });
             (getUserStocks as jest.Mock).mockResolvedValue([{ ticker_symbol: "AAPL", quantity: 10 }]);
 
-            const result = await processOrder(order, {} as any);
+            const result = await processOrder(order);
             expect(result).toBeNull();
         });
 
@@ -181,11 +188,11 @@ describe('orderFulfillmentService', () => {
                 trigger_price: 145.00,
                 quantity: 1,
             };
-            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ close: 150 }]);
+            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ last: 150 }]);
             (getUserData as jest.Mock).mockResolvedValue({ current_balance: 200 });
             (getUserStocks as jest.Mock).mockResolvedValue([]);
             (insertTransaction as jest.Mock).mockResolvedValue({ ...order, price_per_share: 150 });
-            const result = await processOrder(order, {} as any);
+            const result = await processOrder(order);
             expect(result).toBeTruthy();
         });
 
@@ -198,10 +205,10 @@ describe('orderFulfillmentService', () => {
                 trigger_price: 155.00,
                 quantity: 1,
             };
-            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ close: 150 }]);
+            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ last: 150 }]);
             (getUserData as jest.Mock).mockResolvedValue({ current_balance: 200 });
             (getUserStocks as jest.Mock).mockResolvedValue([]);
-            const result = await processOrder(order, {} as any);
+            const result = await processOrder(order);
             expect(result).toBeNull();
         });
 
@@ -215,12 +222,12 @@ describe('orderFulfillmentService', () => {
                 quantity: -1,
             };
 
-            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ close: 150 }]);
+            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ last: 150 }]);
             (getUserData as jest.Mock).mockResolvedValue({ current_balance: 200 });
             (getUserStocks as jest.Mock).mockResolvedValue([{ ticker_symbol: "AAPL", quantity: 10 }]);
             (insertTransaction as jest.Mock).mockResolvedValue({ ...order, price_per_share: 150 });
 
-            const result = await processOrder(order, {} as any);
+            const result = await processOrder(order);
             expect(result).toBeTruthy();
         });
 
@@ -234,11 +241,11 @@ describe('orderFulfillmentService', () => {
                 quantity: -1,
             };
 
-            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ close: 150 }]);
+            (getIntradayDataForTicker as jest.Mock).mockResolvedValue([{ last: 150 }]);
             (getUserData as jest.Mock).mockResolvedValue({ current_balance: 200 });
             (getUserStocks as jest.Mock).mockResolvedValue([{ ticker_symbol: "AAPL", quantity: 10 }]);
 
-            const result = await processOrder(order, {} as any);
+            const result = await processOrder(order);
             expect(result).toBeNull();
         });
     });
