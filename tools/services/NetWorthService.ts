@@ -1,4 +1,4 @@
-import { getEODDataForTicker } from './endOfDayService';
+import { getIntradayDataForTicker } from './intradayService';
 import { getQuests, updateQuest } from '../../database/queries/quests';
 import { fetchBuyTransactionsHeldFor30Days } from '../../database/queries/order';
 import UserStock from '../../models/UserStock';
@@ -24,15 +24,16 @@ async function fetchUserWallets(userId?: number): Promise<{ user_id: number, cur
 async function calculateStockWorth(userStocks: UserStock[]): Promise<number> {
     let totalStockWorth = 0;
     for (const stock of userStocks) {
-        const eodData = await getEODDataForTicker(stock.ticker_symbol);
+        //TODO if price is 0?
+        const eodData = await getIntradayDataForTicker(stock.ticker_symbol);
         if (eodData && eodData[0].close) {
-            totalStockWorth += eodData[0].close * stock.quantity;
+            totalStockWorth += parseFloat((eodData[0].last * stock.quantity).toFixed(2));
         }
     }
     return totalStockWorth;
 }
 
-async function updateOrInsertUserNetWorth(userId: number, netWorth: number, today: Date) {
+async function updateOrInsertUserNetWorth(userId: number, netWorth: number, today: number) {
     const results = await getUserNetWorth(userId, today);
     if (results.length > 0) {
         await updateUserNetWorth(userId, netWorth, today);
@@ -44,8 +45,7 @@ async function updateOrInsertUserNetWorth(userId: number, netWorth: number, toda
 export async function calculateAndSaveUserNetWorth(userId?: number) {
     try {
         const users = await fetchUserWallets(userId);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const today = Math.floor(new Date().getTime() / 1000);
 
         for (const user of users) {
             const userStocks = await getUserStocks(user.user_id);
@@ -57,7 +57,7 @@ export async function calculateAndSaveUserNetWorth(userId?: number) {
             const doubleNetWorthQuest = quests.find(quest => quest.name === 'Double your money');
             const diamondHandsQuest = quests.find(quest => quest.name === 'Diamond hands');
 
-            if (doubleNetWorthQuest && netWorth >= user.starting_amount * 2 && !doubleNetWorthQuest.completion_date) {
+            if (doubleNetWorthQuest && netWorth >= parseFloat((user.starting_amount * 2).toFixed(2)) && !doubleNetWorthQuest.completion_date) {
                 await updateQuest(user.user_id, doubleNetWorthQuest.quest_id);
             }
 
