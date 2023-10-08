@@ -1,7 +1,8 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import config from '../../config.json';
 import ExpectedError from '../utils/ExpectedError';
 import { insertTicker, checkTickerExists } from '../../database/queries/ticker';
+import { TickerResponse } from '../../models/MarketStackResponses';
 
 interface MarketStackTicker {
     name: string;
@@ -18,10 +19,9 @@ async function fetchTickersFromAPI(exchange: string): Promise<MarketStackTicker[
 
     while (page < 20) {
         const url = `${baseURL}&offset=${offset}`;
-        const response = await fetchMarketStackData(url, exchange);
-        tickers = tickers.concat(response.data.tickers);
-
-        if (response.data.tickers.length < 10000) {
+        const marketstackTickers = await fetchMarketStackTickers(url);
+        tickers = tickers.concat(marketstackTickers);
+        if (marketstackTickers.length < 10000) {
             break;
         }
         offset += 10000;
@@ -30,11 +30,16 @@ async function fetchTickersFromAPI(exchange: string): Promise<MarketStackTicker[
     return tickers;
 }
 
-async function fetchMarketStackData(url: string, exchange: string) {
+async function fetchMarketStackTickers(url: string) {
     try {
-        return await axios.get(url);
+        const response = await axios.get(url) as AxiosResponse<TickerResponse>;
+        if (response.status !== 200) {
+            throw new ExpectedError('Could not fetch data from MarketStack', 500, `Error fetching data from MarketStack for exchange: ${response.statusText}`);
+        }
+        return response.data.data.tickers;
+
     } catch (error: any) {
-        throw new ExpectedError('Could not fetch data from MarketStack', 500, `Error fetching data from MarketStack for exchange ${exchange}: ${error.message}`);
+        throw new ExpectedError('Could not fetch data from MarketStack', 500, `Error fetching data from MarketStack for exchange: ${error.message}`);
     }
 }
 

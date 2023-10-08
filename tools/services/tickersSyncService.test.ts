@@ -1,7 +1,7 @@
 jest.mock('axios');
 jest.mock('../../database/queries/ticker');
 
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { syncTickers } from './tickersSyncService';
 import { insertTicker, checkTickerExists } from '../../database/queries/ticker';
 
@@ -12,16 +12,25 @@ describe('syncTickers', () => {
 
     it('should successfully sync tickers', async () => {
         (axios.get as jest.Mock).mockResolvedValueOnce({
+            status: 200,
             data: {
-                tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                data: {
+                    tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                }
             }
         }).mockResolvedValueOnce({
+            status: 200,
             data: {
-                tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                data: {
+                    tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                }
             }
         }).mockResolvedValueOnce({
+            status: 200,
             data: {
-                tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                data: {
+                    tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                }
             }
         });
 
@@ -39,16 +48,25 @@ describe('syncTickers', () => {
 
     it('should handle a ticker that already exists', async () => {
         (axios.get as jest.Mock).mockResolvedValueOnce({
+            status: 200,
             data: {
-                tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                data: {
+                    tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                }
             }
         }).mockResolvedValueOnce({
+            status: 200,
             data: {
-                tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                data: {
+                    tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                }
             }
         }).mockResolvedValueOnce({
+            status: 200,
             data: {
-                tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                data: {
+                    tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                }
             }
         });
 
@@ -61,16 +79,25 @@ describe('syncTickers', () => {
     it('should handle a ticker with a changed company name', async () => {
 
         (axios.get as jest.Mock).mockResolvedValueOnce({
+            status: 200,
             data: {
-                tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                data: {
+                    tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                }
             }
         }).mockResolvedValueOnce({
+            status: 200,
             data: {
-                tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                data: {
+                    tickers: [{ symbol: 'AAPL', name: 'Apple Inc.', has_intraday: true, has_eod: true }]
+                }
             }
         }).mockResolvedValueOnce({
+            status: 200,
             data: {
-                tickers: [{ symbol: 'AAPL', name: 'Apple Corp.', has_intraday: true, has_eod: true }]
+                data: {
+                    tickers: [{ symbol: 'AAPL', name: 'Apple Corp.', has_intraday: true, has_eod: true }]
+                }
             }
         });
 
