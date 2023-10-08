@@ -33,6 +33,7 @@ import User from '../../models/User';
 import UserStock from '../../models/UserStock';
 import Transaction from '../../models/Transaction';
 import { Connection } from 'mysql';
+import { addTickerToWatchList } from '../../database/queries/watchlist';
 
 async function handleQuestCompletion(fulfilledOrder: FulfilledOrder, transactionConnection: Connection) {
     const quests = await getQuests(fulfilledOrder.user_id);
@@ -54,7 +55,7 @@ async function handleQuestCompletion(fulfilledOrder: FulfilledOrder, transaction
 }
 
 const checkAndCancelOrderIfInsufficientFunds = async (order: OrderSubmission, currentPrice: number, userData: User) => {
-    const totalCost = currentPrice * order.quantity;
+    const totalCost = parseFloat((currentPrice * order.quantity).toFixed(2));
     if (userData.current_balance < totalCost) {
         return await cancelOrder(order.order_id);
     }
@@ -77,55 +78,51 @@ const canFulfillOrder = (order: OrderSubmission, currentPrice: number) => {
         (order.order_type === 'STOP' && ((order.quantity > 0 && currentPrice >= order.trigger_price) || (order.quantity < 0 && currentPrice <= order.trigger_price)));
 };
 
-const processOrder = async (order: OrderSubmission, transactionConnection: Connection) => {
+const processOrder = async (order: OrderSubmission): Promise<Order | FulfilledOrder | null> => {
+    const transactionConnection = await getTransactionConnection();
     const tickerData = await getIntradayDataForTicker(order.ticker_symbol);
-    const currentPrice = tickerData[tickerData.length - 1].close;
+    const currentPrice = tickerData[0].last;
+    transactionConnection.beginTransaction();
     const userData = await getUserData(order.user_id);
 
     if (canFulfillOrder(order, currentPrice)) {
         if (await checkAndCancelOrderIfInsufficientFunds(order, currentPrice, userData)) {
-            return { ...order, cancelled: true };
+            return { ...order, cancelled: true } as Order;
         }
 
         const userStocks = await getUserStocks(order.user_id);
         if (await checkAndCancelOrderIfInsufficientStocks(order, userStocks)) {
-            return { ...order, cancelled: true };
+            return { ...order, cancelled: true } as Order;
         }
         const fulfilledOrder = await insertTransaction({ order_id: order.order_id, price_per_share: currentPrice } as Transaction, transactionConnection);
 
         if (fulfilledOrder) {
-            await updateUserBalance(fulfilledOrder.user_id, currentPrice * fulfilledOrder.quantity, transactionConnection);
+            await updateUserBalance(fulfilledOrder.user_id, parseFloat((currentPrice * fulfilledOrder.quantity).toFixed(2)), transactionConnection);
             await updateUserStocks(fulfilledOrder.user_id, fulfilledOrder.ticker_symbol, fulfilledOrder.quantity, transactionConnection);
+            transactionConnection.commit();
+            await addTickerToWatchList(fulfilledOrder.user_id, fulfilledOrder.ticker_symbol);
 
             await handleQuestCompletion(fulfilledOrder, transactionConnection);
 
             await calculateAndSaveUserNetWorth(fulfilledOrder.user_id);
 
-            await addNotification({ user_id: fulfilledOrder.user_id, content: `Your order for ${fulfilledOrder.quantity} shares of ${fulfilledOrder.ticker_symbol} has been fulfilled.`, success: true } as Notification, transactionConnection);
+            await addNotification({ user_id: fulfilledOrder.user_id, content: `Your order for ${fulfilledOrder.quantity} shares of ${fulfilledOrder.ticker_symbol} has been fulfilled at $${fulfilledOrder.price_per_share}.`, success: true } as Notification, transactionConnection);
 
             return fulfilledOrder;
         }
     }
 
+    transactionConnection.rollback();
     return null;
 };
 
 const fulfillOpenOrders = async () => {
     const openOrders = await getOpenOrders();
     for (const order of openOrders) {
-        const transactionConnection = await getTransactionConnection();
-        transactionConnection.beginTransaction();
         try {
-            const fulfilledOrder = await processOrder(order, transactionConnection);
-            if (fulfilledOrder) {
-                transactionConnection.commit();
-            } else {
-                transactionConnection.rollback();
-            }
+            await processOrder(order);
         } catch (error) {
-            transactionConnection.rollback();
-        } finally {
-            transactionConnection.end();
+            console.error(error);
         }
     }
 };
