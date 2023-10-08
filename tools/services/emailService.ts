@@ -21,7 +21,7 @@ function getVerifyEmailContent(verificationToken: string): string {
                         </h1>
                         <h1 style="margin-top: 0.5rem; margin-bottom: 0.5rem; color: hsl(50.59, 15%, 85%);">Email Verification</h1>
                         <p style="color: hsl(50.59, 15%, 85%);">Please click the following link to verify your email:</p>
-                        <a href="${config.clientURL}/verify/${verificationToken}" style="color: hsl(50.59, 15%, 85%);">Verify Email</a>
+                        <a href="${config.clientURL}/verify/${verificationToken}/" style="color: hsl(50.59, 15%, 85%);">Verify Email</a>
                     </div>
                 </td>
             </tr>
