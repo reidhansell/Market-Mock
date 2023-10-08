@@ -22,7 +22,7 @@ import Nav from './components/Home/Nav';
 import { UserProvider } from './components/Common/UserProvider';
 import LoadingCircle from './components/Common/LoadingCircle';
 import { markNotificationAsRead } from './requests/notification';
-import DashboardModule from './components/Common/DashboardModule';
+import config from './config.json';
 
 /*
  * Alert System and Axios Interceptors:
@@ -49,19 +49,21 @@ const App = () => {
   const { setUser, notifications, setNotifications } = useContext(UserContext);
 
   const generateId = (): string => {
-    return Math.random().toString(36).substr(2, 9);
+    return Math.random().toString(36).slice(0, 8);
   };
 
   const addAlert = (message: string) => {
     const id = generateId();
     const newAlert = { id, message };
     setAlerts((prevAlerts) => [...prevAlerts, newAlert]);
+    setTimeout(() => removeAlert(id), 5000);
   };
 
   const removeAlert = (id: string) => {
-    setAlerts((prevAlerts) => prevAlerts.filter((alert) => alert.id !== id));
+    setAlerts((prevAlerts) => [...prevAlerts.filter((alert) => alert.id !== id)]);
   };
 
+  Axios.defaults.baseURL = config.serverURL;
   const AxiosRefreshInstance: AxiosInstance = Axios.create({
     baseURL: Axios.defaults.baseURL,
     headers: {
@@ -118,18 +120,6 @@ const App = () => {
       });
   }, []);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (alerts.length > 0) {
-        removeAlert(alerts[0].id);
-      }
-    }, 5000);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [alerts]);
-
   if (loading) {
     return <h1><LoadingCircle /></h1>
   }
@@ -155,7 +145,7 @@ const App = () => {
 
         <Routes>
           <Route path="/login" element={!auth ? <Login setAuth={setAuth} /> : <Navigate to="/" />} />
-          <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
+          <Route path="/register" element={!auth ? <Register addAlert={addAlert} /> : <Navigate to="/" />} />
           <Route path="/verify/:token" element={<VerifyEmail />} />
           <Route path="/" element={auth ? <Home /> : <Navigate to="/login" />} />
           <Route path="/portfolio" element={auth ? <Portfolio fullscreen={true} /> : <Navigate to="/login" />} />
