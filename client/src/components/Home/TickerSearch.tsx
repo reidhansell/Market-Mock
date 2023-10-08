@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Ticker from "../../../../models/Ticker"
 import { searchTickers } from '../../requests/Ticker';
 import './TickerSearch.css';
+import Tooltip from '../Common/Tooltip';
 
 function useDebounce(value: any, delay: number) {
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -21,9 +22,9 @@ function useDebounce(value: any, delay: number) {
 }
 
 const TickerSearch = () => {
-    const [companyName, setCompanyName] = useState('');
+    const [watchlistSearch, setWatchlistSearch] = useState('');
     const [searchResults, setSearchResults] = useState([] as Ticker[]);
-    const debouncedSearchTerm = useDebounce(companyName, 500);
+    const debouncedSearchTerm = useDebounce(watchlistSearch, 500);
 
     useEffect(() => {
         if (debouncedSearchTerm) {
@@ -45,10 +46,11 @@ const TickerSearch = () => {
             <div className="ticker-search-header">
                 <input
                     type="text"
-                    placeholder="Search tickers..."
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="Search all tickers..."
+                    value={watchlistSearch}
+                    onChange={(e) => setWatchlistSearch(e.target.value)}
                 />
+                <h2><Tooltip text={["A ticker symbol is a unique code representing a specific stock, ETF, or other financial asset."]} /></h2>
             </div>
             <ul className="ticker-list">
                 {searchResults.length > 0 ? searchResults.map((ticker: Ticker, index) => (
@@ -58,7 +60,7 @@ const TickerSearch = () => {
                         </li>
                     </Link>
 
-                )) : <p style={{ padding: "0.5rem" }}>Enter a ticker symbol or company name to begin searching</p>}
+                )) : watchlistSearch === "" ? <p style={{ padding: "0.5rem" }}>Enter a ticker symbol or company name to begin searching</p> : <p style={{ padding: "0.5rem" }}>Nothing found for the given input</p>}
             </ul>
         </div>
     );
