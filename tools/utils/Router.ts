@@ -41,7 +41,7 @@ export default class Router {
         const files = fs.readdirSync(dir);
 
         files.forEach((file) => {
-            if (file.endsWith('.test.ts')) return;
+            if (file.endsWith('.test.ts') || file.endsWith('.test.js')) return;
             const filePath = path.join(dir, file);
             const stat = fs.lstatSync(filePath);
 
