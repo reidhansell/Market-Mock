@@ -44,7 +44,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
         chartData = transformToChartData(netWorth);
     }
 
-    const content = (<><div style={{ width: '100%', height: '200px' }}>
+    const content = (<><div style={{ width: '100%', aspectRatio: "2/1" }}>
         <ResponsiveContainer>
             <LineChart
                 data={chartData}
@@ -69,7 +69,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
                 />
                 <Tooltip />
                 <CartesianGrid stroke="#f5f5f5" vertical={false} />
-                <Line type="monotone" dataKey="netWorth" stroke="#3cb043" yAxisId={0} />
+                <Line type="monotone" dataKey="netWorth" stroke="#3cb043" yAxisId={0} isAnimationActive={false} />
             </LineChart>
         </ResponsiveContainer>
     </div>
@@ -102,7 +102,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
                     <li className='owned-stock' key={stock.ticker_symbol} onClick={() => navigate(`/ticker/${stock.ticker_symbol}`)}>
                         <h3 className='owned-stock-header'>{`${stock.ticker_symbol} (${stock.quantity})`}</h3>
                         <p style={{ color: stock.last > stock.open ? "var(--brand)" : "red" }}>Today: {`${stock.last > stock.open ? '+' : '-'}$${Math.abs(stock.last - stock.open).toFixed(2)} (${stock.last > stock.open ? '+' : '-'}$${(Math.abs(stock.last - stock.open) * stock.quantity).toFixed(2)})`}</p>
-                        <p style={{ color: stock.last > stock.purchased_price ? "var(--brand)" : "red" }}>All-Time: {`${stock.last > stock.purchased_price ? '+' : '-'}$${Math.abs(stock.last - stock.purchased_price).toFixed(2)} (${stock.last > stock.purchased_price ? '+' : '-'}$${(Math.abs(stock.last - stock.purchased_price) * stock.quantity).toFixed(2)})`}</p>
+                        <p style={{ color: stock.last > stock.purchased_price ? "var(--brand)" : "red" }}>Since Purchased: {`${stock.last > stock.purchased_price ? '+' : '-'}$${Math.abs(stock.last - stock.purchased_price).toFixed(2)} (${stock.last > stock.purchased_price ? '+' : '-'}$${(Math.abs(stock.last - stock.purchased_price) * stock.quantity).toFixed(2)})`}</p>
                     </li>
                 )) : <p style={{ padding: "0.5rem" }}>No stocks currently owned</p>}
             </ul>
@@ -118,7 +118,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
                 )) : <p style={{ padding: "0.5rem" }}>No orders have been placed</p>}
             </ul>
         </>) : null}
-        <br /></>);
+    </>);
 
     return (
         <DashboardModule title="Portfolio" content={content} fullscreen={fullscreen} />
