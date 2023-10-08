@@ -64,7 +64,7 @@ describe('authRouter', () => {
             (findUserByEmail as jest.Mock).mockResolvedValueOnce({
                 user_id: 1,
                 username: 'Placeholder2',
-                registration_date: Date.now() / 1000 - 36000,
+                registration_date: Math.floor(Date.now() / 1000) - 36000,
                 starting_amount: 10000,
                 current_balance: 10000,
                 is_email_verified: true,
@@ -81,7 +81,7 @@ describe('authRouter', () => {
             (findUserByUsername as jest.Mock).mockResolvedValueOnce({
                 user_id: 1,
                 username: "Placeholder",
-                registration_date: Date.now() / 1000 - 36000,
+                registration_date: Math.floor(Date.now() / 1000) - 36000,
                 starting_amount: 10000,
                 current_balance: 10000,
                 is_email_verified: true,
