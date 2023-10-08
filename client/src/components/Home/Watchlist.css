@@ -20,9 +20,8 @@
     background-repeat: no-repeat;
     margin-left: auto;
     color: var(--brand);
-  }
+}
 
-  .ticker-item:hover .wallet-icon{
+    .ticker-item:hover .wallet-icon{
     background-image: url('../../icons/wallet-solid-hover.svg');
-  }
-  
+}
