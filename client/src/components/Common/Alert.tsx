@@ -21,8 +21,8 @@ const Alert: React.FC<AlertProps> = ({ message, onClose, success, customOnClick 
 
     return (
         <div className={`alert ${success ? 'success' : null}`}>
-            {<h3><span className="closebtn" onClick={customOnClick ? customOnClick : onClose}>&times;</span></h3>}
             {message}
+            {<h3><span className="closebtn" onClick={customOnClick ? customOnClick : onClose}>&times;</span></h3>}
         </div>
     );
 }
