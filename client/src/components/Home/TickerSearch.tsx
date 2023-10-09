@@ -53,10 +53,10 @@ const TickerSearch = () => {
                 <h2><Tooltip text={["A ticker symbol is a unique code representing a specific stock, ETF, or other financial asset."]} /></h2>
             </div>
             <ul className="ticker-list">
-                {searchResults.length > 0 ? searchResults.map((ticker: Ticker, index) => (
+                {searchResults.length > 0 ? searchResults.map((ticker, index) => (
                     <Link key={index} to={`/ticker/${ticker.ticker_symbol}`} className="ticker-link">
                         <li className="ticker-item">
-                            {`${ticker.ticker_symbol}: ${ticker.company_name.slice(0, 25)}`}
+                            {`${ticker.ticker_symbol}${ticker.company_name ? `: ${ticker.company_name.slice(0, 25)}` : ''}`}
                         </li>
                     </Link>
 
