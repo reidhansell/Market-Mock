@@ -4,6 +4,7 @@
     "description": "",
     "main": "server.js",
     "scripts": {
+        "preserver": "npm run test",
         "server": "node dist/server.js",
         "client": "npm --prefix client start",
         "predev": "npm run test:all",

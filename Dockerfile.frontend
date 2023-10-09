@@ -18,9 +18,6 @@ RUN npm install -g serve
 # Build the app
 RUN npm run build
 
-# Run only backend tests with coverage
-RUN npm run test
-
 # Specify the command to run on container start
 CMD ["serve", "-s", "dist", "-l", "3000"]
 
