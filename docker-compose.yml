@@ -19,19 +19,26 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
+    image: market-stack_backend
     ports:
       - "5000:5000"
     depends_on:
       - mysql
+    volumes:
+      - ./config.json:/config.json
+      - ./.env:/.env
 
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+    image: market-stack_frontend
     ports:
       - "3000:3000"
     depends_on:
       - backend
+    volumes:
+      - ./client/src/config.json:/client/src/config.json
 
 volumes:
   mysql-data:
