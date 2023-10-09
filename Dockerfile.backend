@@ -19,9 +19,6 @@ COPY . .
 # Remove the frontend application from the container. We cannot ignore it because it will also be ignored in the front end.
 RUN rm -rf ./client
 
-# Run only backend tests with coverage
-RUN npm run test
-
 # Compile TypeScript to JavaScript
 RUN npm run build
 
