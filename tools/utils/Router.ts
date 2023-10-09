@@ -13,7 +13,6 @@ export default class Router {
         this.app = app;
 
         this.setupMiddleware();
-        this.loadStaticContent();
         this.loadRoutes(path.join(__dirname, '../../routes'), '/api');
         this.setupErrorHandler();
     }
@@ -25,16 +24,6 @@ export default class Router {
         }));
         this.app.use(express.json());
         this.app.use(cookieParser());
-    }
-
-    private static loadStaticContent() {
-        if (config.production) {
-            this.app.use(express.static(path.join(__dirname, '../client/build')));
-
-            this.app.get('*', (req: Request, res: Response) => {
-                res.sendFile(path.join(__dirname, '../client/build/index.html'));
-            });
-        }
     }
 
     private static loadRoutes(dir: string, basePath = '/') {
