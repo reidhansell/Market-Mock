@@ -65,7 +65,7 @@ const Register: FC<RegisterProps> = ({ addAlert }) => {
                         />
                         <input
                             type="password"
-                            placeholder="Password2"
+                            placeholder="Confirm password"
                             value={password2}
                             onChange={(e) => setPassword2(e.target.value)}
                         />
