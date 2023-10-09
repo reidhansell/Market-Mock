@@ -5,15 +5,6 @@ import Quest from '../models/Quest';
 async function initializeDatabase(): Promise<void> {
     try {
         console.log("Beginning database initialization.");
-        /*TODO Remove this code before deploying to production
-        if (!config.production) {
-            console.log("Dropping tables");
-            await executeQuery('SET FOREIGN_KEY_CHECKS = 0');
-            await executeQuery('DROP TABLE IF EXISTS Refresh_Token, User_Reset, Trade_Order, Watch_List, Transaction, User, Ticker_End_Of_Day, Ticker_Intraday, Ticker, User_Stocks, User_Net_Worth, Notification, User_Quest, Quest');
-            await executeQuery('SET FOREIGN_KEY_CHECKS = 1');
-            console.log('Tables dropped successfully.');
-        }
-        End of code to remove before deploying to production */
         const table_definitions: string[] = [
             `CREATE TABLE IF NOT EXISTS Ticker (
                 ticker_symbol VARCHAR(20) PRIMARY KEY,
