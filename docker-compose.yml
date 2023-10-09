@@ -38,7 +38,7 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./client/src/config.json:/app/client/src/dist/config.json
+      - ./client/src/config.json:/app/client/dist/src/config.json
 
 volumes:
   mysql-data:
