@@ -25,7 +25,7 @@ services:
     depends_on:
       - mysql
     volumes:
-      - ./config.json:/config.json
+      - ./config.json:/app/config.json
       - ./.env:/.env
 
   frontend:
@@ -38,7 +38,7 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./client/src/config.json:/client/src/config.json
+      - ./client/src/config.json:/app/client/src/config.json
 
 volumes:
   mysql-data:
