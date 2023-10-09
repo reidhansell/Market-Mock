@@ -17,7 +17,7 @@ function getVerifyEmailContent(verificationToken: string): string {
                 <td style="text-align: center; vertical-align: middle;">
                     <div>
                         <h1 style="margin-top: 0.5rem; margin-bottom: 0.5rem; color: hsl(50.59, 15%, 85%);">
-                            <span style="color: #FFD700;">M</span>ARKET <span style="color: #FFD700;">M</span>OCK
+                            <span style="color: #3cb043;">M</span>ARKET <span style="color: #3cb043;">M</span>OCK
                         </h1>
                         <h1 style="margin-top: 0.5rem; margin-bottom: 0.5rem; color: hsl(50.59, 15%, 85%);">Email Verification</h1>
                         <p style="color: hsl(50.59, 15%, 85%);">Please click the following link to verify your email:</p>
