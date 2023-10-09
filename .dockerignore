@@ -1,7 +1,9 @@
-node_modules
-client/node_modules
+node_modules/
+client/node_modules/
 market-mock_frontend.tar
 market-mock_backend.tar
-logs
-coverage
-client/coverage
+logs/
+coverage/
+client/coverage/
+*.log
+.git/
