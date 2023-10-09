@@ -30,7 +30,6 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "preserve": "npm run test",
     "serve": "serve dist",
     "preview": "vite preview",
     "test": "jest --coverage --no-clearConsole",
