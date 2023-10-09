@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
-    image: market-stack_backend
+    image: market-mock_backend
     ports:
       - "5000:5000"
     depends_on:
@@ -32,7 +32,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    image: market-stack_frontend
+    image: market-mock_frontend
     ports:
       - "3000:3000"
     depends_on:
