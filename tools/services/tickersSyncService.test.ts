@@ -1,7 +1,7 @@
 jest.mock('axios');
 jest.mock('../../database/queries/ticker');
 
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import { syncTickers } from './tickersSyncService';
 import { insertTicker, checkTickerExists } from '../../database/queries/ticker';
 
