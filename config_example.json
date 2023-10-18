@@ -4,6 +4,7 @@
     "dbusername": "",
     "dbpassword": "",
     "dbname": "",
+    "port": 5000,
     "email": "",
     "emailpassword": "",
     "jwtSecret": "",
