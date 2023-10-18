@@ -14,7 +14,7 @@ async function getOrdersAndTransactionsByUserId(user_id: number): Promise<Order[
         LIMIT 1000;
     `;
     const parameters = [user_id];
-    const results = await executeQuery(query, parameters) as any[];
+    const results = await executeQuery(query, parameters) as Order[];
     return results;
 }
 
