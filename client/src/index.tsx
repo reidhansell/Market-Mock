@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
-import Axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import Axios, { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { UserContext } from './components/Common/UserProvider';
 import Home from './components/Home/Home';
 import Login from './components/Auth/Login';
@@ -42,6 +42,13 @@ interface Alert {
   message: string;
 }
 
+interface RetryRequestConfig extends InternalAxiosRequestConfig<any> {
+  retryFlag?: boolean;
+}
+
+// Axios error objects are not typed by default, so we define our own type here. However, the wrapper object returned by the server is typed.
+type CustomErrorObject = { error: string };
+
 const App = () => {
   const [auth, setAuth] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -63,6 +70,28 @@ const App = () => {
     setAlerts((prevAlerts) => [...prevAlerts.filter((alert) => alert.id !== id)]);
   };
 
+  const isAuthError = (error: AxiosError): boolean => {
+    return error?.response?.status === 401;
+  }
+
+  const haveNotRetried = (request: RetryRequestConfig): boolean => {
+    return !request.retryFlag;
+  }
+
+  const setRetryFlag = (request: RetryRequestConfig) => {
+    request.retryFlag = true;
+  }
+
+  const fetchAndSetRefreshToken = async () => {
+    const response = await AxiosRefreshInstance.get('/api/auth/session/refresh_token', {});
+    const token = response.data.data.token;
+
+    Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    AxiosRefreshInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+    localStorage.setItem('token', token);
+  }
+
   Axios.defaults.baseURL = config.serverURL;
   const AxiosRefreshInstance: AxiosInstance = Axios.create({
     baseURL: Axios.defaults.baseURL,
@@ -72,24 +101,19 @@ const App = () => {
   });
 
   useEffect(() => {
-    const axiosInterceptor = Axios.interceptors.response.use(
+    Axios.interceptors.response.use(
       (response: AxiosResponse) => {
         return response;
       },
-      async (error: AxiosError) => {
-        const originalRequest = error.config as any;
+      async (error: AxiosError<CustomErrorObject>) => {
 
-        if (error?.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
+        const originalRequest = error.config as RetryRequestConfig;
+
+        if (isAuthError(error) && haveNotRetried(originalRequest)) {
+          setRetryFlag(originalRequest);
 
           try {
-            const response = await AxiosRefreshInstance.get('/api/auth/session/refresh_token', {});
-            const token = response.data.data.token;
-
-            Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            AxiosRefreshInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-            localStorage.setItem('token', token);
+            fetchAndSetRefreshToken();
 
             return Axios(originalRequest);
           } catch (error) {
@@ -98,9 +122,11 @@ const App = () => {
           }
         }
 
-        const errorMessage = (error as any).response.data.error;
-        if (errorMessage && errorMessage !== 'Failed authentication.' && errorMessage !== 'Failed logout.') {
-          addAlert(errorMessage);
+        if (error.response) {
+          const errorMessage = error.response.data.error;
+          if (errorMessage && errorMessage !== 'Failed authentication.' && errorMessage !== 'Failed logout.') {
+            addAlert(errorMessage);
+          }
         }
 
         return Promise.reject(error);
