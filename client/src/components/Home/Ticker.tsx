@@ -59,7 +59,7 @@ const Ticker: React.FC = () => {
     useEffect(() => {
         setLoading(true);
         fetchData();
-    }, []);
+    }, [viewMode]);
 
 
     const handleAddToWatchlist = async () => {
