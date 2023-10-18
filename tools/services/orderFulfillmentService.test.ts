@@ -84,7 +84,7 @@ describe('orderFulfillmentService', () => {
                 beginTransaction: jest.fn(),
                 commit: jest.fn(),
                 rollback: jest.fn(),
-            } as any);
+            });
             const result = await processOrder(validOrder);
             expect(result).toEqual(FulfilledOrder);
         });
