@@ -5,10 +5,11 @@ import initializeDatabase from './database/databaseInitializer';
 import Logger from './tools/utils/Logger';
 import Router from './tools/utils/Router';
 import CronJobs from './tools/jobs/CronJobs';
+import { Server } from 'http';
 
 const app = express();
 
-async function initialize() {
+async function initialize(): Promise<Server> {
     try {
         console.log('Beginning initialization...');
 
@@ -26,30 +27,31 @@ async function initialize() {
         });
 
         console.log('Initialization successful');
-
         return server;
     } catch (error) {
-        console.log('Initialization failed with the following error');
-        console.log(error);
+        console.error('Initialization failed with the following error');
+        console.error(error);
+        throw error;
     }
 }
 
 (async () => {
-    const server = process.env.NODE_ENV !== 'test' ? await initialize() as any : null;
+    if (process.env.NODE_ENV !== 'test') {
+        const server = await initialize();
 
-    process.on('SIGTERM', () => {
-        console.log('SIGTERM signal received: closing HTTP server');
-        server.close(async () => {
-            console.log('HTTP server closed');
-            CronJobs.stopAll();
-            console.log('Cron jobs stopped');
-            await closeDatabaseConnection();
-            await closeTransactionPool();
-            console.log('Database connection closed');
-            process.exit(0);
+        process.on('SIGTERM', () => {
+            console.log('SIGTERM signal received: closing HTTP server');
+            server.close(async () => {
+                console.log('HTTP server closed');
+                CronJobs.stopAll();
+                console.log('Cron jobs stopped');
+                await closeDatabaseConnection();
+                await closeTransactionPool();
+                console.log('Database connection closed');
+                process.exit(0);
+            });
         });
-    });
-
+    }
 })();
 
 export default app;
