@@ -24,7 +24,7 @@ async function initializeDatabaseConnection(): Promise<Connection> {
             });
 
             databaseConnection.connect((error) => {
-                if (error) {
+                if (error || !databaseConnection) {
                     console.error(`Error connecting to database: ${error.message}`);
                     if (retryCount < maxRetries) {
                         console.error(`Retrying in ${retryInterval / 1000} seconds...`);
@@ -37,7 +37,7 @@ async function initializeDatabaseConnection(): Promise<Connection> {
                 } else {
                     console.log('Database connection successful.');
                     initializeTransactionPool();
-                    resolve(databaseConnection as Connection);
+                    resolve(databaseConnection);
                 }
             });
         };
