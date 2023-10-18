@@ -24,7 +24,7 @@ describe('Email Verification', () => {
 
         await sendVerificationEmail(email, verificationToken);
 
-        const sendMailMock = (nodemailer.createTransport() as any).sendMail;
+        const sendMailMock = (nodemailer.createTransport()).sendMail;
         expect(sendMailMock).toHaveBeenCalledWith({
             from: config.email,
             to: email,
