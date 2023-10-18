@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
-import { getNotificiations, addNotification, markNotificationAsRead } from '../database/queries/notification';
+import { getNotificiations, markNotificationAsRead } from '../database/queries/notification';
 
 interface AuthenticatedRequest extends Request {
     user: {
