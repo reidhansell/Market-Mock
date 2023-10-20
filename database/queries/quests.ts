@@ -1,5 +1,4 @@
 import { executeQuery, ResultObject } from '../queryExecutor';
-import ExpectedError from '../../tools/utils/ExpectedError';
 import { UserQuest, UserQuestUnchecked } from '../../models/Quest';
 import { addNotification } from './notification';
 import Notification from '../../models/Notification';
