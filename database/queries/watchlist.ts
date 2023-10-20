@@ -29,7 +29,6 @@ async function addTickerToWatchList(user_id: number, ticker_symbol: string): Pro
   }
 }
 
-
 async function removeTickerFromWatchList(user_id: number, ticker_symbol: string): Promise<void> {
   const query = `
     DELETE FROM Watch_List
@@ -42,5 +41,3 @@ async function removeTickerFromWatchList(user_id: number, ticker_symbol: string)
 export {
   getWatchList, addTickerToWatchList, removeTickerFromWatchList
 };
-
-
