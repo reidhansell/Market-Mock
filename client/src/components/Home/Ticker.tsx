@@ -92,7 +92,9 @@ const Ticker: React.FC = () => {
     };
 
     const transformToChartData = (data: TickerIntraday[] | TickerEndOfDay[]) => {
-        return data.map(d => ({ name: new Date(d.date).toISOString(), price: d.close }));
+        return viewMode === 'intraday' ?
+            data.map(d => ({ name: new Date(d.date * 1000).toISOString(), price: (d as TickerIntraday).last }))
+            : data.map(d => ({ name: new Date(d.date * 1000).toISOString(), price: d.close }));
     };
 
     const chartData = transformToChartData(viewMode === 'intraday' ? intradayData : EODData);
