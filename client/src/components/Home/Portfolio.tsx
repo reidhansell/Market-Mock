@@ -35,7 +35,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
     }, []);
 
     const transformToChartData = (data: NetWorthData[]) => {
-        return data.map(d => ({ date: new Date(d.recorded_at).toISOString(), netWorth: d.net_worth })).reverse();
+        return data.map(d => ({ date: new Date(d.recorded_at * 1000).toISOString(), netWorth: d.net_worth })).reverse();
     };
 
     let chartData: { date: string; netWorth: number }[] = [];
