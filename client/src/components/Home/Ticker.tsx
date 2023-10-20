@@ -10,12 +10,13 @@ import { removeTickerFromWatchlist } from '../../requests/watchlist';
 import { UserContext } from '../Common/UserProvider';
 import MyTooltip from '../Common/Tooltip';
 import { getTickerData } from '../../requests/Ticker';
+import { getWatchlist } from '../../requests/watchlist';
 
 type ViewMode = 'intraday' | 'EOD';
 
 const Ticker: React.FC = () => {
     const { symbol } = useParams() as { symbol: string };
-    const { addTicker, removeTicker, watchlist } = useContext(UserContext);
+    const { removeTicker, stocks, setWatchlist } = useContext(UserContext);
 
     const [viewMode, setViewMode] = useState<ViewMode>('intraday');
 
@@ -31,22 +32,41 @@ const Ticker: React.FC = () => {
     const [inWatchlist, setInWatchlist] = useState<boolean>(false);
 
     const fetchData = async () => {
-        if (viewMode === 'intraday') {
-            const tickerData = await getTickerData(symbol, viewMode) as TickerIntraday[]
-            console.log("TICKERDATA: " + tickerData);
-            setIntradayData(tickerData)
-        } else {
-            const tickerData = await getTickerData(symbol, viewMode) as TickerEndOfDay[];
-            setEODData(tickerData)
+        const watchlistPromise = getWatchlist();
+        const tickerDataPromise = getTickerData(symbol, viewMode);
+
+        try {
+            const [watchlistResponse, tickerDataResponse] = await Promise.all([watchlistPromise, tickerDataPromise]);
+            setWatchlist(watchlistResponse);
+
+            if (viewMode === 'intraday') {
+                setIntradayData((tickerDataResponse as TickerIntraday[]).reverse());
+            } else {
+                setEODData((tickerDataResponse as TickerEndOfDay[]).reverse());
+            }
+
+            if (symbol && watchlistResponse) {
+                setInWatchlist(watchlistResponse.some(item => item.ticker_symbol === symbol));
+            }
+
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        } finally {
+            setLoading(false);
         }
     };
+
+    useEffect(() => {
+        setLoading(true);
+        fetchData();
+    }, [viewMode]);
+
 
     const handleAddToWatchlist = async () => {
         setLoading(true);
         try {
             if (symbol) {
                 await addTickerToWatchlist(symbol);
-                addTicker({ ticker_symbol: symbol });
                 setInWatchlist(true);
             }
         } catch (error) {
@@ -59,9 +79,11 @@ const Ticker: React.FC = () => {
         setLoading(true);
         try {
             if (symbol) {
-                await removeTickerFromWatchlist(symbol);
-                removeTicker(symbol);
-                setInWatchlist(false);
+                const result = await removeTickerFromWatchlist(symbol);
+                if (result) {
+                    removeTicker(symbol);
+                    setInWatchlist(false);
+                }
             }
         } catch (error) {
         } finally {
@@ -69,15 +91,10 @@ const Ticker: React.FC = () => {
         }
     };
 
-    useEffect(() => {
-        fetchData();
-        if (symbol && watchlist && watchlist.length > 0) {
-            setInWatchlist(watchlist.some(watchlist => watchlist.ticker_symbol === symbol));
-        }
-    }, [viewMode, symbol, watchlist]);
-
     const transformToChartData = (data: TickerIntraday[] | TickerEndOfDay[]) => {
-        return data.map(d => ({ name: new Date(d.date).toLocaleDateString(), price: d.close }));
+        return viewMode === 'intraday' ?
+            data.map(d => ({ name: new Date(d.date * 1000).toISOString(), price: (d as TickerIntraday).last }))
+            : data.map(d => ({ name: new Date(d.date * 1000).toISOString(), price: d.close }));
     };
 
     const chartData = transformToChartData(viewMode === 'intraday' ? intradayData : EODData);
@@ -92,25 +109,32 @@ const Ticker: React.FC = () => {
                 />
             </h1>
             <div className='dashboard-module-content'>
-                <div style={{ width: '100%', height: '20rem', maxHeight: '50vh', minHeight: '15rem' }}>
+                <div style={{ width: '100%', aspectRatio: "2/1" }}>
                     <ResponsiveContainer>
                         <LineChart
-                            data={chartData}
+                            data={chartData.length > 0 ? chartData : []}
                             margin={{ top: 0, right: 40, left: 0, bottom: 0 }}
                         >
                             <XAxis dataKey="name"
+                                tickFormatter={(dateStr) => {
+                                    const date = new Date(dateStr);
+                                    return `${date.getMonth() + 1}/${date.getDate()}`;
+                                }}
                                 style={{ fontSize: '0.75rem' }}
                                 tick={{ fill: 'white' }} />
                             <YAxis domain={['dataMin', 'dataMax']}
+                                tickFormatter={(price) => {
+                                    return `$${price}`;
+                                }}
                                 style={{ fontSize: '12px' }}
-                                width={40}
+                                width={50}
                                 axisLine={false}
                                 tick={{ fill: 'white' }}
                             />
                             <Tooltip />
                             <CartesianGrid stroke="#f5f5f5" vertical={false}
                                 style={{ borderRight: '1px solid #f5f5f5', borderBottom: '1px solid #f5f5f5' }} />
-                            <Line type="monotone" dataKey="price" stroke="#3cb043" yAxisId={0} />
+                            <Line type="monotone" dataKey="price" stroke="#3cb043" yAxisId={0} isAnimationActive={false} />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
@@ -135,6 +159,7 @@ const Ticker: React.FC = () => {
                         "High/Low: The stock's highest/lowest price of the day",
                         "",
                         "Change: The change in price from open to current"]} /></h2>
+                    <h3>Owned: {stocks.find(stock => stock.ticker_symbol === symbol)?.quantity || "0"}</h3>
                     <h3>Current: {intradayData.length > 0 ? intradayData[0].last : <LoadingCircle />}</h3>
                     <h3>Open: {intradayData.length > 0 ? intradayData[0].open : <LoadingCircle />}</h3>
                     <h3>High: {intradayData.length > 0 ? intradayData[0].high : <LoadingCircle />}</h3>

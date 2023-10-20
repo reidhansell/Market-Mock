@@ -14,7 +14,7 @@ async function getOrdersAndTransactionsByUserId(user_id: number): Promise<Order[
         LIMIT 1000;
     `;
     const parameters = [user_id];
-    const results = await executeQuery(query, parameters) as any[];
+    const results = await executeQuery(query, parameters) as Order[];
     return results;
 }
 
@@ -72,7 +72,6 @@ async function insertTransaction(transaction: Transaction, connection?: Connecti
     `;
 
     const joinedOrderResult = await executeQuery(selectJoinedOrderQuery, [transactionId], connection) as Order[];
-    console.log(joinedOrderResult);
     const joinedOrder = joinedOrderResult[0] as FulfilledOrder;
 
     if (!joinedOrder) {
@@ -80,6 +79,27 @@ async function insertTransaction(transaction: Transaction, connection?: Connecti
     }
 
     return joinedOrder;
+}
+
+async function fetchBuyTransactionsHeldFor30Days(tickerSymbol: string, userId: number) {
+    const query = `SELECT * 
+        FROM Transaction AS t1 
+        JOIN \`Order\` AS o1 ON t1.order_id = o1.order_id
+        WHERE t1.ticker_symbol = ? 
+        AND o1.quantity > 0 
+        AND t1.transaction_date < DATE_SUB(NOW(), INTERVAL 30 DAY) 
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM Transaction AS t2 
+            JOIN \`Order\` AS o2 ON t2.order_id = o2.order_id
+            WHERE t2.ticker_symbol = t1.ticker_symbol 
+            AND o2.quantity < 0 
+            AND t2.transaction_date BETWEEN t1.transaction_date AND DATE_ADD(t1.transaction_date, INTERVAL 30 DAY) 
+            AND t2.user_id = ?
+        ) 
+        AND t1.user_id = ?;`;
+    const fetchResult = await executeQuery(query, [tickerSymbol, userId]) as FulfilledOrder[];
+    return fetchResult;
 }
 
 async function cancelOrder(orderId: number, connection?: Connection): Promise<boolean> {
@@ -102,5 +122,6 @@ export {
     getOpenOrders,
     insertOrder,
     insertTransaction,
+    fetchBuyTransactionsHeldFor30Days,
     cancelOrder
 };

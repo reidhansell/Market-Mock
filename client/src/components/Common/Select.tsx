@@ -37,6 +37,7 @@ const Select: React.FC<SelectProps> = ({ options, onChange }) => {
         <div className="select-container" ref={ref}>
             <div className="selected-option" onClick={() => setIsOpen(!isOpen)}>
                 {selectedOption}
+                <span className="arrow">{isOpen ? '▼' : '◄'}</span>
             </div>
             {isOpen && (
                 <div className="options-container">

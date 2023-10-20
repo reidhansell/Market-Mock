@@ -1,8 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { getWatchList, addTickerToWatchList, removeTickerFromWatchList } from '../database/queries/watchlist';
-import { getIntradayDataForTicker } from '../tools/services/intradayService'; // import your new service here
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 import { getQuests, updateQuest } from '../database/queries/quests';
+import ExpectedError from '../tools/utils/ExpectedError';
+import { getUserStocks } from '../database/queries/portfolio';
 
 interface AuthenticatedRequest extends Request {
     user: {
@@ -17,6 +18,8 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
         const { user_id } = (req as AuthenticatedRequest).user;
         const watchlist = await getWatchList(user_id);
 
+
+        /* The following code was too slow to be used in production, but could be optimized for detailed watchlists
         const watchlistWithData = [];
         for (const item of watchlist) {
             const intradayData = await getIntradayDataForTicker(item.ticker_symbol);
@@ -32,7 +35,8 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
             }
         }
 
-        res.status(200).json(watchlistWithData);
+        res.status(200).json(watchlistWithData);*/
+        res.status(200).json(watchlist);
     } catch (error) {
         next(error);
     }
@@ -44,9 +48,7 @@ router.post('/add/:ticker_symbol', authenticateToken, async (req: Request, res: 
         const { ticker_symbol } = req.params;
         await addTickerToWatchList(user_id, ticker_symbol);
         const quests = await getQuests(user_id);
-        console.log(quests);
         const watchlistQuest = quests.find(quest => quest.name === 'Add a stock to your watchlist');
-        console.log(watchlistQuest);
         if (watchlistQuest && watchlistQuest.completion_date === null) {
             await updateQuest(user_id, watchlistQuest.quest_id);
         }
@@ -60,6 +62,10 @@ router.delete('/remove/:ticker_symbol', authenticateToken, async (req: Request, 
     try {
         const { user_id } = (req as AuthenticatedRequest).user;
         const { ticker_symbol } = req.params;
+        const stocks = await getUserStocks(user_id);
+        if (stocks.some(stock => { return stock.ticker_symbol === ticker_symbol })) {
+            throw new ExpectedError('Cannot remove a stock from watchlist if you currently own it', 400, '/api/watchlist/remove failed, tried to remove owned stock');
+        }
         await removeTickerFromWatchList(user_id, ticker_symbol);
         res.status(200).json({ message: 'Ticker removed from watchlist successfully' });
     } catch (error) {

@@ -1,12 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
-import { getNotificiations, addNotification, markNotificationAsRead } from '../database/queries/notification';
-
-interface AuthenticatedRequest extends Request {
-    user: {
-        user_id: number;
-    }
-}
+import { getNotificiations, markNotificationAsRead } from '../database/queries/notification';
+import { AuthenticatedRequest } from '../models/User';
 
 const router = Router();
 
@@ -16,17 +11,6 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
 
         const notifications = await getNotificiations(user_id);
         res.json(notifications);
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.post('/', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { user_id } = (req as AuthenticatedRequest).user;
-
-        const notification = await addNotification({ ...req.body, user_id });
-        res.json(notification);
     } catch (error) {
         next(error);
     }

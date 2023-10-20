@@ -50,10 +50,11 @@ const Login: FC<LoginProps> = ({ setAuth }) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
-                <button type="submit">Login</button>
+                <button type="submit" data-testid="login-page-login-button">Login</button>
+
                 <div className="auth-link">
                     <small><i>Don't have an account?</i></small>
-                    <button type="button" style={{ width: '100%' }} onClick={() => navigate('/register')}>Register</button>
+                    <button data-testid="login-page-register-button" type="button" style={{ width: '100%' }} onClick={() => navigate('/register')}>Register</button>
                 </div>
             </form>
         </div >

@@ -1,20 +1,10 @@
 import { executeQuery } from './queryExecutor';
 import quests from './quests.json';
 import Quest from '../models/Quest';
-import config from '../config.json';
 
 async function initializeDatabase(): Promise<void> {
     try {
         console.log("Beginning database initialization.");
-        /*TODO Remove this code before deploying to production 
-        if (!config.production) {
-            console.log("Dropping tables");
-            await executeQuery('SET FOREIGN_KEY_CHECKS = 0');
-            await executeQuery('DROP TABLE IF EXISTS Refresh_Token, User_Reset, Trade_Order, Watch_List, Transaction, User, Ticker_End_Of_Day, Ticker_Intraday, Ticker, User_Stocks, User_Net_Worth, Notification, User_Quest, Quest');
-            await executeQuery('SET FOREIGN_KEY_CHECKS = 1');
-            console.log('Tables dropped successfully.');
-        }
-        End of code to remove before deploying to production */
         const table_definitions: string[] = [
             `CREATE TABLE IF NOT EXISTS Ticker (
                 ticker_symbol VARCHAR(20) PRIMARY KEY,
@@ -36,7 +26,7 @@ async function initializeDatabase(): Promise<void> {
                 split_factor DECIMAL(8, 2),
                 dividend DECIMAL(8, 2),
                 exchange VARCHAR(20),
-                date DATE,
+                date BIGINT,
                 FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
             )`,
             `CREATE TABLE IF NOT EXISTS Ticker_Intraday (
@@ -49,7 +39,7 @@ async function initializeDatabase(): Promise<void> {
                 close DECIMAL(8, 2),
                 volume BIGINT,
                 exchange VARCHAR(20),
-                date DATETIME,
+                date BIGINT,
                 FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
             )`,
             `CREATE TABLE IF NOT EXISTS User (
@@ -57,7 +47,7 @@ async function initializeDatabase(): Promise<void> {
                 username VARCHAR(20) UNIQUE,
                 email VARCHAR(255) UNIQUE,
                 password VARCHAR(255),
-                registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                registration_date BIGINT DEFAULT (UNIX_TIMESTAMP()),
                 starting_amount DECIMAL(15, 2) DEFAULT 10000.00,
                 current_balance DECIMAL(15, 2) DEFAULT 10000.00,
                 is_email_verified BOOLEAN DEFAULT false,
@@ -86,7 +76,7 @@ async function initializeDatabase(): Promise<void> {
                 trigger_price DECIMAL(8, 2),
                 quantity INT,
                 cancelled BOOLEAN DEFAULT FALSE,
-                order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                order_date BIGINT DEFAULT (UNIX_TIMESTAMP()),
                 FOREIGN KEY (user_id) REFERENCES User(user_id),
                 FOREIGN KEY (ticker_symbol) REFERENCES Ticker(ticker_symbol)
             )`,
@@ -94,7 +84,7 @@ async function initializeDatabase(): Promise<void> {
                 transaction_id INT AUTO_INCREMENT PRIMARY KEY,
                 order_id INT,
                 price_per_share DECIMAL(8, 2),
-                transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                transaction_date BIGINT DEFAULT (UNIX_TIMESTAMP()),
                 FOREIGN KEY (order_id) REFERENCES Trade_Order(order_id)
             )`,
             `CREATE TABLE IF NOT EXISTS User_Reset (
@@ -102,19 +92,19 @@ async function initializeDatabase(): Promise<void> {
                 user_id INT,
                 starting_amount DECIMAL(15, 2),
                 end_amount DECIMAL(15, 2),
-                reset_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                reset_date BIGINT DEFAULT (UNIX_TIMESTAMP()),
                 FOREIGN KEY (user_id) REFERENCES User(user_id)
             )`,
             `CREATE TABLE IF NOT EXISTS Refresh_Token (
                 token_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 token VARCHAR(255),
-                expiry_date TIMESTAMP,
+                expiry_date BIGINT,
                 FOREIGN KEY (user_id) REFERENCES User(user_id)
             )`,
             `CREATE TABLE IF NOT EXISTS User_Net_Worth (
                 user_id INT,
-                recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                recorded_at BIGINT DEFAULT (UNIX_TIMESTAMP()),
                 net_worth DECIMAL(15, 2),
                 PRIMARY KEY (user_id, recorded_at),
                 FOREIGN KEY (user_id) REFERENCES User(user_id)
@@ -135,7 +125,7 @@ async function initializeDatabase(): Promise<void> {
             `CREATE TABLE IF NOT EXISTS User_Quest (
                 user_id INT NOT NULL,
                 quest_id INT NOT NULL,
-                completion_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completion_date BIGINT DEFAULT (UNIX_TIMESTAMP()),
                 PRIMARY KEY (user_id, quest_id),
                 FOREIGN KEY (quest_id) REFERENCES Quest(quest_id),
                 FOREIGN KEY (user_id) REFERENCES User(user_id)

@@ -22,113 +22,109 @@
 import { getTransactionConnection } from '../../database/databaseConnector';
 import { updateUserBalance, updateUserStocks, getUserStocks } from '../../database/queries/portfolio';
 import { cancelOrder, insertTransaction, getOpenOrders } from '../../database/queries/order';
-import { getUserData } from '../../database/queries/auth'
+import { getUserData } from '../../database/queries/auth';
 import { getIntradayDataForTicker } from "../../tools/services/intradayService";
-import Transaction from '../../models/Transaction';
-import Order from '../../models/Order';
-import { Connection } from 'mysql';
-import { calculateAndSaveUserNetWorth } from './NetWorthService';
+import { calculateAndSaveUserNetWorth } from './netWorthService';
 import { addNotification } from '../../database/queries/notification';
-import Notification from '../../models/Notification';
 import { getQuests, updateQuest } from '../../database/queries/quests';
+import Notification from '../../models/Notification';
+import Order, { FulfilledOrder, OrderSubmission } from '../../models/Order';
+import User from '../../models/User';
+import UserStock from '../../models/UserStock';
+import Transaction from '../../models/Transaction';
+import { Connection } from 'mysql';
+import { addTickerToWatchList } from '../../database/queries/watchlist';
 
-const processOrder = async (order: Order, transactionConnection: Connection) => {
-    const tickerData = await getIntradayDataForTicker(order.ticker_symbol);
-    const currentPrice = tickerData[tickerData.length - 1].close;
-    const totalCost = currentPrice * order.quantity;
-    const userData = await getUserData(order.user_id);
-    console.log(`Processing order ${order.order_id} for user ${order.user_id} with current price ${currentPrice} and total cost ${totalCost}`);
+async function handleQuestCompletion(fulfilledOrder: FulfilledOrder, transactionConnection: Connection) {
+    const quests = await getQuests(fulfilledOrder.user_id);
 
-    console.log(`Is order ${order.order_id} a buy order? ${order.quantity > 0}`)
-    if (order.quantity < 0) {
-        const userStocks = await getUserStocks(order.user_id);
-        console.log(`User ${order.user_id} has ${userStocks.length} stocks`);
-        const userStock = userStocks.find(stock => stock.ticker_symbol === order.ticker_symbol);
-        console.log(`User ${order.user_id} has ${userStock ? userStock.quantity : 0} stocks of ${order.ticker_symbol}`);
-        if (!userStock || userStock.quantity < Math.abs(order.quantity)) {
-            console.log(`Insufficient stocks for order ${order.order_id} with quantity ${order.quantity} and user stock quantity ${userStock ? userStock.quantity : 0}`);
-            const result = await cancelOrder(order.order_id);
-            console.log("result: " + result);
-            if (result) {
-                return { ...order, cancelled: true }
-            } else {
-                throw new Error("Error while cancelling due to insufficient stocks");
-            }
-        }
+    const fulfillBuyOrderQuest = quests.find(quest => quest.name === 'Fulfill a buy order');
+    if (fulfillBuyOrderQuest && fulfillBuyOrderQuest.completion_date === null && fulfilledOrder.quantity > 0) {
+        await updateQuest(fulfilledOrder.user_id, fulfillBuyOrderQuest.quest_id, transactionConnection);
     }
 
-    console.log(`User ${order.user_id} has ${userData.current_balance} balance`);
-    if (userData.current_balance < totalCost) {
-        console.log(`Insufficient funds for order ${order.order_id} with total cost ${totalCost} and current balance ${userData.current_balance}`);
-        const result = await cancelOrder(order.order_id);
-        if (result) {
-            return { ...order, cancelled: true }
-        } else {
-            throw new Error("Error while cancelling due to insufficient stocks");
-        }
+    const fulfillSellOrderQuest = quests.find(quest => quest.name === 'Fulfill a sell order');
+    if (fulfillSellOrderQuest && fulfillSellOrderQuest.completion_date === null && fulfilledOrder.quantity < 0) {
+        await updateQuest(fulfilledOrder.user_id, fulfillSellOrderQuest.quest_id, transactionConnection);
     }
 
-    let fulfilledOrder = null;
-    console.log(`Is order ${order.order_id} a market order? ${order.order_type === 'MARKET'}`);
-    console.log(`Is order ${order.order_id} a limit order? ${order.order_type === 'LIMIT'}`);
-    console.log(`Is order ${order.order_id} a stop order? ${order.order_type === 'STOP'}`);
-    console.log(`Performing checks for limit and stop orders based on current price and trigger price with values: ${currentPrice} and ${order.trigger_price}`)
-    if (order.order_type === 'MARKET' ||
-        (order.order_type === 'LIMIT' && ((order.quantity > 0 && currentPrice <= order.trigger_price) || (order.quantity < 0 && currentPrice >= order.trigger_price))) ||
-        (order.order_type === 'STOP' && ((order.quantity > 0 && currentPrice >= order.trigger_price) || (order.quantity < 0 && currentPrice <= order.trigger_price)))) {
-        fulfilledOrder = await insertTransaction({ order_id: order.order_id, price_per_share: currentPrice } as Transaction, transactionConnection);
-    } else {
-        console.log(`Order ${order.order_id} is not a market order and current price ${currentPrice} is not within trigger price ${order.trigger_price}`);
+    const profitQuest = quests.find(quest => quest.name === 'Make a profit');
+    if (profitQuest && profitQuest.completion_date === null && fulfilledOrder.price_per_share > fulfilledOrder.trigger_price && fulfilledOrder.quantity < 0) {
+        await updateQuest(fulfilledOrder.user_id, profitQuest.quest_id, transactionConnection);
     }
-
-    if (fulfilledOrder !== null) {
-        const quests = await getQuests(userData.user_id);
-        const fulfillBuyOrderQuest = quests.find(quest => quest.name === 'Fulfill a buy order');
-        const fulfillSellOrderQuest = quests.find(quest => quest.name === 'Fulfill a sell order');
-        const profitQuest = quests.find(quest => quest.name === 'Make a profit');
-        fulfillBuyOrderQuest && fulfillBuyOrderQuest.completion_date === null && fulfilledOrder.quantity > 0 ? await updateQuest(order.user_id, fulfillBuyOrderQuest.quest_id, transactionConnection) : null;
-        fulfillSellOrderQuest && fulfillSellOrderQuest.completion_date === null && fulfilledOrder.quantity < 0 ? await updateQuest(order.user_id, fulfillSellOrderQuest.quest_id, transactionConnection) : null;
-        profitQuest && profitQuest.completion_date === null && fulfilledOrder.price_per_share > order.trigger_price && fulfilledOrder.quantity < 0 ? await updateQuest(order.user_id, profitQuest.quest_id, transactionConnection) : null;
-        console.log(`Fulfilled order ${order.order_id} with transaction ${fulfilledOrder.transaction_id}`);
-        await updateUserBalance(order.user_id, totalCost, transactionConnection);
-        await updateUserStocks(order.user_id, order.ticker_symbol, order.quantity, transactionConnection);
-
-        await calculateAndSaveUserNetWorth(order.user_id);
-    }
-    console.log(`Processed order ${order.order_id} and got ${fulfilledOrder}`);
-    fulfilledOrder ? addNotification({ user_id: order.user_id, content: `Your order for ${order.quantity} shares of ${order.ticker_symbol} has been fulfilled.`, success: true } as Notification, transactionConnection) : null
-    return fulfilledOrder;
 }
+
+const checkAndCancelOrderIfInsufficientFunds = async (order: OrderSubmission, currentPrice: number, userData: User) => {
+    const totalCost = parseFloat((currentPrice * order.quantity).toFixed(2));
+    if (userData.current_balance < totalCost) {
+        return await cancelOrder(order.order_id);
+    }
+    return false;
+};
+
+const checkAndCancelOrderIfInsufficientStocks = async (order: OrderSubmission, userStocks: UserStock[]) => {
+    if (order.quantity < 0) {
+        const userStock = userStocks.find(stock => stock.ticker_symbol === order.ticker_symbol);
+        if (!userStock || userStock.quantity < Math.abs(order.quantity)) {
+            return await cancelOrder(order.order_id);
+        }
+    }
+    return false;
+};
+
+const canFulfillOrder = (order: OrderSubmission, currentPrice: number) => {
+    return order.order_type === 'MARKET' ||
+        (order.order_type === 'LIMIT' && ((order.quantity > 0 && currentPrice <= order.trigger_price) || (order.quantity < 0 && currentPrice >= order.trigger_price))) ||
+        (order.order_type === 'STOP' && ((order.quantity > 0 && currentPrice >= order.trigger_price) || (order.quantity < 0 && currentPrice <= order.trigger_price)));
+};
+
+const processOrder = async (order: OrderSubmission): Promise<Order | FulfilledOrder | null> => {
+    const transactionConnection = await getTransactionConnection();
+    const tickerData = await getIntradayDataForTicker(order.ticker_symbol);
+    const currentPrice = tickerData[0].last;
+    transactionConnection.beginTransaction();
+    const userData = await getUserData(order.user_id);
+
+    if (canFulfillOrder(order, currentPrice)) {
+        if (await checkAndCancelOrderIfInsufficientFunds(order, currentPrice, userData)) {
+            return { ...order, cancelled: true } as Order;
+        }
+
+        const userStocks = await getUserStocks(order.user_id);
+        if (await checkAndCancelOrderIfInsufficientStocks(order, userStocks)) {
+            return { ...order, cancelled: true } as Order;
+        }
+        const fulfilledOrder = await insertTransaction({ order_id: order.order_id, price_per_share: currentPrice } as Transaction, transactionConnection);
+
+        if (fulfilledOrder) {
+            await updateUserBalance(fulfilledOrder.user_id, parseFloat((currentPrice * fulfilledOrder.quantity).toFixed(2)), transactionConnection);
+            await updateUserStocks(fulfilledOrder.user_id, fulfilledOrder.ticker_symbol, fulfilledOrder.quantity, transactionConnection);
+            transactionConnection.commit();
+            await addTickerToWatchList(fulfilledOrder.user_id, fulfilledOrder.ticker_symbol);
+
+            await handleQuestCompletion(fulfilledOrder, transactionConnection);
+
+            await calculateAndSaveUserNetWorth(fulfilledOrder.user_id);
+
+            await addNotification({ user_id: fulfilledOrder.user_id, content: `Your order for ${fulfilledOrder.quantity} shares of ${fulfilledOrder.ticker_symbol} has been fulfilled at $${fulfilledOrder.price_per_share}.`, success: true } as Notification, transactionConnection);
+
+            return fulfilledOrder;
+        }
+    }
+
+    transactionConnection.rollback();
+    return null;
+};
 
 const fulfillOpenOrders = async () => {
     const openOrders = await getOpenOrders();
-    console.log('===============================');
-    console.log(`Fulfilling ${openOrders.length} open orders`);
-
     for (const order of openOrders) {
-        console.log(`Fulfilling order ${order.order_id}`);
-        const transactionConnection = await getTransactionConnection();
         try {
-            transactionConnection.beginTransaction();
-            const fulfilledOrder = await processOrder(order, transactionConnection);
-            console.log(`Tried to process ${order.order_id} and got ${fulfilledOrder}`);
-            if (fulfilledOrder !== null) {
-                if (fulfilledOrder.cancelled) {
-                    console.log(`Order ${order.order_id} was cancelled`);
-                } else { console.log(`Fulfilled order ${order.order_id}`); }
-
-                transactionConnection.commit();
-            } else {
-                console.log(`Failed to fulfill order ${order.order_id}`);
-                transactionConnection.rollback();
-            }
+            await processOrder(order);
         } catch (error) {
-            console.error(`Failed to fulfill order ${order.order_id}:`, error);
-            transactionConnection.rollback();
-        } finally {
-            transactionConnection.end();
+            console.error(error);
         }
     }
-}
+};
 
-export { fulfillOpenOrders, processOrder }
+export { fulfillOpenOrders, processOrder };

@@ -15,11 +15,18 @@ async function getWatchList(user_id: number): Promise<WatchList[]> {
 
 async function addTickerToWatchList(user_id: number, ticker_symbol: string): Promise<void> {
   const query = `
-    INSERT INTO Watch_List (user_id, ticker_symbol)
-    VALUES (?, ?)
+      INSERT INTO Watch_List (user_id, ticker_symbol)
+      VALUES (?, ?)
   `;
   const parameters = [user_id, ticker_symbol];
-  await executeQuery(query, parameters);
+
+  try {
+    await executeQuery(query, parameters);
+  } catch (error: any) {
+    if (error.code !== 'ER_DUP_ENTRY') { //MySQL error code for duplicate entry
+      throw error;
+    }
+  }
 }
 
 async function removeTickerFromWatchList(user_id: number, ticker_symbol: string): Promise<void> {
@@ -34,5 +41,3 @@ async function removeTickerFromWatchList(user_id: number, ticker_symbol: string)
 export {
   getWatchList, addTickerToWatchList, removeTickerFromWatchList
 };
-
-

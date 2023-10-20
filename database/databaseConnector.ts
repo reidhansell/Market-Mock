@@ -10,23 +10,39 @@ async function initializeDatabaseConnection(): Promise<Connection> {
         return databaseConnection;
     }
 
-    return new Promise((resolve, reject) => {
-        databaseConnection = createConnection({
-            host: config.dbhostname,
-            user: config.dbusername,
-            password: config.dbpassword,
-            database: config.dbname,
-        });
+    let retryCount = 0;
+    const maxRetries = 1;
+    const retryInterval = 10000;
 
-        databaseConnection.connect((error) => {
-            if (error) {
-                console.error(`Error connecting to database: ${error.message}`);
-                reject(error);
-            } else {
-                console.log('Database connection successful.');
-                resolve(databaseConnection as Connection);
-            }
-        });
+    return new Promise((resolve, reject) => {
+        const connectToDatabase = () => {
+            databaseConnection = createConnection({
+                host: config.dbhostname,
+                user: config.dbusername,
+                password: config.dbpassword,
+                database: config.dbname,
+            });
+
+            databaseConnection.connect((error) => {
+                if (error || !databaseConnection) {
+                    console.error(`Error connecting to database: ${error.message}`);
+                    if (retryCount < maxRetries) {
+                        console.error(`Retrying in ${retryInterval / 1000} seconds...`);
+                        retryCount++;
+                        setTimeout(connectToDatabase, retryInterval);
+                    } else {
+                        console.error('Max retries reached. Could not connect to database.');
+                        reject(error);
+                    }
+                } else {
+                    console.log('Database connection successful.');
+                    initializeTransactionPool();
+                    resolve(databaseConnection);
+                }
+            });
+        };
+
+        connectToDatabase();
     });
 }
 
@@ -61,10 +77,38 @@ function getTransactionConnection(): Promise<Connection> {
     });
 }
 
-initializeTransactionPool();
+function closeDatabaseConnection(): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (!databaseConnection) {
+            reject(new Error('Database connection has not been initialized.'));
+        } else {
+            databaseConnection.end((error) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        }
+    });
+}
+
+function closeTransactionPool(): Promise<void> {
+    return new Promise((resolve, reject) => {
+        transactionPool.end((error) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
 
 export {
     initializeDatabaseConnection,
     getDatabaseConnection,
     getTransactionConnection,
+    closeDatabaseConnection,
+    closeTransactionPool,
 };

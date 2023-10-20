@@ -50,5 +50,4 @@ const authenticateRefreshToken = authenticate(
     isRefreshTokenStored,
 );
 
-
 export { authenticateToken, authenticateRefreshToken };

@@ -14,18 +14,20 @@
 }
 
 .ticker-search-container input{
-    margin-left: auto;
-    margin-right: auto;
     display: block;
-    width: 90%;
+    width: 100% ;
+    margin-right: 0.5rem;
 }
 
 .ticker-search-header{
     border-bottom: 1px solid var(--text1-dark);
-    padding: 5px;
+    padding: 0.5rem;
     background-color: var(--surface3-dark);
     border-radius: 5px 5px 0 0;
+    display: flex;
+    align-items: center;
 }
+
 .ticker-list::-webkit-scrollbar-track {
     border-radius: 0 0 5px 0;
   }

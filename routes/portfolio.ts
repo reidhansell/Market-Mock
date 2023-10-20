@@ -16,7 +16,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
     try {
         const { user_id } = (req as AuthenticatedRequest).user;
         const netWorthData = await getUserNetWorthData(user_id);
-        const userStocks = await getUserStocks(user_id) as UserStockWithPrices[]; // Cast to UserStockWithPrices[] to add last, open, and purchased_price
+        const userStocks = await getUserStocks(user_id) as UserStockWithPrices[]; // Cast to add last, open, and purchased_price in the following lines
         for (const userStock of userStocks) {
             const intradayData = await getIntradayDataForTicker(userStock.ticker_symbol);
             userStock.last = intradayData[0].last;

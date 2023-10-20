@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
-import Axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import Axios, { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { UserContext } from './components/Common/UserProvider';
 import Home from './components/Home/Home';
 import Login from './components/Auth/Login';
@@ -22,7 +22,7 @@ import Nav from './components/Home/Nav';
 import { UserProvider } from './components/Common/UserProvider';
 import LoadingCircle from './components/Common/LoadingCircle';
 import { markNotificationAsRead } from './requests/notification';
-import DashboardModule from './components/Common/DashboardModule';
+import config from './config.json';
 
 /*
  * Alert System and Axios Interceptors:
@@ -42,6 +42,13 @@ interface Alert {
   message: string;
 }
 
+interface RetryRequestConfig extends InternalAxiosRequestConfig<any> {
+  retryFlag?: boolean;
+}
+
+// Axios error objects are not typed by default, so we define our own type here. However, the wrapper object returned by the server is typed.
+type CustomErrorObject = { error: string };
+
 const App = () => {
   const [auth, setAuth] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -49,19 +56,43 @@ const App = () => {
   const { setUser, notifications, setNotifications } = useContext(UserContext);
 
   const generateId = (): string => {
-    return Math.random().toString(36).substr(2, 9);
+    return Math.random().toString(36).slice(0, 8);
   };
 
   const addAlert = (message: string) => {
     const id = generateId();
     const newAlert = { id, message };
     setAlerts((prevAlerts) => [...prevAlerts, newAlert]);
+    setTimeout(() => removeAlert(id), 5000);
   };
 
   const removeAlert = (id: string) => {
-    setAlerts((prevAlerts) => prevAlerts.filter((alert) => alert.id !== id));
+    setAlerts((prevAlerts) => [...prevAlerts.filter((alert) => alert.id !== id)]);
   };
 
+  const isAuthError = (error: AxiosError): boolean => {
+    return error?.response?.status === 401;
+  }
+
+  const haveNotRetried = (request: RetryRequestConfig): boolean => {
+    return !request.retryFlag;
+  }
+
+  const setRetryFlag = (request: RetryRequestConfig) => {
+    request.retryFlag = true;
+  }
+
+  const fetchAndSetRefreshToken = async () => {
+    const response = await AxiosRefreshInstance.get('/api/auth/session/refresh_token', {});
+    const token = response.data.data.token;
+
+    Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    AxiosRefreshInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+    localStorage.setItem('token', token);
+  }
+
+  Axios.defaults.baseURL = config.serverURL;
   const AxiosRefreshInstance: AxiosInstance = Axios.create({
     baseURL: Axios.defaults.baseURL,
     headers: {
@@ -70,24 +101,19 @@ const App = () => {
   });
 
   useEffect(() => {
-    const axiosInterceptor = Axios.interceptors.response.use(
+    Axios.interceptors.response.use(
       (response: AxiosResponse) => {
         return response;
       },
-      async (error: AxiosError) => {
-        const originalRequest = error.config as any;
+      async (error: AxiosError<CustomErrorObject>) => {
 
-        if (error?.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
+        const originalRequest = error.config as RetryRequestConfig;
+
+        if (isAuthError(error) && haveNotRetried(originalRequest)) {
+          setRetryFlag(originalRequest);
 
           try {
-            const response = await AxiosRefreshInstance.get('/api/auth/session/refresh_token', {});
-            const token = response.data.data.token;
-
-            Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            AxiosRefreshInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-            localStorage.setItem('token', token);
+            fetchAndSetRefreshToken();
 
             return Axios(originalRequest);
           } catch (error) {
@@ -96,9 +122,11 @@ const App = () => {
           }
         }
 
-        const errorMessage = (error as any).response.data.error;
-        if (errorMessage && errorMessage !== 'Failed authentication.' && errorMessage !== 'Failed logout.') {
-          addAlert(errorMessage);
+        if (error.response) {
+          const errorMessage = error.response.data.error;
+          if (errorMessage && errorMessage !== 'Failed authentication.' && errorMessage !== 'Failed logout.') {
+            addAlert(errorMessage);
+          }
         }
 
         return Promise.reject(error);
@@ -117,18 +145,6 @@ const App = () => {
         setLoading(false);
       });
   }, []);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (alerts.length > 0) {
-        removeAlert(alerts[0].id);
-      }
-    }, 5000);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [alerts]);
 
   if (loading) {
     return <h1><LoadingCircle /></h1>
@@ -153,20 +169,14 @@ const App = () => {
           ))}
         </div>
 
-        {/**
-         * Currently, components displayed in fullscreen are wrapped in a DashboardModule 
-         * to standardize presentation. Future iterations may explore direct component 
-         * rendering for a more streamlined approach.
-         */
-        }
         <Routes>
           <Route path="/login" element={!auth ? <Login setAuth={setAuth} /> : <Navigate to="/" />} />
-          <Route path="/register" element={!auth ? <Register /> : <Navigate to="/" />} />
+          <Route path="/register" element={!auth ? <Register addAlert={addAlert} /> : <Navigate to="/" />} />
           <Route path="/verify/:token" element={<VerifyEmail />} />
           <Route path="/" element={auth ? <Home /> : <Navigate to="/login" />} />
-          <Route path="/portfolio" element={auth ? <DashboardModule title="Portfolio" content={<Portfolio fullscreen={true} />} fullscreen={true} /> : <Navigate to="/login" />} />
-          <Route path="/watchlist" element={auth ? <DashboardModule title="Watchlist" content={<Watchlist />} fullscreen={true} /> : <Navigate to="/login" />} />
-          <Route path="/quests" element={auth ? <DashboardModule title="Quests" content={<Quests />} fullscreen={true} /> : <Navigate to="/login" />} />
+          <Route path="/portfolio" element={auth ? <Portfolio fullscreen={true} /> : <Navigate to="/login" />} />
+          <Route path="/watchlist" element={auth ? <Watchlist fullscreen={true} /> : <Navigate to="/login" />} />
+          <Route path="/quests" element={auth ? <Quests fullscreen={true} /> : <Navigate to="/login" />} />
           <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
           <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
           <Route path="/orderplacer/:ticker" element={auth ? <OrderPlacer /> : <Navigate to="/login" />} />
@@ -184,3 +194,5 @@ if (!rootElement) {
 }
 
 createRoot(rootElement).render(<UserProvider><App /></UserProvider>);
+
+export default App;
