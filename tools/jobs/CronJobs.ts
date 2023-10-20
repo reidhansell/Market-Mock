@@ -44,7 +44,7 @@ export default class CronJobs {
         await calculateAndSaveUserNetWorth();
         console.log('Done calculating net worth');
 
-        cron.schedule('0 0 23 * *', this.wrapJob(async () => {
+        cron.schedule('0 3 * * *', this.wrapJob(async () => {
             console.log('Calculating net worth...');
             await calculateAndSaveUserNetWorth();
             console.log('Done calculating net worth');
@@ -56,7 +56,7 @@ export default class CronJobs {
         await fulfillOpenOrders();
         console.log('Done fulfilling open orders');
 
-        cron.schedule('*/5 * * * *', this.wrapJob(async () => {
+        cron.schedule('0 * * * *', this.wrapJob(async () => {
             console.log('Fulfilling open orders...');
             await fulfillOpenOrders();
             console.log('Done fulfilling open orders');
