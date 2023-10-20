@@ -31,12 +31,10 @@ describe('Quest Functions', () => {
                 }
             ];
 
-            // Make executeQuery return the mocked data when called
             (executeQuery as jest.MockedFunction<typeof executeQuery>).mockResolvedValueOnce(mockQuests);
 
             const result = await getQuests(userId);
 
-            // Checks based on the mocked data
             expect(result).toEqual(mockQuests);
         });
     });
