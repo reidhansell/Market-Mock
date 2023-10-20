@@ -2,8 +2,7 @@ import { executeQuery } from '../queryExecutor';
 import NetWorthData from '../../models/NetWorthData';
 import UserStock from '../../models/UserStock';
 import { Connection } from 'mysql';
-import Transaction, { TransactionWithQuantity } from '../../models/Transaction';
-import User from '../../models/User';
+import { TransactionWithQuantity } from '../../models/Transaction';
 
 async function getUserNetWorthData(user_id: number): Promise<NetWorthData[]> {
   const query = `
