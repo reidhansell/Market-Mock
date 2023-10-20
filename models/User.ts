@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 export default interface User {
     user_id: number;
     username: string;
@@ -11,4 +13,8 @@ export default interface User {
 export interface UserSensitive extends User {
     password: string;
     verification_token?: string;
+}
+
+export interface AuthenticatedRequest extends Request {
+    user: User
 }
