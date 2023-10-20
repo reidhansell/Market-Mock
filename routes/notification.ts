@@ -1,12 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 import { getNotificiations, markNotificationAsRead } from '../database/queries/notification';
-
-interface AuthenticatedRequest extends Request {
-    user: {
-        user_id: number;
-    }
-}
+import { AuthenticatedRequest } from '../models/User';
 
 const router = Router();
 
