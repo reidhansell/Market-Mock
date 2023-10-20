@@ -13,5 +13,5 @@ export default interface TickerEndOfDay {
     dividend: number;
     symbol: string;
     exchange: string;
-    date: string;
+    date: number;
 }

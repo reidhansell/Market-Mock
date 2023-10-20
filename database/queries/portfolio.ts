@@ -2,7 +2,7 @@ import { executeQuery } from '../queryExecutor';
 import NetWorthData from '../../models/NetWorthData';
 import UserStock from '../../models/UserStock';
 import { Connection } from 'mysql';
-import Transaction, { TransactionWithQuantity } from '../../models/Transaction';
+import { TransactionWithQuantity } from '../../models/Transaction';
 
 async function getUserNetWorthData(user_id: number): Promise<NetWorthData[]> {
   const query = `
@@ -27,13 +27,13 @@ async function getUserStocks(user_id: number): Promise<UserStock[]> {
   return results;
 }
 
-async function updateUserBalance(userId: number, amount: number, connection?: Connection): Promise<void> {
+async function updateUserBalance(userId: number, cost: number, connection?: Connection): Promise<void> {
   const lockQuery = `SELECT * FROM User WHERE user_id = ? FOR UPDATE`;
   const lockParameters = [userId];
   await executeQuery(lockQuery, lockParameters, connection);
 
   const query = `UPDATE User SET current_balance = current_balance + ? WHERE user_id = ?`;
-  const parameters = [amount, userId];
+  const parameters = [parseFloat((-1 * cost).toFixed(2)), userId];
   await executeQuery(query, parameters, connection);
 }
 
@@ -71,11 +71,50 @@ async function getStockTransactions(userId: number, tickerSymbol: string) {
   return result;
 }
 
+async function getUserBalance(userId: number): Promise<{ current_balance: number, starting_amount: number }> {
+  const query = `SELECT current_balance, starting_amount FROM User WHERE user_id = ?`;
+  const parameters = [userId];
+  const result = await executeQuery(query, parameters) as { current_balance: number, starting_amount: number }[];
+  return result[0]
+}
+
+async function getAllUserBalances(): Promise<{ user_id: number, current_balance: number, starting_amount: number }[]> {
+  const query = `SELECT user_id, current_balance, starting_amount FROM User`;
+  const result = await executeQuery(query) as { user_id: number, current_balance: number, starting_amount: number }[];
+  return result;
+}
+
+async function getUserNetWorth(userId: number, date: number): Promise<number[]> {
+  const query = `SELECT net_worth 
+    FROM User_Net_Worth 
+    WHERE user_id = ? AND DATE(FROM_UNIXTIME(recorded_at)) = DATE(FROM_UNIXTIME(?))`;
+  const parameters = [userId, date];
+  const result = await executeQuery(query, parameters) as number[];
+  return result;
+}
+
+async function updateUserNetWorth(userId: number, netWorth: number, date: number): Promise<void> {
+  const query = `UPDATE User_Net_Worth SET net_worth = ? WHERE user_id = ? AND DATE(FROM_UNIXTIME(recorded_at)) = DATE(FROM_UNIXTIME(?))`;
+  const parameters = [netWorth, userId, date];
+  await executeQuery(query, parameters);
+}
+
+async function insertUserNetWorth(userId: number, netWorth: number, date: number): Promise<void> {
+  const query = `INSERT INTO User_Net_Worth (user_id, net_worth, recorded_at) VALUES (?, ?, ?)`;
+  const parameters = [userId, netWorth, date];
+  await executeQuery(query, parameters);
+}
+
 export {
   getUserNetWorthData,
   getUserStocks,
   updateUserBalance,
   updateUserStocks,
   removeUserStocks,
-  getStockTransactions
+  getStockTransactions,
+  getUserBalance,
+  getAllUserBalances,
+  getUserNetWorth,
+  updateUserNetWorth,
+  insertUserNetWorth
 };

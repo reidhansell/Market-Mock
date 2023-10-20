@@ -1,9 +1,8 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import config from '../../config.json';
 import ExpectedError from '../utils/ExpectedError';
 import { insertTicker, checkTickerExists } from '../../database/queries/ticker';
-import { ExchangeTickersResponse } from '../../models/MarketStackResponses';
-import Ticker from '../../models/Ticker';
+import { TickerResponse } from '../../models/MarketStackResponses';
 
 interface MarketStackTicker {
     name: string;
@@ -13,87 +12,86 @@ interface MarketStackTicker {
 }
 
 async function fetchTickersFromAPI(exchange: string): Promise<MarketStackTicker[]> {
-    const tickers: MarketStackTicker[] = [];
-    const url = `https://api.marketstack.com/v1/exchanges/${exchange}/tickers?access_key=${config.marketStackKey}&limit=10000`;
+    const baseURL = `https://api.marketstack.com/v1/exchanges/${exchange}/tickers?access_key=${config.marketStackKey}&limit=10000`;
+    let tickers: MarketStackTicker[] = [];
     let page = 1;
-    let response;
+    let offset = 0;
 
-    do {
-        const offset = page > 1 ? (page - 1) * 10000 + 1 : 0;
-        try {
-            const axiosResponse = await axios.get(`${url}&offset=${offset}`);
-            response = axiosResponse.data as ExchangeTickersResponse;
-        } catch (error: any) {
-            throw new ExpectedError('Could not fetch data from MarketStack', 500, `Error fetching data from MarketStack for exchange ${exchange}: ${error.message}`);
+    while (page < 20) {
+        const url = `${baseURL}&offset=${offset}`;
+        const marketstackTickers = await fetchMarketStackTickers(url);
+        tickers = tickers.concat(marketstackTickers);
+        if (marketstackTickers.length < 10000) {
+            break;
         }
-
-        tickers.push(...response.data.tickers);
-
+        offset += 10000;
         page++;
-    } while (response.data.tickers.length >= 10000 && page < 20);
-
+    }
     return tickers;
 }
 
+async function fetchMarketStackTickers(url: string) {
+    try {
+        const response = await axios.get(url) as AxiosResponse<TickerResponse>;
+        if (response.status !== 200) {
+            throw new ExpectedError('Could not fetch data from MarketStack', 500, `Error fetching data from MarketStack for exchange: ${response.statusText}`);
+        }
+        return response.data.data.tickers;
+
+    } catch (error: any) {
+        throw new ExpectedError('Could not fetch data from MarketStack', 500, `Error fetching data from MarketStack for exchange: ${error.message}`);
+    }
+}
+
 async function syncTickers(): Promise<void> {
-    console.log("Beginning tickers sync.");
-    console.log("Fetching tickers from MarketStack.");
+    const mainTickers = (await Promise.all(['XNYS', 'XNAS'].map(fetchTickersFromAPI))).flat();
+    const validIexgTickers = (await fetchTickersFromAPI('IEXG')).filter(ticker => mainTickers.some(main => main.symbol === ticker.symbol));
 
-    // Fetch tickers from XNYS and XNAS
-    const mainExchanges = ['XNYS', 'XNAS'];
-    const mainTickers = (await Promise.all(mainExchanges.map(fetchTickersFromAPI))).flat();
+    const mergedTickers = mergeTickers(mainTickers, validIexgTickers);
 
-    // Fetch tickers from IEXG
-    const iexgTickers = await fetchTickersFromAPI('IEXG');
+    for (const [i, ticker] of mergedTickers.entries()) {
+        try {
+            await storeTicker(ticker);
+        } catch (error: any) {
+            handleErrorWhileStoringTicker(error, ticker);
+        }
+        logProgress(i, mergedTickers.length);
+    }
+}
 
-    // Filter IEXG tickers to include only those that are listed on main exchanges
-    const validIexgTickers = iexgTickers.filter(iexgTicker => mainTickers.some(mainTicker => mainTicker.symbol === iexgTicker.symbol));
-
-    // Merge main and IEXG tickers
-    const tickers = mainTickers.map(mainTicker => {
-        const iexgTicker = validIexgTickers.find(ticker => ticker.symbol === mainTicker.symbol);
+function mergeTickers(mainTickers: MarketStackTicker[], iexgTickers: MarketStackTicker[]): MarketStackTicker[] {
+    return mainTickers.map(mainTicker => {
+        const iexgTicker = iexgTickers.find(ticker => ticker.symbol === mainTicker.symbol);
         return {
             ...mainTicker,
             has_intraday: mainTicker.has_intraday || iexgTicker?.has_intraday,
             has_eod: mainTicker.has_eod || iexgTicker?.has_eod
         } as MarketStackTicker;
     });
-
-    console.log("Fetch successful.");
-
-    console.log("Storing tickers in database.");
-    const totalTickers = tickers.length;
-
-    for (const [i, ticker] of tickers.entries()) {
-        try {
-            await storeTicker(ticker);
-        }
-        catch (error: any) {
-            if (error instanceof ExpectedError) {
-                error.statusCode === 500 && console.error(error.devMessage);
-            } else {
-                console.error(`Error storing ticker ${ticker.symbol}: ${error.message}`);
-                console.log('Continuing...');
-            }
-        }
-
-        const progress = Math.round(totalTickers * 0.25);
-        if (i === progress || i === 2 * progress || i === 3 * progress) {
-            console.log(`${(i / progress) * 25}% of tickers have been stored.`);
-        }
-    }
-
-    console.log("Store successful.");
-    console.log("Completed tickers sync.");
 }
 
 async function storeTicker(ticker: MarketStackTicker): Promise<void> {
     const existingTicker = await checkTickerExists(ticker.symbol);
-
     if (!existingTicker) {
         await insertTicker({ ticker_symbol: ticker.symbol, company_name: ticker.name });
     } else if (existingTicker.company_name !== ticker.name) {
         console.error(`Ticker ${ticker.symbol} company name changed from ${existingTicker.company_name} to ${ticker.name}`);
+    }
+}
+
+function handleErrorWhileStoringTicker(error: any, ticker: MarketStackTicker) {
+    if (error instanceof ExpectedError && error.statusCode === 500) {
+        console.error(error.devMessage);
+    } else {
+        console.error(`Error storing ticker ${ticker.symbol}: ${error.message}`);
+    }
+}
+
+function logProgress(currentIndex: number, total: number) {
+    const progressCheckpoints = [0.25, 0.5, 0.75];
+    const currentProgress = currentIndex / total;
+    if (progressCheckpoints.includes(currentProgress)) {
+        console.log(`${currentProgress * 100}% of tickers have been stored.`);
     }
 }
 

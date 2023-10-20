@@ -1,0 +1,26 @@
+# Start with a base image containing Node.js
+FROM node:16
+
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Set environment variable
+ENV DOCKER_BCRYPT_ENABLED=1
+
+# Copy package.json and package-lock.json (if available) to the container
+COPY package*.json ./
+
+# Install dependencies in the container
+RUN npm install
+
+# Copy the backend application to the container
+COPY . .
+
+# Remove the frontend application from the container. We cannot ignore it because it will also be ignored in the front end.
+RUN rm -rf ./client
+
+# Compile TypeScript to JavaScript
+RUN npm run build
+
+# Specify the command to run on container start
+CMD ["npm", "run", "server"]

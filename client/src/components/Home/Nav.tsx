@@ -34,8 +34,9 @@ const Navigation: React.FC<NavProps> = ({ setAuth }) => {
                 </div>
                 {showUserMenu && (
                     <ul className="user-menu">
+                        <Link to="/portfolio"><li>Portfolio</li></Link>
                         <Link to="/watchlist"><li>Watchlist</li></Link>
-                        <Link to="/profile"><li>Profile</li></Link>
+                        <Link to="/quests"><li>Quests</li></Link>
                         <Link to="/login" onClick={handleLogout}><li >Signout</li></Link>
                     </ul>
                 )}

@@ -1,4 +1,4 @@
-import Axios, { AxiosResponse } from 'axios';
+import Axios from 'axios';
 import config from '../config.json';
 import Notification from '../../../models/Notification';
 

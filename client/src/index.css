@@ -64,7 +64,7 @@ ol, ul {
   min-width: 20rem;
   margin: 0 auto;
   padding: 1.25rem;
-  height: 100%;
+  min-height: 100%;
   padding-top: 2.5rem; /* height of nav */
 }
 

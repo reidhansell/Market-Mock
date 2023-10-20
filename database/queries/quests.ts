@@ -1,11 +1,10 @@
 import { executeQuery, ResultObject } from '../queryExecutor';
-import ExpectedError from '../../tools/utils/ExpectedError';
-import { UserQuest } from '../../models/Quest';
+import { UserQuest, UserQuestUnchecked } from '../../models/Quest';
 import { addNotification } from './notification';
 import Notification from '../../models/Notification';
 import { Connection } from 'mysql';
 
-async function getQuests(user_id: number): Promise<UserQuest[]> {
+async function getQuests(user_id: number): Promise<UserQuestUnchecked[]> {
     const query = `SELECT 
         q.*,
         uq.completion_date

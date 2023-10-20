@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Axios from 'axios';
 import config from '../../config.json';
 import LoadingCircle from '../Common/LoadingCircle';
 import TickerIntraday from '../../../../models/TickerIntraday';
 import { createOrder } from '../../requests/order';
-import Order from '../../../../models/Order';
 import Tooltip from '../Common/Tooltip';
 import './OrderPlacer.css';
 import Select from '../Common/Select';
+import { UserContext } from '../Common/UserProvider';
 
 const OrderPlacer: React.FC = () => {
     const { ticker } = useParams();
@@ -24,6 +24,7 @@ const OrderPlacer: React.FC = () => {
     const typeOptions = ['MARKET', 'LIMIT', 'STOP'];
     const navigate = useNavigate();
 
+    const { user } = useContext(UserContext);
 
     const handleTransactionSelectChange = (selected: string) => {
         setTransactionType(selected);
@@ -49,9 +50,9 @@ const OrderPlacer: React.FC = () => {
 
     const calculateTotalCostOrRevenue = () => {
         if (orderType === 'MARKET') {
-            return quantity * tickerData[0].last;
+            return parseFloat((quantity * tickerData[0].last).toFixed(2));
         } else if (orderType === 'LIMIT' || orderType === 'STOP') {
-            return quantity * triggerPrice;
+            return parseFloat((quantity * triggerPrice).toFixed(2));
         } else {
             return 0;
         }
@@ -59,15 +60,15 @@ const OrderPlacer: React.FC = () => {
 
     const placeOrderHandler = async () => {
         if (tickerData.length > 0) {
-            const finalQuantity = transactionType === 'SELL' ? quantity * -1 : quantity;
+            const finalQuantity = transactionType === 'SELL' ? parseFloat((quantity * -1).toFixed(0)) : quantity;
             setSubmitting(true);
             try {
                 const order = await createOrder({
-                    ticker_symbol: ticker,
+                    ticker_symbol: ticker ? ticker : '',
                     order_type: orderType,
                     trigger_price: triggerPrice,
                     quantity: finalQuantity
-                } as Partial<Order>);
+                });
                 setSubmitting(false);
                 if (order.transaction_id) { setTransacted(true) } else { setSubmitted(true); }
                 setTimeout(() => {
@@ -150,10 +151,11 @@ const OrderPlacer: React.FC = () => {
                         </>) : null}
                     <br />
                 </div>
-                <div>
-                    <h2>Total {transactionType === "BUY" ? "Cost" : "Revenue"}: {tickerData.length > 0 ? parseFloat(calculateTotalCostOrRevenue().toFixed(2)) : <LoadingCircle />}</h2>
-                </div>
-                <div>
+                <div><h2>Receipt</h2>
+                    <p>Current Wallet: ${user?.current_balance || <LoadingCircle />}</p>
+                    <p>Total {transactionType === "BUY" ? "Cost" : "Revenue"}: ${tickerData.length > 0 ? parseFloat(calculateTotalCostOrRevenue().toFixed(2)) : <LoadingCircle />}</p>
+                    <p>Waller After: ${user ? user.current_balance + (parseFloat((triggerPrice * quantity * -1).toFixed(2))) : <LoadingCircle />}</p>
+                    <br />
                     <button onClick={placeOrderHandler}>Place Order</button>
                 </div>
             </div></>}

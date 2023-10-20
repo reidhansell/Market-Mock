@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:8
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: ${DBHOSTNAME}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DBNAME}
+      MYSQL_USER: ${DBUSERNAME}
+      MYSQL_PASSWORD: ${DBPASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: market-mock_backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mysql
+    volumes:
+      - ./config.json:/app/dist/config.json
+      - ./.env:/app/dist/.env
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: market-mock_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./client/src/config.json:/app/client/src/config.json
+
+volumes:
+  mysql-data:

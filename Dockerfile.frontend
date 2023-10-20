@@ -1,0 +1,23 @@
+# Serve the app using a lightweight node server
+FROM node:16
+
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Copy the frontend application source files to the container
+COPY ./client ./client
+
+COPY ./models ./models
+
+WORKDIR /app/client
+
+# Install dependencies in the container
+RUN npm install
+RUN npm install -g serve
+
+# Build the app
+RUN npm run build
+
+# Specify the command to run on container start
+CMD ["serve", "-s", "dist", "-l", "3000"]
+

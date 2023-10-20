@@ -23,16 +23,16 @@ async function checkTickerExists(symbol: string): Promise<Ticker | null> {
     return results[0];
 }
 
-async function searchTickersByCompanyName(company_name: string): Promise<Ticker[]> {
+async function searchTickers(searchTerm: string): Promise<Ticker[]> {
     const sql = `
       SELECT ticker_symbol, company_name
       FROM Ticker
       WHERE company_name LIKE ?
+      OR ticker_symbol LIKE ?
       LIMIT 50
     `;
-    const searchTerm = `%${company_name}%`;
-    const results = await executeQuery(sql, [searchTerm]) as Ticker[];
-    /* Empty set acceptable, not looking for a particular record */
+    const searchTermSQL = `%${searchTerm}%`;
+    const results = await executeQuery(sql, [searchTermSQL, searchTermSQL]) as Ticker[];
     return results;
 }
 
@@ -54,6 +54,18 @@ async function insertIntradayData(intradayData: TickerIntraday): Promise<void> {
     }
 }
 
+async function deleteIntradayData(ticker_symbol: string): Promise<void> {
+    const query = 'DELETE FROM Ticker_Intraday WHERE ticker_symbol = ?';
+    const parameters = [ticker_symbol];
+    await executeQuery(query, parameters) as ResultObject;
+}
+
+async function deleteEODData(ticker_symbol: string): Promise<void> {
+    const query = 'DELETE FROM Ticker_End_Of_Day WHERE ticker_symbol = ?';
+    const parameters = [ticker_symbol];
+    await executeQuery(query, parameters) as ResultObject;
+}
+
 async function getLatestEODData(ticker_symbol: string): Promise<TickerEndOfDay[] | null> {
     const query = 'SELECT * FROM Ticker_End_Of_Day WHERE ticker_symbol = ? ORDER BY date DESC LIMIT 30';
     const parameters = [ticker_symbol];
@@ -65,8 +77,13 @@ async function getLatestEODData(ticker_symbol: string): Promise<TickerEndOfDay[]
 }
 
 async function getLatestIntradayData(ticker_symbol: string): Promise<TickerIntraday[] | null> {
-    const query = 'SELECT * FROM Ticker_Intraday WHERE ticker_symbol = ? ORDER BY date DESC LIMIT 24';
-    const parameters = [ticker_symbol];
+    const oneDayAgoTimestamp = Math.floor(Date.now() / 1000) - (24 * 60 * 60);
+    const query = `
+    SELECT * FROM Ticker_Intraday
+    WHERE ticker_symbol = ?
+    AND date >= ?
+    ORDER BY date DESC`;
+    const parameters = [ticker_symbol, oneDayAgoTimestamp];
     const results = await executeQuery(query, parameters) as TickerIntraday[];
     if (results.length === 0) {
         return null;
@@ -77,9 +94,11 @@ async function getLatestIntradayData(ticker_symbol: string): Promise<TickerIntra
 export {
     insertTicker,
     checkTickerExists,
-    searchTickersByCompanyName,
+    searchTickers,
     insertEODData,
     insertIntradayData,
+    deleteIntradayData,
+    deleteEODData,
     getLatestEODData,
     getLatestIntradayData
 };

@@ -11,6 +11,14 @@ border-bottom: 1px solid var(--text1-dark);
 padding: 0.5rem;
 }
 
+li.quest.fullscreen{
+    cursor: default;
+}
+
+li.quest.fullscreen:hover{
+    background-color: var(--surface2-dark);
+}
+
 li.completed h3, li.completed p{
     text-decoration: line-through;
 }
@@ -25,4 +33,12 @@ h3.quest-header{
 
 ul.quests::-webkit-scrollbar-track {
     border-radius: 0 5px 5px 0;
+}
+
+a.quest-link{
+    color: var(--brand);
+}
+
+a.quest-link:hover{
+    color: var(--brand-dark);
 }

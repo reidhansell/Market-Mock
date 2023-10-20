@@ -2,11 +2,11 @@ import cron from 'node-cron';
 import { cleanupExpiredTokens } from '../../database/queries/auth';
 import { syncTickers } from '../services/tickersSyncService';
 import ExpectedError from '../utils/ExpectedError';
-import { calculateAndSaveUserNetWorth } from '../services/NetWorthService';
+import { calculateAndSaveUserNetWorth } from '../services/netWorthService';
 import { fulfillOpenOrders } from '../services/orderFulfillmentService';
 
 export default class CronJobs {
-    static scheduleJobs() {
+    public static scheduleJobs() {
         console.log('Scheduling cron jobs...');
         this.scheduleCleanupTokens();
         this.scheduleSyncTickers();
@@ -15,7 +15,7 @@ export default class CronJobs {
         console.log('Successfully scheduled cron jobs');
     }
 
-    static async scheduleCleanupTokens() {
+    private static async scheduleCleanupTokens() {
         console.log('Cleaning up expired tokens...');
         await cleanupExpiredTokens();
         console.log('Done cleaning up expired tokens');
@@ -27,7 +27,7 @@ export default class CronJobs {
         }));
     }
 
-    static async scheduleSyncTickers() {
+    private static async scheduleSyncTickers() {
         console.log('Syncing tickers...');
         await syncTickers();
         console.log('Done syncing tickers');
@@ -39,31 +39,31 @@ export default class CronJobs {
         }));
     }
 
-    static async scheduleCalculateNetWorth() {
+    private static async scheduleCalculateNetWorth() {
         console.log('Calculating net worth...');
         await calculateAndSaveUserNetWorth();
         console.log('Done calculating net worth');
 
-        cron.schedule(/* TODO '0 0 23 * *'*/'*/2 * * * *', this.wrapJob(async () => {
+        cron.schedule('0 3 * * *', this.wrapJob(async () => {
             console.log('Calculating net worth...');
             await calculateAndSaveUserNetWorth();
             console.log('Done calculating net worth');
         }));
     }
 
-    static async scheduleFulfillOpenOrders() {
+    private static async scheduleFulfillOpenOrders() {
         console.log('Fulfilling open orders...');
         await fulfillOpenOrders();
         console.log('Done fulfilling open orders');
 
-        cron.schedule(/* TODO change this to /5 */'*/1 * * * *', this.wrapJob(async () => {
+        cron.schedule('0 * * * *', this.wrapJob(async () => {
             console.log('Fulfilling open orders...');
             await fulfillOpenOrders();
             console.log('Done fulfilling open orders');
         }));
     }
 
-    static wrapJob(job: Function) {
+    private static wrapJob(job: Function) {
         return async () => {
             try {
                 await job();
@@ -76,5 +76,11 @@ export default class CronJobs {
                 }
             }
         };
+    }
+
+    public static stopAll() {
+        console.log('Stopping all cron jobs...');
+        cron.getTasks().forEach(task => task.stop());
+        console.log('Successfully stopped all cron jobs');
     }
 }

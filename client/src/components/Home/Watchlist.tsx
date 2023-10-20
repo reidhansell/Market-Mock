@@ -1,13 +1,16 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import LoadingCircle from '../Common/LoadingCircle';
-import WatchList from '../../../../models/WatchList';
 import './Watchlist.css';
 import { UserContext } from '../Common/UserProvider';
 import { getWatchlist } from '../../requests/watchlist';
+import DashboardModule from '../Common/DashboardModule';
 
+interface WatchlistProps {
+    fullscreen: boolean;
+}
 
-const Watchlist: React.FC = () => {
+const Watchlist: React.FC<WatchlistProps> = ({ fullscreen }) => {
     const navigate = useNavigate();
     const { watchlist, stocks, setWatchlist } = useContext(UserContext);
     const [search, setSearch] = useState<string>("");
@@ -42,36 +45,37 @@ const Watchlist: React.FC = () => {
         fetchData();
     }, []);
 
-    return (
-        <>
-            <div className="top-bar">
-                <input
-                    type="text"
-                    className="search-input"
-                    placeholder="Search your watchlist..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-                &nbsp;
-                <button
-                    className="button"
-                    onClick={() => navigate('/tickersearch')}
-                >
-                    +
-                </button>
-            </div>
+    const content = (<>
+        <div className="top-bar">
+            <input
+                type="text"
+                className="search-input"
+                placeholder="Search your watchlist..."
+                value={search}
+                onChange={(e) => { console.log(e.target.value); setSearch(e.target.value) }}
+            />
+            &nbsp;
+            <button
+                className="button"
+                onClick={() => navigate('/tickersearch')}
+            >
+                +
+            </button>
+        </div>
 
-            {loading ? <h1 style={{ width: "100%", textAlign: "center" }}><LoadingCircle /></h1> : (
-                watchlist.length < 1 ?
-                    <>
-                        <br />
-                        <p className="no-tickers">
-                            No tickers found. Click the + to add a ticker to your watch list.
-                        </p>
-                    </>
-                    :
-                    <ul className="ticker-list">
-                        {sortedWatchlist.map((ticker: WatchList, index) => (
+        {loading ? <h1 style={{ width: "100%", textAlign: "center" }}><LoadingCircle /></h1> : (
+            watchlist.length < 1 ?
+                <>
+                    <br />
+                    <p className="no-tickers">
+                        No tickers found. Click the + to add a ticker to your watch list.
+                    </p>
+                </>
+                :
+                <ul className="ticker-list">
+                    {sortedWatchlist.filter(ticker => search === "" ||
+                        ticker.company_name?.toLowerCase().includes(search) ||
+                        ticker.ticker_symbol.toLowerCase().includes(search)).map((ticker, index) => (
                             <Link key={index} to={`/ticker/${ticker.ticker_symbol}`} className="ticker-link">
                                 <li className="ticker-item">
                                     {`${ticker.ticker_symbol}: ${ticker.company_name ? ticker.company_name.slice(0, 25) : 'Name not found'}`}
@@ -79,9 +83,15 @@ const Watchlist: React.FC = () => {
                                 </li>
                             </Link>
                         ))}
-                    </ul>
-            )}
-        </>
+                    {sortedWatchlist.filter(ticker => search === "" ||
+                        ticker.company_name?.toLowerCase().includes(search) ||
+                        ticker.ticker_symbol.toLowerCase().includes(search)).length === 0 ? <p style={{ paddingTop: "0.5rem" }}>Nothing in your watchlist matched the search provided. Did you mean use <a style={{ color: "var(--brand)", cursor: "pointer" }} onClick={() => navigate("/tickersearch")}>Ticker Search</a>?</p> : null}
+                </ul>
+        )}
+    </>);
+
+    return (
+        <DashboardModule title="Watchlist" content={content} fullscreen={fullscreen} />
     );
 };
 

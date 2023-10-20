@@ -5,10 +5,15 @@ import './Auth.css';
 import { register, ResponseData } from '../../requests/auth';
 import LoadingCircle from '../Common/LoadingCircle';
 
-const Register: FC = () => {
+interface RegisterProps {
+    addAlert: (message: string) => void;
+}
+
+const Register: FC<RegisterProps> = ({ addAlert }) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [password2, setPassword2] = useState('');
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -16,6 +21,10 @@ const Register: FC = () => {
     const handleRegister = async (event: React.FormEvent) => {
         event.preventDefault();
         try {
+            if (password !== password2) {
+                addAlert("Passwords do not match");
+                return;
+            }
             setLoading(true);
             const response: AxiosResponse<ResponseData> = await register(username, email, password);
             if (response.status === 200) {
@@ -54,12 +63,19 @@ const Register: FC = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
+                        <input
+                            type="password"
+                            placeholder="Confirm password"
+                            value={password2}
+                            onChange={(e) => setPassword2(e.target.value)}
+                        />
                         <button type="submit">
                             Register {loading ? <LoadingCircle /> : ""}
                         </button>
+
                         <div className="auth-link">
                             <small><i>Already have an account?</i></small>
-                            <button type="button" style={{ width: '100%' }} onClick={() => navigate('/login')}>Login</button>
+                            <button data-testid="register-page-login-button" type="button" style={{ width: '100%' }} onClick={() => navigate('/login')}>Login</button>
                         </div>
                     </form>
                 </>
