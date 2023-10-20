@@ -9,33 +9,18 @@ jest.mock('../tools/services/emailService');
 jest.mock('../tools/services/netWorthService');
 
 import request from 'supertest';
-import express, { Express, NextFunction, Request, Response } from 'express';
-import authRouter from './auth';
+import { Express } from 'express';
 import { findUserByEmail, findUserByUsername, registerUser, updateVerificationToken, } from '../database/queries/auth';
 import { generateVerificationToken, sendVerificationEmail } from '../tools/services/emailService';
 import { calculateAndSaveUserNetWorth } from '../tools/services/netWorthService';
 import bcrypt from 'bcrypt';
-import ExpectedError from '../tools/utils/ExpectedError';
+import { setupApp } from '../tools/utils/routeTestSetup';
+import authRouter from './auth';
 
 let app: Express;
 
-const errorHandler = (error: any, req: Request, res: Response, next: NextFunction) => {
-    if (error instanceof ExpectedError) {
-        if (error.statusCode === 500) {
-            console.error(error.devMessage);
-        }
-        res.status(error.statusCode).json({ error: error.message });
-        return;
-    }
-    console.error(`An unexpected error occurred:\n${JSON.stringify({ error: error.message, url: req.originalUrl, body: req.body })}`);
-    res.status(500).json({ error: 'Internal Server Error' });
-};
-
 beforeEach(() => {
-    app = express();
-    app.use(express.json());
-    app.use('/api', authRouter);
-    app.use(errorHandler);
+    app = setupApp(authRouter);
 });
 
 afterEach(() => {
