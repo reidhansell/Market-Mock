@@ -1,6 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { getWatchList, addTickerToWatchList, removeTickerFromWatchList } from '../database/queries/watchlist';
-import { getIntradayDataForTicker } from '../tools/services/intradayService'; // import your new service here
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 import { getQuests, updateQuest } from '../database/queries/quests';
 import ExpectedError from '../tools/utils/ExpectedError';
