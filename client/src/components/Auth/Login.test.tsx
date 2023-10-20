@@ -1,3 +1,6 @@
+jest.mock('axios');
+jest.mock('../../requests/auth');
+
 import React from 'react';
 import { MemoryRouter as Router, Route, Routes } from 'react-router-dom';
 import { render, fireEvent, waitFor } from '@testing-library/react';
@@ -6,9 +9,6 @@ import Register from './Register';
 import '@testing-library/jest-dom';
 import Axios from 'axios';
 import { login } from '../../requests/auth';
-
-jest.mock('axios');
-jest.mock('../../requests/auth');
 
 describe('Login Component', () => {
     let renderedComponent: any;
