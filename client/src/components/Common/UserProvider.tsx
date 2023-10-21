@@ -17,7 +17,7 @@ interface UserContext {
     quests: UserQuest[];
     addTicker: (ticker: WatchList) => void;
     removeTicker: (tickerSymbol: string) => void;
-    setUser: (user: User) => void;
+    setUser: (user: User | null) => void;
     setWatchlist: (watchlist: WatchList[]) => void;
     setNetWorth: (netWorth: NetWorthData[]) => void;
     setStocks: (stocks: UserStockWithPrices[]) => void;
