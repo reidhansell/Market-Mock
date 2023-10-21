@@ -24,6 +24,7 @@ const VerifyEmail = () => {
 
     return (
         <div className="auth-container">
+            <img src="../../android-chrome-192x192.png" alt="logo" className="logo" style={{ width: "50%", marginLeft: "auto", marginRight: "auto" }} />
             <h1 className="logo-placeholder"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</h1>
             <h2>Email Verification</h2>
             {success ? (
