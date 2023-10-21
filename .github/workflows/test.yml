@@ -1,0 +1,54 @@
+name: Run Tests
+
+on: 
+  pull_request:
+    branches:
+      - dev
+      - QA
+      - main
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+
+    - name: Cache server node_modules
+      uses: actions/cache@v2
+      with:
+        path: node_modules
+        key: server-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          server-${{ runner.os }}-
+    
+    - name: Cache client node_modules
+      uses: actions/cache@v2
+      with:
+        path: client/node_modules
+        key: client-${{ runner.os }}-${{ hashFiles('client/package-lock.json') }}
+        restore-keys: |
+          client-${{ runner.os }}-
+
+    - name: Install dependencies for the server
+      run: npm install
+
+    - name: Install dependencies for the client
+      run: npm install --prefix client
+
+    - name: Run all tests
+      run: npm run test:all
+
+    - name: Job succeeded
+      if: success()
+      run: echo "Tests passed successfully!"
+      
+    - name: Job failed
+      if: failure()
+      run: echo "Tests failed. Please check the logs."
