@@ -5,6 +5,7 @@ import { login } from '../../requests/auth';
 import Axios from 'axios';
 import config from '../../config.json';
 import { UserContext } from '../Common/UserProvider';
+import logo from '../../../android-chrome-192x192.png';
 
 interface LoginProps {
     setAuth: (auth: boolean) => void;
@@ -34,7 +35,7 @@ const Login: FC<LoginProps> = ({ setAuth }) => {
 
     return (
         <div className="auth-container">
-            <img src="../../android-chrome-192x192.png" alt="logo" className="logo" style={{ width: "50%", marginLeft: "auto", marginRight: "auto" }} />
+            <img src={logo} alt="logo" className="logo" style={{ width: "50%", marginLeft: "auto", marginRight: "auto" }} />
             <h1 className="logo-placeholder"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</h1>
             <br />
             <h2>Login</h2>
