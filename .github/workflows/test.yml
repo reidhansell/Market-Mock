@@ -35,13 +35,33 @@ jobs:
         key: client-${{ runner.os }}-${{ hashFiles('client/package-lock.json') }}
         restore-keys: |
           client-${{ runner.os }}-
-
     - name: Install dependencies for the server
       run: npm install
 
     - name: Install dependencies for the client
       run: npm install --prefix client
 
+    - name: Create server config.json from secrets
+      run: |
+        echo '{
+          "production": false,
+          "dbhostname": ${{ secrets.dbhostname }},
+          "dbusername": ${{ secrets.dbusername }},
+          "dbpassword": ${{ secrets.dbpassword }},
+          "dbname": ${{ secrets.dbname }},
+          "port": 5000,
+          "email": ${{ secrets.email }},
+          "emailpassword": ${{ secrets.emailpassword }},
+          "jwtSecret": ${{ secrets.jwtSecret }},
+          "refreshTokenSecret": ${{ secrets.refreshTokenSecret }},
+          "clientURL": ${{ secrets.clientURL }},
+          "marketStackKey": ${{ secrets.marketStackKey }}
+        }' > config.json
+    - name: Create client config.json from secrets
+      run: |
+        echo '{
+          "serverURL": ${{ secrets.serverURL }}
+        }' > client/src/config.json
     - name: Run all tests
       run: npm run test:all
 
