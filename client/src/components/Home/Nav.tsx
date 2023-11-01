@@ -4,6 +4,7 @@ import { logout } from '../../requests/auth';
 import './Nav.css';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../Common/UserProvider';
+import logo from '../../../android-chrome-192x192.png';
 
 interface NavProps {
     setAuth: (auth: boolean) => void;
@@ -33,7 +34,7 @@ const Navigation: React.FC<NavProps> = ({ setAuth }) => {
         <nav>
             <div className="logo-container">
                 <Link to="/">
-                    <img src="../../android-chrome-192x192.png" alt="logo" className="logo-nav" />
+                    <img src={logo} alt="logo" className="logo-nav" />
                     <span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK
                 </Link>
             </div>
