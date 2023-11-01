@@ -57,11 +57,13 @@ jobs:
           "clientURL": ${{ secrets.clientURL }},
           "marketStackKey": ${{ secrets.marketStackKey }}
         }' > config.json
+
     - name: Create client config.json from secrets
       run: |
         echo '{
           "serverURL": ${{ secrets.serverURL }}
         }' > client/src/config.json
+
     - name: Run all tests
       run: npm run test:all
 
