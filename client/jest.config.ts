@@ -9,6 +9,6 @@ module.exports = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     setupFilesAfterEnv: ['./jest.setup.ts'],
     moduleNameMapper: {
-        "\\.(css|less|scss|sass)$": "<rootDir>/src/components/Common/styleMock.tsx"
+        "\\.(css|less|scss|sass|png)$": "<rootDir>/src/components/Common/assetMock.tsx"
     },
 };
