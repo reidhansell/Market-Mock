@@ -10,6 +10,7 @@ jest.mock('../../config.json', () => ({
 }));
 
 import React from 'react';
+import axios from 'axios';
 import { render, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import OrderPlacer from './OrderPlacer';
@@ -19,7 +20,17 @@ const mockUser = {
     user_id: 1,
 }
 
+const mockData = {
+    data: [
+        { last: 1 }
+    ]
+};
+
 describe('<OrderPlacer />', () => {
+    beforeEach(() => {
+        (axios.get as jest.Mock).mockResolvedValueOnce(mockData);
+    });
+
     it('renders the component without crashing', async () => {
         jest.spyOn(React, 'useContext').mockImplementation(() => mockUser);
 
