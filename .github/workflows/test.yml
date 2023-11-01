@@ -63,7 +63,7 @@ jobs:
       run: |
         echo '{
           "serverURL": "${{ secrets.serverURL }}"
-        }' > client/config.json
+        }' > client/src/config.json
 
     - name: Run all tests
       run: npm run test:all
