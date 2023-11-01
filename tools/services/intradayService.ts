@@ -12,21 +12,29 @@ const isIntradayDataRecent = (intradayData: TickerIntraday[]): boolean => {
     return differenceInHours <= 1;
 };
 
+const formatDate = (date: Date) => {
+    return date.getFullYear() + '-'
+        + ('0' + (date.getMonth() + 1)).slice(-2) + '-'
+        + ('0' + date.getDate()).slice(-2);
+}
+
 const getDatesForAPIRequest = () => {
     let currentDate = new Date();
 
-    let formattedCurrentDate = currentDate.getFullYear() + '-'
-        + ('0' + (currentDate.getMonth() + 1)).slice(-2) + '-'
-        + ('0' + currentDate.getDate()).slice(-2);
+    let formattedCurrentDate = formatDate(currentDate);
 
-    let yesterdayDate = new Date();
+    let yesterdayDate = new Date(currentDate);
     yesterdayDate.setDate(currentDate.getDate() - 1);
+    let formattedYesterdayDate = formatDate(yesterdayDate);
 
-    let formattedYesterdayDate = yesterdayDate.getFullYear() + '-'
-        + ('0' + (yesterdayDate.getMonth() + 1)).slice(-2) + '-'
-        + ('0' + yesterdayDate.getDate()).slice(-2);
+    if (currentDate.getDay() === 0) {
+        let dayBeforeYesterday = new Date(currentDate);
+        dayBeforeYesterday.setDate(currentDate.getDate() - 2);
+        let formattedDayBeforeYesterday = formatDate(dayBeforeYesterday);
+        return [formattedDayBeforeYesterday, formattedYesterdayDate];
+    }
 
-    return [formattedYesterdayDate, formattedCurrentDate]
+    return [formattedYesterdayDate, formattedCurrentDate];
 }
 
 const fetchMarketStackIntradayData = async (ticker: string): Promise<TickerIntraday[]> => {
