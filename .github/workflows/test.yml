@@ -46,23 +46,23 @@ jobs:
       run: |
         echo '{
           "production": false,
-          "dbhostname": "${{ secrets.dbhostname }}",
-          "dbusername": "${{ secrets.dbusername }}",
-          "dbpassword": "${{ secrets.dbpassword }}",
-          "dbname": "${{ secrets.dbname }}",
+          "dbhostname": ${{ secrets.dbhostname }},
+          "dbusername": ${{ secrets.dbusername }},
+          "dbpassword": ${{ secrets.dbpassword }},
+          "dbname": ${{ secrets.dbname }},
           "port": 5000,
-          "email": "${{ secrets.email }}",
-          "emailpassword": "${{ secrets.emailpassword }}",
-          "jwtSecret": "${{ secrets.jwtSecret }}",
-          "refreshTokenSecret": "${{ secrets.refreshTokenSecret }}",
-          "clientURL": "${{ secrets.clientURL }}",
-          "marketStackKey": "${{ secrets.marketStackKey }}"
+          "email": ${{ secrets.email }},
+          "emailpassword": ${{ secrets.emailpassword }},
+          "jwtSecret": ${{ secrets.jwtSecret }},
+          "refreshTokenSecret": ${{ secrets.refreshTokenSecret }},
+          "clientURL": ${{ secrets.clientURL }},
+          "marketStackKey": ${{ secrets.marketStackKey }}
         }' > config.json
 
     - name: Create client config.json from secrets
       run: |
         echo '{
-          "serverURL": "${{ secrets.serverURL }}"
+          "serverURL": ${{ secrets.serverURL }}
         }' > client/src/config.json
 
     - name: Run all tests
