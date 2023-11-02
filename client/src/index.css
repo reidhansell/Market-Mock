@@ -26,6 +26,9 @@
   --surface4-dark: hsl(var(--brand-hue) 5% 25%);
   --surface-shadow-dark: var(--brand-hue) 50% 3%;
   --shadow-strength-dark: .8;
+
+  --danger: hsl(0, 100%, 50%);
+  --danger-hover: hsl(0, 100%, 40%);
 }
 
 :root {
@@ -87,6 +90,15 @@ button {
   color: var(--text1-light);
   text-align: center;
   cursor: pointer;
+}
+
+button.danger{
+  background-color: var(--danger);
+}
+
+button.danger:hover{
+  background-color: var(--danger-hover);
+
 }
 
 button:hover {
