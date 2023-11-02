@@ -21,6 +21,10 @@ export interface ResponseData {
     [key: string]: any;
 }
 
+interface resetData {
+    starting_amount: number;
+}
+
 export const login = async (email: string, password: string): Promise<AxiosResponse<ResponseData>> => {
     try {
         const response = await Axios.post<ResponseData>(`${config.serverURL}/api/auth/login`, {
@@ -84,6 +88,15 @@ export const getUser = async (): Promise<AxiosResponse<User>> => {
         Axios.defaults.headers.common['Access-Control-Allow-Origin'] = config.serverURL;
         Axios.defaults.withCredentials = true;
         const response = await Axios.get<User>('/api/auth/');
+        return response;
+    } catch (error: any) {
+        throw error.response.data.error;
+    }
+}
+
+export const resetProgress = async (): Promise<AxiosResponse<void>> => {
+    try {
+        const response = await Axios.post<void>('/api/auth/reset_progress', { starting_amount: 10000 } as resetData);
         return response;
     } catch (error: any) {
         throw error.response.data.error;
