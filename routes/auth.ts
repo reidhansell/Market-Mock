@@ -7,7 +7,7 @@ import User from '../models/User';
 import { sendVerificationEmail, generateVerificationToken } from '../tools/services/emailService';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 import ExpectedError from '../tools/utils/ExpectedError';
-import { findUserByEmail, findUserByUsername, registerUser, updateVerificationToken, getUserData, findUserSensitiveByEmail, storeRefreshToken, findUserById, updateEmailVerificationStatus, isRefreshTokenStored, deleteRefreshToken } from '../database/queries/auth';
+import { findUserByEmail, findUserByUsername, registerUser, updateVerificationToken, getUserData, findUserSensitiveByEmail, storeRefreshToken, findUserById, updateEmailVerificationStatus, isRefreshTokenStored, deleteRefreshToken, resetUserData } from '../database/queries/auth';
 import config from '../config.json';
 import { calculateAndSaveUserNetWorth } from '../tools/services/netWorthService';
 
@@ -222,6 +222,17 @@ router.post('/session/logout', async (req: Request, res: Response, next: NextFun
         }
 
         await deleteRefreshToken(refreshToken);
+        res.status(200).json(null);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/reset_progress', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { starting_amount } = req.body;
+        const user_id: number = (req as AuthenticatedRequest).user.user_id;
+        await resetUserData(user_id, starting_amount);
         res.status(200).json(null);
     } catch (error) {
         next(error);

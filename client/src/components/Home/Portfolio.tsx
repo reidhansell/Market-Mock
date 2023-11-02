@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserPortfolio } from '../../requests/portfolio';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -8,6 +8,10 @@ import { UserContext } from '../Common/UserProvider';
 import "./Portfolio.css"
 import { getUserOrders } from '../../requests/order';
 import DashboardModule from '../Common/DashboardModule';
+import { resetProgress, getUser } from '../../requests/auth';
+import Modal from '../Common/Modal';
+import { getWatchlist } from '../../requests/watchlist';
+import { getUserQuests } from '../../requests/quest';
 
 interface PortfolioProps {
     fullscreen?: boolean;
@@ -16,7 +20,9 @@ interface PortfolioProps {
 const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
     const navigate = useNavigate();
 
-    const { netWorth, setNetWorth, setStocks, user, stocks, orders, setOrders } = useContext(UserContext);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const { netWorth, setNetWorth, setStocks, user, stocks, orders, setOrders, setUser, setWatchlist, setQuests } = useContext(UserContext);
 
     const fetchData = async () => {
         try {
@@ -42,6 +48,18 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
 
     if (netWorth) {
         chartData = transformToChartData(netWorth);
+    }
+
+    const handleUserReset = async () => {
+        const response = await resetProgress();
+        setIsModalOpen(false);
+        if (response.status === 200) {
+            const userResponse = await getUser();
+            setUser(userResponse.data);
+            setWatchlist(await getWatchlist());
+            setQuests(await getUserQuests());
+            navigate('/');
+        }
     }
 
     const content = (<><div style={{ width: '100%', aspectRatio: "2/1" }}>
@@ -94,6 +112,16 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
                     {netWorth.length > 0 ? `$${netWorth[0].net_worth} (${(netWorth[0].net_worth - user.starting_amount) >= 0 ? '+' : '-'}$${Math.abs(netWorth[0].net_worth - user.starting_amount).toFixed(2)} / ${(netWorth[0].net_worth - user.starting_amount) >= 0 ? '+' : '-'}${Math.abs(netWorth[0].net_worth / user.starting_amount * 100 - 100).toFixed(2)}%)` : <LoadingCircle />}
                 </strong>) : <LoadingCircle />}
         </p>
+        {fullscreen ? <>
+            <br />
+            <button className='danger' onClick={() => setIsModalOpen(true)}>Reset Progress</button>
+            {isModalOpen ? <Modal
+                isOpen={isModalOpen}
+                onCancel={() => setIsModalOpen(false)}
+                onConfirm={() => handleUserReset()}
+            /> : ""}
+            <br />
+        </> : ""}
         <br />
         {fullscreen ? (<>
             <h1>Owned Stocks</h1>
