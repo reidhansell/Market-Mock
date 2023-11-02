@@ -9,6 +9,7 @@ import Tooltip from '../Common/Tooltip';
 import './OrderPlacer.css';
 import Select from '../Common/Select';
 import { UserContext } from '../Common/UserProvider';
+import { getUser } from '../../requests/auth';
 
 const OrderPlacer: React.FC = () => {
     const { ticker } = useParams();
@@ -24,7 +25,7 @@ const OrderPlacer: React.FC = () => {
     const typeOptions = ['MARKET', 'LIMIT', 'STOP'];
     const navigate = useNavigate();
 
-    const { user } = useContext(UserContext);
+    const { user, setUser } = useContext(UserContext);
 
     const handleTransactionSelectChange = (selected: string) => {
         setTransactionType(selected);
@@ -70,7 +71,11 @@ const OrderPlacer: React.FC = () => {
                     quantity: finalQuantity
                 });
                 setSubmitting(false);
-                if (order.transaction_id) { setTransacted(true) } else { setSubmitted(true); }
+                if (order.transaction_id) {
+                    const userResponse = await getUser();
+                    setUser(userResponse.data);
+                    setTransacted(true)
+                } else { setSubmitted(true); }
                 setTimeout(() => {
                     navigate('/ticker/' + ticker);
                 }, 2000);
