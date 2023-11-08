@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { logout } from '../../requests/auth';
 import './Nav.css';
@@ -12,6 +12,7 @@ interface NavProps {
 
 const Navigation: React.FC<NavProps> = ({ setAuth }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const userMenuRef = useRef<HTMLUListElement>(null);
     const navigate = useNavigate();
     const { setUser } = useContext(UserContext);
 
@@ -30,6 +31,20 @@ const Navigation: React.FC<NavProps> = ({ setAuth }) => {
         setShowUserMenu((prevShowUserMenu) => !prevShowUserMenu);
     };
 
+    const handleClickOutside = (event: MouseEvent) => {
+        if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) { // Node refers to an HTML element, not Node.js
+            setShowUserMenu(false);
+        }
+    };
+
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
     return (
         <nav>
             <div className="logo-container">
@@ -43,7 +58,7 @@ const Navigation: React.FC<NavProps> = ({ setAuth }) => {
                     <div className="bars-icon" />
                 </div>
                 {showUserMenu && (
-                    <ul className="user-menu">
+                    <ul ref={userMenuRef} className="user-menu">
                         <Link to="/portfolio"><li>Portfolio</li></Link>
                         <Link to="/watchlist"><li>Watchlist</li></Link>
                         <Link to="/tickersearch"><li>Search</li></Link>
