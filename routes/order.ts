@@ -1,10 +1,11 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 import ExpectedError from '../tools/utils/ExpectedError';
-import { getOrdersAndTransactionsByUserId, insertOrder } from '../database/queries/order';
+import { cancelOrder, getOrdersAndTransactionsByUserId, insertOrder, getOrder } from '../database/queries/order';
 import Order from '../models/Order';
 import { processOrder } from '../tools/services/orderFulfillmentService'
 import { getQuests, updateQuest } from '../database/queries/quests';
+import { getTransactionConnection } from '../database/databaseConnector';
 
 interface AuthenticatedRequest extends Request {
     user: {
@@ -79,6 +80,42 @@ router.post('/', authenticateToken, async (req: Request, res: Response, next: Ne
         } else {
             return res.json(resultingOrder);
         }
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.delete('/:order_id', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { order_id } = req.params;
+        const { user_id } = (req as AuthenticatedRequest).user;
+
+        if (!order_id) {
+            throw new ExpectedError("Invalid order id", 400, "Order cancellation failed with invalid order id");
+        }
+
+        const connection = await getTransactionConnection();
+
+        const order = await getOrder(parseInt(order_id), connection);
+
+        if (order.user_id !== user_id) {
+            throw new ExpectedError("Invalid order id", 400, "User attempted to cancel an order that does not belong to them");
+        }
+
+        if (order.cancelled || order.transaction_id !== null) {
+            throw new ExpectedError("Order is not open", 400, "Order cancellation failed with order not open");
+        }
+
+        const result = await cancelOrder(parseInt(order_id), connection);
+
+        if (result) {
+            connection.commit();
+
+            res.json({ message: "Order cancelled successfully" });
+        } else {
+            connection.rollback();
+        }
+
     } catch (error) {
         next(error);
     }

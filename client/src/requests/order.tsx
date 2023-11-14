@@ -23,3 +23,13 @@ export const createOrder = async (orderData: OrderClientSubmission): Promise<Ord
         throw error.response.data.error;
     }
 };
+
+export const cancelOrder = async (orderId: number): Promise<boolean> => {
+    try {
+        Axios.defaults.withCredentials = true;
+        await Axios.delete(`${config.serverURL}/api/order/${orderId}`);
+        return true;
+    } catch (error: any) {
+        throw error.response.data.error;
+    }
+};
