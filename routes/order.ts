@@ -86,6 +86,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response, next: Ne
 });
 
 router.delete('/:order_id', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+    const connection = await getTransactionConnection();
     try {
         const { order_id } = req.params;
         const { user_id } = (req as AuthenticatedRequest).user;
@@ -94,9 +95,11 @@ router.delete('/:order_id', authenticateToken, async (req: Request, res: Respons
             throw new ExpectedError("Invalid order id", 400, "Order cancellation failed with invalid order id");
         }
 
-        const connection = await getTransactionConnection();
-
         const order = await getOrder(parseInt(order_id), connection);
+
+        if (!order) {
+            throw new ExpectedError("Invalid order id", 400, "Order cancellation failed with no order found");
+        }
 
         if (order.user_id !== user_id) {
             throw new ExpectedError("Invalid order id", 400, "User attempted to cancel an order that does not belong to them");
@@ -118,6 +121,7 @@ router.delete('/:order_id', authenticateToken, async (req: Request, res: Respons
 
     } catch (error) {
         next(error);
+        connection.rollback();
     }
 });
 
