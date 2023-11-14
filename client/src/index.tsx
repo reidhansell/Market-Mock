@@ -23,6 +23,7 @@ import { UserProvider } from './components/Common/UserProvider';
 import LoadingCircle from './components/Common/LoadingCircle';
 import { markNotificationAsRead } from './requests/notification';
 import config from './config.json';
+import Version from './components/Common/Version';
 
 /*
  * Alert System and Axios Interceptors:
@@ -153,7 +154,7 @@ const App = () => {
   return (
     <Router>
       {auth ? <Nav setAuth={setAuth} /> : null}
-
+      <Version version="v1.0.0" />
       <div className="app-container">
         <div className='alert-container'>
           {notifications.map((notification) => (
