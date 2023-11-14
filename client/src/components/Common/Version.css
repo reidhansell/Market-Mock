@@ -1,0 +1,10 @@
+.version {
+    position: fixed;
+    bottom: 0; /* Align to the bottom of the viewport */
+    left: 0; /* Align to the left of the viewport */
+    z-index: 1000;
+    font-size: small;
+    color: var(--color-text-dark);
+    font-style: italic;
+  }
+  
