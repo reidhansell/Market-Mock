@@ -102,6 +102,17 @@ async function fetchBuyTransactionsHeldFor30Days(tickerSymbol: string, userId: n
     return fetchResult;
 }
 
+async function getOrder(orderId: number, connection?: Connection): Promise<Order | FulfilledOrder> {
+    const selectQuery = `SELECT * FROM Trade_Order LEFT JOIN Transaction ON Trade_Order.order_id = Transaction.order_id WHERE Trade_Order.order_id = ?;`;
+    const orderResults = connection ? await executeQuery(selectQuery, [orderId], connection) as Order[] | FulfilledOrder[] : await executeQuery(selectQuery, [orderId]) as Order[] | FulfilledOrder[];
+
+    if (orderResults.length === 0) {
+        throw new ExpectedError('Failed to retrieve the inserted order', 500, `Failed to find the inserted order with ID: ${orderId}`);
+    }
+
+    return orderResults[0] as Order | FulfilledOrder;
+}
+
 async function cancelOrder(orderId: number, connection?: Connection): Promise<boolean> {
     const cancelQuery = `
         UPDATE Trade_Order 
@@ -123,5 +134,6 @@ export {
     insertOrder,
     insertTransaction,
     fetchBuyTransactionsHeldFor30Days,
+    getOrder,
     cancelOrder
 };

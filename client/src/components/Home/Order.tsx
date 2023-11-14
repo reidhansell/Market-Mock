@@ -1,19 +1,32 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { UserContext } from '../Common/UserProvider';
 import { FulfilledOrder } from '../../../../models/Order';
 import DashboardModule from '../Common/DashboardModule';
 import Tooltip from '../Common/Tooltip';
+import { cancelOrder } from '../../requests/order';
+import LoadingCircle from '../Common/LoadingCircle';
 
 const Order: React.FC = () => {
     const navigate = useNavigate();
 
+    const [cancelling, setCancelling] = useState(false);
     const { order } = useParams() as { order: string };
     const orderIdInt = parseInt(order ? order : "-1");
 
     const { orders } = useContext(UserContext);
     const targetOrder = orders.find(o => o.order_id === orderIdInt) as FulfilledOrder;
     const date = new Date(targetOrder?.order_date);
+
+    const handleCancelOrder = async () => {
+        setCancelling(true);
+        const result = await cancelOrder(orderIdInt);
+        setCancelling(false);
+        if (result) {
+            navigate('/portfolio');
+        }
+    }
+
     useEffect(() => {
         if (!targetOrder) {
             navigate('/portfolio');
@@ -38,6 +51,7 @@ const Order: React.FC = () => {
                 {order.transaction_id && <p>Fulfilled price: {order.price_per_share}</p>}
                 <p>Date Placed: {new Date(date).toLocaleDateString()}</p>
                 {order.transaction_id && <p>Date Fulfilled: {new Date(date).toLocaleDateString()}</p>}
+                {!order.cancelled && !order.transaction_id ? <><br /><button className='danger' onClick={() => handleCancelOrder()}>{cancelling ? <LoadingCircle /> : "Cancel Order"}</button></> : ""}
             </>
         );
     };
