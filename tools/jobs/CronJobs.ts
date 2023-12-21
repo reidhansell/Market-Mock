@@ -4,6 +4,8 @@ import { syncTickers } from '../services/tickersSyncService';
 import ExpectedError from '../utils/ExpectedError';
 import { calculateAndSaveUserNetWorth } from '../services/netWorthService';
 import { fulfillOpenOrders } from '../services/orderFulfillmentService';
+import { insertHardwareLoadLog } from '../../database/queries/monitor';
+import si from 'systeminformation';
 
 export default class CronJobs {
     public static scheduleJobs() {
@@ -12,6 +14,7 @@ export default class CronJobs {
         this.scheduleSyncTickers();
         this.scheduleCalculateNetWorth();
         this.scheduleFulfillOpenOrders();
+        this.scheduleHardwareDataCollection();
         console.log('Successfully scheduled cron jobs');
     }
 
@@ -60,6 +63,35 @@ export default class CronJobs {
             console.log('Fulfilling open orders...');
             await fulfillOpenOrders();
             console.log('Done fulfilling open orders');
+        }));
+    }
+
+    private static async scheduleHardwareDataCollection() {
+        cron.schedule('*/5 * * * *', this.wrapJob(async () => {
+            try {
+                console.log('Collecting hardware data...');
+                const load = await si.currentLoad();
+                const cpuLoad = load.currentLoad;
+
+                const mem = await si.mem();
+                const memoryLoad = (mem.active / mem.total) * 100;
+
+                const disks = await si.fsSize();
+                let diskUsage = 0;
+                if (disks.length > 0) {
+                    const totalSize = disks.reduce((acc, disk) => acc + disk.size, 0);
+                    const usedSize = disks.reduce((acc, disk) => acc + disk.used, 0);
+                    diskUsage = (usedSize / totalSize) * 100;
+                }
+
+                console.log(`CPU Load: ${cpuLoad}%`);
+                console.log(`Memory Load: ${memoryLoad}%`);
+                console.log(`Disk Usage: ${diskUsage.toFixed(2)}%`);
+
+                await insertHardwareLoadLog(cpuLoad, memoryLoad, diskUsage);
+            } catch (error) {
+                console.error(`Error getting system load: ${error}`);
+            }
         }));
     }
 
