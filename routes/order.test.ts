@@ -1,6 +1,7 @@
 jest.mock('../database/queries/order');
 jest.mock('../tools/middleware/authMiddleware');
 jest.mock('../tools/services/orderFulfillmentService');
+jest.mock('../database/queries/monitor');
 
 import request from 'supertest';
 import { Express } from 'express';
@@ -9,11 +10,13 @@ import { insertOrder, getOrdersAndTransactionsByUserId } from '../database/queri
 import { processOrder } from '../tools/services/orderFulfillmentService';
 import { setupApp } from '../tools/utils/routeTestSetup';
 import orderRouter from './order';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 let app: Express;
 
 beforeEach(() => {
     app = setupApp(orderRouter);
+    (insertHTTPRequest as jest.Mock).mockResolvedValue(undefined);
 });
 
 afterEach(() => {

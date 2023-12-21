@@ -4,12 +4,8 @@ import { authenticateToken } from '../tools/middleware/authMiddleware';
 import { getQuests, updateQuest } from '../database/queries/quests';
 import ExpectedError from '../tools/utils/ExpectedError';
 import { getUserStocks } from '../database/queries/portfolio';
-
-interface AuthenticatedRequest extends Request {
-    user: {
-        user_id: number;
-    }
-}
+import { AuthenticatedRequest } from '../models/User';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 const router = Router();
 
@@ -36,6 +32,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
         }
 
         res.status(200).json(watchlistWithData);*/
+        insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json(watchlist);
     } catch (error) {
         next(error);
@@ -52,6 +49,7 @@ router.post('/add/:ticker_symbol', authenticateToken, async (req: Request, res: 
         if (watchlistQuest && watchlistQuest.completion_date === null) {
             await updateQuest(user_id, watchlistQuest.quest_id);
         }
+        insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json({ message: 'Ticker added to watchlist successfully' });
     } catch (error) {
         next(error);
@@ -67,6 +65,7 @@ router.delete('/remove/:ticker_symbol', authenticateToken, async (req: Request, 
             throw new ExpectedError('Cannot remove a stock from watchlist if you currently own it', 400, '/api/watchlist/remove failed, tried to remove owned stock');
         }
         await removeTickerFromWatchList(user_id, ticker_symbol);
+        insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json({ message: 'Ticker removed from watchlist successfully' });
     } catch (error) {
         next(error);

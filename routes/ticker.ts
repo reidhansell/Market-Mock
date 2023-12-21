@@ -4,7 +4,7 @@ import ExpectedError from '../tools/utils/ExpectedError';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 import { getEODDataForTicker } from '../tools/services/endOfDayService';
 import { getIntradayDataForTicker } from '../tools/services/intradayService';
-
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 const router = Router();
 
@@ -21,6 +21,7 @@ router.get('/search/:search_term', authenticateToken, async (req: Request, res: 
             throw new ExpectedError('Invalid search term', 400, "Invalid search term in /search route");
         }
         const tickers = await searchTickers(search_term);
+        insertHTTPRequest(req.url, 200, req.ip);
         res.json({ tickers: tickers });
     } catch (error) {
         next(error);
@@ -31,6 +32,7 @@ router.get('/eod/:ticker', authenticateToken, async (req: Request, res: Response
     try {
         const ticker = req.params.ticker;
         const eodData = await getEODDataForTicker(ticker);
+        insertHTTPRequest(req.url, 200, req.ip);
         return res.json(eodData);
     } catch (error) {
         next(error);
@@ -40,6 +42,7 @@ router.get('/eod/:ticker', authenticateToken, async (req: Request, res: Response
 router.get('/intraday/:ticker', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const intradayData = await getIntradayDataForTicker(req.params.ticker);
+        insertHTTPRequest(req.url, 200, req.ip);
         return res.json(intradayData);
     } catch (error) {
         next(error);

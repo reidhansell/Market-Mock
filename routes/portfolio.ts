@@ -3,12 +3,8 @@ import { getStockTransactions, getUserNetWorthData, getUserStocks } from '../dat
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 import { getIntradayDataForTicker } from '../tools/services/intradayService';
 import { UserStockWithPrices } from '../models/UserStock';
-
-interface AuthenticatedRequest extends Request {
-    user: {
-        user_id: number;
-    }
-}
+import { AuthenticatedRequest } from '../models/User';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 const router = Router();
 
@@ -38,6 +34,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
             }
             userStock.purchased_price = costBasis / purchasedShares;
         }
+        insertHTTPRequest(req.url, 200, req.ip);
         return res.json({ netWorthData: netWorthData, userStocks: userStocks });
     } catch (error) {
         next(error);
