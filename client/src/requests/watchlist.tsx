@@ -1,6 +1,6 @@
 import Axios from 'axios';
 import config from '../config.json';
-import WatchList from '../../../models/WatchList';
+import WatchList from '../../models/WatchList';
 
 export const getWatchlist = async (): Promise<WatchList[]> => {
     try {

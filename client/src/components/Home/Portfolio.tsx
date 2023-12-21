@@ -2,7 +2,7 @@ import React, { useEffect, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserPortfolio } from '../../requests/portfolio';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import NetWorthData from '../../../../models/NetWorthData';
+import NetWorthData from '../../../models/NetWorthData';
 import LoadingCircle from '../Common/LoadingCircle';
 import { UserContext } from '../Common/UserProvider';
 import "./Portfolio.css"

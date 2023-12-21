@@ -1,7 +1,7 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { UserContext } from '../Common/UserProvider';
-import { FulfilledOrder } from '../../../../models/Order';
+import { FulfilledOrder } from '../../../models/Order';
 import DashboardModule from '../Common/DashboardModule';
 import Tooltip from '../Common/Tooltip';
 import { cancelOrder } from '../../requests/order';

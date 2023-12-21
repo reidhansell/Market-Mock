@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Ticker from "../../../../models/Ticker"
+import Ticker from "../../../models/Ticker"
 import { searchTickers } from '../../requests/Ticker';
 import './TickerSearch.css';
 import Tooltip from '../Common/Tooltip';
