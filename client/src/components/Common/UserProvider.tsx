@@ -1,11 +1,11 @@
 import React, { useState, ReactNode, useCallback } from 'react';
-import WatchList from '../../../../models/WatchList';
-import User from '../../../../models/User';
-import NetWorthData from '../../../../models/NetWorthData';
-import { UserStockWithPrices } from '../../../../models/UserStock';
-import Notification from '../../../../models/Notification';
-import { FulfilledOrder } from '../../../../models/Order';
-import { UserQuest } from '../../../../models/Quest';
+import WatchList from '../../../models/WatchList';
+import User from '../../../models/User';
+import NetWorthData from '../../../models/NetWorthData';
+import { UserStockWithPrices } from '../../../models/UserStock';
+import Notification from '../../../models/Notification';
+import { FulfilledOrder } from '../../../models/Order';
+import { UserQuest } from '../../../models/Quest';
 
 interface UserContext {
     user: User | null;
