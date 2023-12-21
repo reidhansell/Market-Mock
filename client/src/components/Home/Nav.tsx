@@ -14,7 +14,7 @@ const Navigation: React.FC<NavProps> = ({ setAuth }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef<HTMLUListElement>(null);
     const navigate = useNavigate();
-    const { setUser } = useContext(UserContext);
+    const { setUser, user } = useContext(UserContext);
 
     const handleLogout = async () => {
         try {
@@ -63,6 +63,7 @@ const Navigation: React.FC<NavProps> = ({ setAuth }) => {
                         <Link to="/watchlist"><li>Watchlist</li></Link>
                         <Link to="/tickersearch"><li>Search</li></Link>
                         <Link to="/quests"><li>Quests</li></Link>
+                        {user?.user_id === 1 ? <Link to="/admin"><li>Admin</li></Link> : null}
                         <Link to="/login" onClick={handleLogout}><li >Signout</li></Link>
                     </ul>
                 )}
