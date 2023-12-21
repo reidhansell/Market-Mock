@@ -24,6 +24,7 @@ import LoadingCircle from './components/Common/LoadingCircle';
 import { markNotificationAsRead } from './requests/notification';
 import config from './config.json';
 import Version from './components/Common/Version';
+import Admin from './components/Home/Admin';
 
 /*
  * Alert System and Axios Interceptors:
@@ -182,6 +183,7 @@ const App = () => {
           <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
           <Route path="/orderplacer/:ticker" element={auth ? <OrderPlacer /> : <Navigate to="/login" />} />
           <Route path="/order/:order" element={auth ? <Order /> : <Navigate to="/login" />} />
+          <Route path="/admin" element={auth ? <Admin /> : <Navigate to="/login" />} />
           <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
         </Routes>
       </div>
