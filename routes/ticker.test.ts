@@ -2,6 +2,7 @@ jest.mock('../database/queries/ticker');
 jest.mock('../tools/middleware/authMiddleware');
 jest.mock('../tools/services/endOfDayService');
 jest.mock('../tools/services/intradayService');
+jest.mock('../database/queries/monitor');
 
 import request from 'supertest';
 import { Express } from 'express';
@@ -11,11 +12,13 @@ import { getEODDataForTicker } from '../tools/services/endOfDayService';
 import { getIntradayDataForTicker } from '../tools/services/intradayService';
 import { setupApp } from '../tools/utils/routeTestSetup';
 import tickerRouter from './ticker';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 let app: Express;
 
 beforeEach(() => {
     app = setupApp(tickerRouter);
+    (insertHTTPRequest as jest.Mock).mockResolvedValue(undefined);
 });
 
 afterEach(() => {

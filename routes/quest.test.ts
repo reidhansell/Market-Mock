@@ -1,5 +1,6 @@
 jest.mock('../database/queries/quests');
 jest.mock('../tools/middleware/authMiddleware');
+jest.mock('../database/queries/monitor');
 
 import request from 'supertest';
 import { Express } from 'express';
@@ -7,11 +8,13 @@ import { getQuests } from '../database/queries/quests';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 import { setupApp } from '../tools/utils/routeTestSetup';
 import questRouter from './quest';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 let app: Express;
 
 beforeEach(() => {
     app = setupApp(questRouter);
+    (insertHTTPRequest as jest.Mock).mockResolvedValue(undefined);
 });
 
 afterEach(() => {

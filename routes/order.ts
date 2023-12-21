@@ -6,12 +6,8 @@ import Order from '../models/Order';
 import { processOrder } from '../tools/services/orderFulfillmentService'
 import { getQuests, updateQuest } from '../database/queries/quests';
 import { getTransactionConnection } from '../database/databaseConnector';
-
-interface AuthenticatedRequest extends Request {
-    user: {
-        user_id: number;
-    }
-}
+import { AuthenticatedRequest } from '../models/User';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 async function handleOrderQuests(user_id: number, order: Order) {
     const quests = await getQuests(user_id);
@@ -35,6 +31,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
         const { user_id } = (req as AuthenticatedRequest).user;
 
         const orders = await getOrdersAndTransactionsByUserId(user_id);
+        insertHTTPRequest(req.url, 200, req.ip);
         res.json(orders);
     } catch (error) {
         next(error);
@@ -76,8 +73,10 @@ router.post('/', authenticateToken, async (req: Request, res: Response, next: Ne
         const resultingOrder = await processOrder(order);
 
         if (resultingOrder === null) {
+            insertHTTPRequest(req.url, 200, req.ip);
             return res.json(order);
         } else {
+            insertHTTPRequest(req.url, 200, req.ip);
             return res.json(resultingOrder);
         }
     } catch (error) {
@@ -114,6 +113,7 @@ router.delete('/:order_id', authenticateToken, async (req: Request, res: Respons
         if (result) {
             connection.commit();
 
+            insertHTTPRequest(req.url, 200, req.ip);
             res.json({ message: "Order cancelled successfully" });
         } else {
             connection.rollback();
