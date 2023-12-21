@@ -21,9 +21,9 @@ import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { UserProvider } from '../Common/UserProvider';
 import Portfolio from './Portfolio';
-import Order from '../../../../models/Order'
-import UserStock from '../../../../models/UserStock';
-import User from '../../../../models/User';
+import Order from '../../../models/Order'
+import UserStock from '../../../models/UserStock';
+import User from '../../../models/User';
 import { getUserPortfolio } from '../../requests/portfolio';
 import { getUserOrders } from '../../requests/order';
 

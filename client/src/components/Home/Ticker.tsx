@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
-import TickerIntraday from '../../../../models/TickerIntraday';
-import TickerEndOfDay from '../../../../models/TickerEndOfDay';
+import TickerIntraday from '../../../models/TickerIntraday';
+import TickerEndOfDay from '../../../models/TickerEndOfDay';
 import { useParams, Link } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import LoadingCircle from '../Common/LoadingCircle';
@@ -115,14 +115,16 @@ const Ticker: React.FC = () => {
                             data={chartData.length > 0 ? chartData : []}
                             margin={{ top: 0, right: 40, left: 0, bottom: 0 }}
                         >
-                            <XAxis dataKey="name"
+                            <XAxis
+                                dataKey="name"
                                 tickFormatter={(dateStr) => {
                                     const date = new Date(dateStr);
                                     return `${date.getMonth() + 1}/${date.getDate()}`;
                                 }}
                                 style={{ fontSize: '0.75rem' }}
                                 tick={{ fill: 'white' }} />
-                            <YAxis domain={['dataMin', 'dataMax']}
+                            <YAxis
+                                domain={['dataMin', 'dataMax']}
                                 tickFormatter={(price) => {
                                     return `$${price}`;
                                 }}
@@ -132,7 +134,9 @@ const Ticker: React.FC = () => {
                                 tick={{ fill: 'white' }}
                             />
                             <Tooltip />
-                            <CartesianGrid stroke="#f5f5f5" vertical={false}
+                            <CartesianGrid
+                                stroke="#f5f5f5"
+                                vertical={false}
                                 style={{ borderRight: '1px solid #f5f5f5', borderBottom: '1px solid #f5f5f5' }} />
                             <Line type="monotone" dataKey="price" stroke="#3cb043" yAxisId={0} isAnimationActive={false} />
                         </LineChart>

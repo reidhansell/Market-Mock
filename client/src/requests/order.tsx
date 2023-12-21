@@ -1,6 +1,6 @@
 import Axios from 'axios';
 import config from '../config.json';
-import Order, { FulfilledOrder, OrderClientSubmission, OrderSubmission } from '../../../models/Order';
+import Order, { FulfilledOrder, OrderClientSubmission } from '../../models/Order';
 
 export const getUserOrders = async (): Promise<FulfilledOrder[]> => {
     try {

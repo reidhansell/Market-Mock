@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Axios from 'axios';
 import config from '../../config.json';
 import LoadingCircle from '../Common/LoadingCircle';
-import TickerIntraday from '../../../../models/TickerIntraday';
+import TickerIntraday from '../../../models/TickerIntraday';
 import { createOrder } from '../../requests/order';
 import Tooltip from '../Common/Tooltip';
 import './OrderPlacer.css';
