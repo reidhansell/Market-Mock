@@ -43,7 +43,7 @@ async function deleteOldHTTPRequests(): Promise<void> {
 
 async function insertHardwareLoadLog(cpu_load: Number, memory_load: Number, disk_usage: Number, connection?: Connection): Promise<void> {
     const insertQuery = `
-        INSERT INTO hardware_load_log (cpu_load, memory_load, disk_usage) VALUES (?, ?, ?)
+        INSERT INTO Hardware_Load_Log (cpu_load, memory_load, disk_usage) VALUES (?, ?, ?)
     `;
 
     const insertParameters = [cpu_load, memory_load, disk_usage];
