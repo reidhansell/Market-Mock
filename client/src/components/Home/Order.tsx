@@ -1,22 +1,23 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { UserContext } from '../Common/UserProvider';
-import { FulfilledOrder } from '../../../models/Order';
-import DashboardModule from '../Common/DashboardModule';
-import Tooltip from '../Common/Tooltip';
+import { UserContext } from '../../UserProvider';
 import { cancelOrder } from '../../requests/order';
-import LoadingCircle from '../Common/LoadingCircle';
+import { Box, Header, Button, SpaceBetween, Spinner } from '../../../theme/build/components/index';
 
 const Order: React.FC = () => {
     const navigate = useNavigate();
 
     const [cancelling, setCancelling] = useState(false);
-    const { order } = useParams() as { order: string };
+    const { order } = useParams();
     const orderIdInt = parseInt(order ? order : "-1");
-
     const { orders } = useContext(UserContext);
-    const targetOrder = orders.find(o => o.order_id === orderIdInt) as FulfilledOrder;
-    const date = new Date(targetOrder?.order_date);
+    const targetOrder = orders.find(o => o.order_id === orderIdInt);
+
+    useEffect(() => {
+        if (!targetOrder) {
+            navigate('/portfolio');
+        }
+    }, []);
 
     const handleCancelOrder = async () => {
         setCancelling(true);
@@ -27,37 +28,27 @@ const Order: React.FC = () => {
         }
     }
 
-    useEffect(() => {
-        if (!targetOrder) {
-            navigate('/portfolio');
-        }
-    }, [order]);
-
-    const OrderDetails: React.FC<{ order: FulfilledOrder }> = ({ order }) => {
-        return (
-            <>
-                <h2 className='owned-stock-header'>{`${order.ticker_symbol} (${Math.abs(order.quantity)})`} <Tooltip text={["Status: Open, Fulfilled, or Cancelled.",
-                    "",
-                    "Trigger Price: What the order will attempted to be fulfilled for.",
-                    "",
-                    "Fulfilled price: What the order was actually fulfilled for",
-                    "",
-                    "Date Placed: When the order was placed",
-                    "",
-                    "Date Fulfilled: When the order was fulfilled"]} /></h2>
-                <p style={{ color: order.quantity < 0 ? "red" : "var(--brand)" }}>{order.quantity < 0 ? "SELL" : "BUY"}</p>
-                <p>Status: {order.cancelled ? "Cancelled" : order.transaction_id ? "Fulfilled" : "Open"}</p>
-                <p>Trigger Price: {order.trigger_price}</p>
-                {order.transaction_id && <p>Fulfilled price: {order.price_per_share}</p>}
-                <p>Date Placed: {new Date(date).toLocaleDateString()}</p>
-                {order.transaction_id && <p>Date Fulfilled: {new Date(date).toLocaleDateString()}</p>}
-                {!order.cancelled && !order.transaction_id ? <><br /><button className='danger' onClick={() => handleCancelOrder()}>{cancelling ? <LoadingCircle /> : "Cancel Order"}</button></> : ""}
-            </>
-        );
-    };
-
     return (
-        <DashboardModule title='Order Details' fullscreen={true} content={<OrderDetails order={targetOrder} />} />
+        <Box padding="m">
+            <SpaceBetween size='m'>
+                <Header variant="h1">
+                    Order Details
+                </Header>
+                {!targetOrder ? <Spinner /> : (
+                    <>
+                        <Header variant='h2'>{`${targetOrder.ticker_symbol} (${targetOrder.quantity > 0 ? "+" : ""}${targetOrder.quantity})`} </Header>
+                        <span style={{ color: targetOrder.quantity < 0 ? "red" : "green" }}>{targetOrder.quantity < 0 ? "SELL" : "BUY"}</span>
+                        <span>Status: {targetOrder.cancelled ? "Cancelled" : targetOrder.transaction_id ? "Fulfilled" : "Open"}</span>
+                        <span>Trigger Price: {targetOrder.trigger_price}</span>
+                        {targetOrder.transaction_id && <span>Fulfilled price: {targetOrder.price_per_share}</span>}
+                        <span>Date Placed: {new Date(targetOrder.order_date * 1000).toLocaleDateString()}</span>
+                        {targetOrder.transaction_id && <span>Date Fulfilled: {new Date(targetOrder.order_date * 1000).toLocaleDateString()}</span>}
+                        {!targetOrder.cancelled && !targetOrder.transaction_id ? <><Button onClick={() => handleCancelOrder()}>{cancelling ? <Spinner /> : "Cancel Order"}</Button></> : ""}
+                    </>
+                )}
+
+            </SpaceBetween>
+        </Box>
     );
 }
 
