@@ -1,17 +1,17 @@
-import React, { useState, FC, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Auth.css';
 import { login } from '../../requests/auth';
 import Axios from 'axios';
 import config from '../../config.json';
-import { UserContext } from '../Common/UserProvider';
-import logo from '../../../android-chrome-192x192.png';
+import { UserContext } from '../../UserProvider';
+import logo from '../../../logo/android-chrome-192x192.png';
+import { FormField, Input, Button, Box, SpaceBetween, Container, Header, Form } from '../../../theme/build/components/index';
 
 interface LoginProps {
     setAuth: (auth: boolean) => void;
 }
 
-const Login: FC<LoginProps> = ({ setAuth }) => {
+const Login: React.FC<LoginProps> = ({ setAuth }) => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const navigate = useNavigate();
@@ -34,36 +34,30 @@ const Login: FC<LoginProps> = ({ setAuth }) => {
     };
 
     return (
-        <div className="auth-container">
-            <img src={logo} alt="logo" className="logo" style={{ width: "50%", marginLeft: "auto", marginRight: "auto" }} />
-            <h1 className="logo-placeholder"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</h1>
-            <br />
-            <h2>Login</h2>
-            <form className="auth-form" onSubmit={handleLogin}>
-                <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-                <button type="submit" data-testid="login-page-login-button">Login</button>
-
-                <div className="auth-link">
-                    <small><i>Don't have an account?</i></small>
-                    <button data-testid="login-page-register-button" type="button" style={{ width: '100%' }} onClick={() => navigate('/register')}>Register</button>
-                </div>
-            </form>
-        </div >
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+            <Container>
+                <Box textAlign="center">
+                    <SpaceBetween size="xs">
+                        <img src={logo} alt="logo" style={{ width: "100px" }} />
+                        <Header variant="h1">Market Mock</Header>
+                        <form onSubmit={handleLogin}>
+                            <Form actions={<Button fullWidth variant="primary">Login</Button>}>
+                                <SpaceBetween size="xs">
+                                    <FormField label="Email">
+                                        <Input type="email" placeholder="Email" value={email} onChange={({ detail }) => setEmail(detail.value)} />
+                                    </FormField>
+                                    <FormField label="Password">
+                                        <Input type="password" placeholder="Password" value={password} onChange={({ detail }) => setPassword(detail.value)} />
+                                    </FormField>
+                                </SpaceBetween>
+                            </Form>
+                        </form>
+                        <Button fullWidth variant="link" onClick={() => navigate('/register')}>Don't have an account? Register</Button>
+                    </SpaceBetween>
+                </Box>
+            </Container>
+        </div>
     );
 };
 
 export default Login;
-
-
-

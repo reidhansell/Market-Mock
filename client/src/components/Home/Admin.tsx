@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getMonitorData } from '../../requests/auth';
-import { PieChart, Pie, Tooltip, Legend, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import HardwareLoadLog from '../../../models/HardwareLoadLog';
 import HTTPRequest from '../../../models/HTTPRequest';
-import DashboardModule from '../Common/DashboardModule';
 
 const Admin: React.FC = () => {
 
@@ -56,36 +54,7 @@ const Admin: React.FC = () => {
     };
 
     const renderLineChart = (data: HardwareLoadLog[], dataKey: keyof HardwareLoadLog, label: string) => (
-        <div style={{ width: '100%', aspectRatio: "2/1", marginBottom: "2rem", borderBottom: "1px solid" }}>
-            <h4>{label}</h4>
-            <ResponsiveContainer>
-                <LineChart
-                    data={data}
-                    margin={{ top: 0, right: 40, left: 0, bottom: 0 }}
-                >
-                    <XAxis
-                        dataKey="log_date"
-                        tickFormatter={(dateStr) => {
-                            const date = new Date(dateStr);
-                            return `${date.getMonth() + 1}/${date.getDate()}`;
-                        }}
-                        style={{ fontSize: '0.75rem' }}
-                        tick={{ fill: 'white' }} />
-                    <YAxis
-                        domain={[0, 100]}
-                        style={{ fontSize: '12px' }}
-                        width={50}
-                        axisLine={false}
-                        tick={{ fill: 'white' }} />
-                    <Tooltip />
-                    <CartesianGrid
-                        stroke="#f5f5f5"
-                        vertical={false}
-                        style={{ borderRight: '1px solid #f5f5f5', borderBottom: '1px solid #f5f5f5' }} />
-                    <Line type="monotone" dataKey={dataKey} stroke="#3cb043" yAxisId={0} isAnimationActive={false} />
-                </LineChart>
-            </ResponsiveContainer>
-        </div>
+        <></>
     );
 
     useEffect(() => {
@@ -101,43 +70,11 @@ const Admin: React.FC = () => {
         getData();
     }, []);
 
-    let content = (
+    return (
         <>
-            <h2>HTTP Request Statistics</h2>
-            {HTTPSuccessPercentage.map((routeData, index) => (
-                <div key={index} style={{ height: "15rem", paddingBottom: "2rem", borderBottom: "1px solid" }}>
-                    <h3>Route: {routeData.route}</h3>
-                    <ResponsiveContainer>
-                        <PieChart>
-                            <Pie
-                                data={routeData.data}
-                                dataKey="value"
-                                nameKey="name"
-                                cx="50%"
-                                cy="50%"
-                                outerRadius={80}
-                                label
-                            >
-                                {routeData.data.map((entry, cellIndex) => (
-                                    <Cell key={`cell-${cellIndex}`} fill={entry.fill} />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </div>
-            ))}
-            <div style={{ marginTop: "20px" }}>
-                <h2>Hardware Metrics</h2>
-                {renderLineChart(hardwareData, 'cpu_load', 'CPU Load')}
-                {renderLineChart(hardwareData, 'memory_load', 'Memory Load')}
-                {renderLineChart(hardwareData, 'disk_usage', 'Disk Usage')}
-            </div>
+
         </>
     );
-
-    return (<DashboardModule title='Admin' fullscreen={true} content={content} />);
 };
 
 export default Admin;

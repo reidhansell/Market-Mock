@@ -1,17 +1,13 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserPortfolio } from '../../requests/portfolio';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import NetWorthData from '../../../models/NetWorthData';
-import LoadingCircle from '../Common/LoadingCircle';
-import { UserContext } from '../Common/UserProvider';
-import "./Portfolio.css"
+import { UserContext } from '../../UserProvider';
 import { getUserOrders } from '../../requests/order';
-import DashboardModule from '../Common/DashboardModule';
 import { resetProgress, getUser } from '../../requests/auth';
-import Modal from '../Common/Modal';
 import { getWatchlist } from '../../requests/watchlist';
 import { getUserQuests } from '../../requests/quest';
+import { Box, Header, Button, LineChart, SpaceBetween, Spinner, Modal, Cards, Link } from '../../../theme/build/components/index';
 
 interface PortfolioProps {
     fullscreen?: boolean;
@@ -23,7 +19,6 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { netWorth, setNetWorth, setStocks, user, stocks, orders, setOrders, setUser, setWatchlist, setQuests } = useContext(UserContext);
-
     const fetchData = async () => {
         try {
             const portfolioData = await getUserPortfolio();
@@ -41,10 +36,10 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
     }, []);
 
     const transformToChartData = (data: NetWorthData[]) => {
-        return data.map(d => ({ date: new Date(d.recorded_at * 1000).toISOString(), netWorth: d.net_worth })).reverse();
+        return data.map(d => ({ x: new Date(d.recorded_at * 1000), y: d.net_worth }));
     };
 
-    let chartData: { date: string; netWorth: number }[] = [];
+    let chartData: { x: Date; y: number }[] = [];
 
     if (netWorth) {
         chartData = transformToChartData(netWorth);
@@ -62,95 +57,164 @@ const Portfolio: React.FC<PortfolioProps> = ({ fullscreen }) => {
         }
     }
 
-    const content = (<><div style={{ width: '100%', aspectRatio: "2/1" }}>
-        <ResponsiveContainer>
-            <LineChart
-                data={chartData}
-                margin={{ top: 0, right: 40, left: 0, bottom: 0 }}
-            >
-                <XAxis
-                    dataKey="date"
-                    tickFormatter={(dateStr) => {
-                        const date = new Date(dateStr);
-                        return `${date.getMonth() + 1}/${date.getDate()}`;
-                    }}
-                    style={{ fontSize: '0.75rem' }}
-                    tick={{ fill: 'white' }}
-                />
-                <YAxis
-                    domain={['dataMin', 'dataMax']}
-                    tickFormatter={(tick) => `${(tick / 1000).toFixed(1)}k`}
-                    style={{ fontSize: '12px' }}
-                    width={40}
-                    axisLine={false}
-                    tick={{ fill: 'white' }}
-                />
-                <Tooltip />
-                <CartesianGrid stroke="#f5f5f5" vertical={false} />
-                <Line type="monotone" dataKey="netWorth" stroke="#3cb043" yAxisId={0} isAnimationActive={false} />
-            </LineChart>
-        </ResponsiveContainer>
-    </div>
-        <br />
-        {fullscreen ? <h1>Wallet</h1> : null}
-        <p>
-            Initial Investment:<br />
-            <strong>${user ? user.starting_amount : <LoadingCircle />}</strong>
-        </p>
-        <br />
-        <p>
-            Current Wallet Balance:<br />
-            <strong>${user ? user.current_balance : <LoadingCircle />}</strong>
-        </p>
-        <br />
-        <p>
-            Current Net Worth:<br />
-            {user ? (
-                <strong style={{
-                    color: netWorth.length > 0 && netWorth[0].net_worth >= user.starting_amount ? '#3cb043' : '#e74c3c'
-                }}>
-                    {netWorth.length > 0 ? `$${netWorth[0].net_worth} (${(netWorth[0].net_worth - user.starting_amount) >= 0 ? '+' : '-'}$${Math.abs(netWorth[0].net_worth - user.starting_amount).toFixed(2)} / ${(netWorth[0].net_worth - user.starting_amount) >= 0 ? '+' : '-'}${Math.abs(netWorth[0].net_worth / user.starting_amount * 100 - 100).toFixed(2)}%)` : <LoadingCircle />}
-                </strong>) : <LoadingCircle />}
-        </p>
-        {fullscreen ? <>
-            <br />
-            <button className='danger' onClick={() => setIsModalOpen(true)}>Reset Progress</button>
-            {isModalOpen ? <Modal
-                isOpen={isModalOpen}
-                onCancel={() => setIsModalOpen(false)}
-                onConfirm={() => handleUserReset()}
-            /> : ""}
-            <br />
-        </> : ""}
-        <br />
-        {fullscreen ? (<>
-            <h1>Owned Stocks</h1>
-            <ul className='owned-stocks-list'>
-                {stocks.length > 0 ? stocks.map((stock) => (
-                    <li className='owned-stock' key={stock.ticker_symbol} onClick={() => navigate(`/ticker/${stock.ticker_symbol}`)}>
-                        <h3 className='owned-stock-header'>{`${stock.ticker_symbol} (${stock.quantity})`}</h3>
-                        <p style={{ color: stock.last > stock.open ? "var(--brand)" : "red" }}>Today: {`${stock.last > stock.open ? '+' : '-'}$${Math.abs(stock.last - stock.open).toFixed(2)} (${stock.last > stock.open ? '+' : '-'}$${(Math.abs(stock.last - stock.open) * stock.quantity).toFixed(2)})`}</p>
-                        <p style={{ color: stock.last > stock.purchased_price ? "var(--brand)" : "red" }}>Since Purchased: {`${stock.last > stock.purchased_price ? '+' : '-'}$${Math.abs(stock.last - stock.purchased_price).toFixed(2)} (${stock.last > stock.purchased_price ? '+' : '-'}$${(Math.abs(stock.last - stock.purchased_price) * stock.quantity).toFixed(2)})`}</p>
-                    </li>
-                )) : <p style={{ padding: "0.5rem" }}>No stocks currently owned</p>}
-            </ul>
-            <br />
-            <h1>Order History</h1>
-            <ul className='owned-stocks-list'>
-                {orders.length > 0 ? orders.map((order) => (
-                    <li className='owned-stock' key={order.order_id} onClick={() => navigate(`/order/${order.order_id}`)}>
-                        <h3 style={{ color: order.quantity < 0 ? "red" : "var(--brand)" }} className='owned-stock-header'>{`${order.ticker_symbol} (${Math.abs(order.quantity)})`}</h3>
-                        <p>Status: {order.cancelled ? "Cancelled" : order.transaction_id ? "Fulfilled" : "Open"}</p>
-                        <p>Price: {order.transaction_id ? order.price_per_share : order.trigger_price}</p>
-                    </li>
-                )) : <p style={{ padding: "0.5rem" }}>No orders have been placed</p>}
-            </ul>
-        </>) : null}
-    </>);
-
     return (
-        <DashboardModule title="Portfolio" content={content} fullscreen={fullscreen} />
-    );
+        <Box padding="m">
+            <SpaceBetween size='m'>
+                <Header
+                    variant="h1"
+                    actions={
+                        !fullscreen &&
+                        <Button variant="primary" onClick={() => navigate('/portfolio')}>
+                            View Details
+                        </Button>
+                    }>
+                    Portfolio
+                </Header>
+                <LineChart
+                    height={fullscreen ? 300 : 200}
+                    series={[
+                        {
+                            title: "Net Worth",
+                            type: "line",
+                            data: chartData,
+                        }
+                    ]}
+                    hideFilter
+                    hideLegend
+                    xDomain={[
+                        chartData.length > 0 ? chartData[0].x : new Date(),
+                        chartData.length > 0 ? chartData[chartData.length - 1].x : new Date()
+                    ]}
+                    yDomain={[
+                        Math.min(...chartData.map(d => d.y)),
+                        Math.max(...chartData.map(d => d.y))
+                    ]}
+                    xScaleType='time'
+                    i18nStrings={{
+                        xTickFormatter: e =>
+                            e
+                                .toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "numeric",
+                                    minute: "numeric",
+                                    hour12: !1
+                                })
+                                .split(",")
+                                .join("\n"),
+                        yTickFormatter: function numberFormatter(e) {
+                            return Math.abs(e) >= 1e9
+                                ? (e / 1e9).toFixed(1).replace(/\.0$/, "") +
+                                "G"
+                                : Math.abs(e) >= 1e6
+                                    ? (e / 1e6).toFixed(1).replace(/\.0$/, "") +
+                                    "M"
+                                    : Math.abs(e) >= 1e3
+                                        ? (e / 1e3).toFixed(1).replace(/\.0$/, "") +
+                                        "K"
+                                        : e.toFixed(2);
+                        }
+                    }}
+                />
+
+                {fullscreen ? <Header variant="h2">Wallet</Header> : null}
+                <span>
+                    Initial Investment:{" "}
+                    <strong>${user ? user.starting_amount : <Spinner />}</strong>
+                </span>
+                <span>
+                    Current Wallet Balance:{" "}
+                    <strong>${user ? user.current_balance : <Spinner />}</strong>
+                </span>
+                <span>
+                    Current Net Worth:{" "}
+                    {user ? (
+                        <strong style={{
+                            color: netWorth.length > 0 && netWorth[0].net_worth >= user.starting_amount ? 'green' : 'red'
+                        }}>
+                            {netWorth.length > 0 ? `$${netWorth[0].net_worth} (${(netWorth[0].net_worth - user.starting_amount) >= 0 ? '+' : '-'}$${Math.abs(netWorth[0].net_worth - user.starting_amount).toFixed(2)} / ${(netWorth[0].net_worth - user.starting_amount) >= 0 ? '+' : '-'}${Math.abs(netWorth[0].net_worth / user.starting_amount * 100 - 100).toFixed(2)}%)` : <Spinner />}
+                        </strong>) : <Spinner />}
+                </span>
+                {fullscreen ? <>
+
+                    <Button variant='normal' onClick={() => setIsModalOpen(true)}>Reset Progress</Button>
+                    <Modal
+                        visible={isModalOpen}
+                        onDismiss={() => setIsModalOpen(false)}
+                        footer={
+                            <SpaceBetween direction='horizontal' size='xs'>
+                                <Button variant='normal' onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                                <Button variant='primary' onClick={() => handleUserReset()}>Confirm</Button>
+                            </SpaceBetween>
+                        }
+                        header="Really Reset Progress?"
+                    >
+                        <p>Are you sure you want to reset your progress? This action is irreversible.</p>
+                    </Modal>
+
+                </> : ""}
+
+                {fullscreen ? (<>
+                    <Header variant="h2">Owned Stocks</Header>
+                    <Cards
+                        cardDefinition={{
+                            header: item => (
+                                <Link href="">
+                                    <span onClick={() => navigate(`/ticker/${item.ticker_symbol}`)}>
+                                        {item.ticker_symbol} ({item.quantity})
+                                    </span>
+                                </Link>
+                            ),
+                            sections: [
+                                {
+                                    id: 'today',
+                                    header: 'Today',
+                                    content: item => (
+                                        <span style={{ color: item.last > item.open ? "green" : "red" }}>
+                                            {`${item.last > item.open ? '+' : '-'}$${Math.abs(item.last - item.open).toFixed(2)} (${item.last > item.open ? '+' : '-'}$${(Math.abs(item.last - item.open) * item.quantity).toFixed(2)})`}
+                                        </span>
+                                    )
+                                },
+                                {
+                                    id: 'sincePurchased',
+                                    header: 'Since Purchased',
+                                    content: item => (
+                                        <span style={{ color: item.last > item.purchased_price ? "green" : "red" }}>
+                                            {`${item.last > item.purchased_price ? '+' : '-'}$${Math.abs(item.last - item.purchased_price).toFixed(2)} (${item.last > item.purchased_price ? '+' : '-'}$${(Math.abs(item.last - item.purchased_price) * item.quantity).toFixed(2)})`}
+                                        </span>
+                                    )
+                                }
+                            ]
+                        }}
+                        items={stocks}
+                    />
+
+                    <Header variant="h2">Order History</Header>
+                    <Cards
+                        cardDefinition={{
+                            header: item => (
+                                <Link href="">
+                                    <span onClick={() => navigate(`/order/${item.order_id}`)}>
+                                        {item.ticker_symbol} ({item.quantity > 0 ? "+" : ""}{item.quantity})
+                                    </span>
+                                </Link>
+                            ),
+                            sections: [{
+                                id: 'status',
+                                header: 'Status',
+                                content: item => item.cancelled ? 'Cancelled' : item.transaction_id ? 'Fulfilled' : 'Open'
+                            },
+                            {
+                                id: 'price',
+                                header: 'Price',
+                                content: item => item.transaction_id ? item.price_per_share : item.trigger_price
+                            }]
+                        }}
+                        items={orders}
+                    />
+                </>) : null}
+            </SpaceBetween>
+        </Box>);
 };
 
 export default Portfolio;
