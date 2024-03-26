@@ -52,16 +52,16 @@ const Register: React.FC<RegisterProps> = ({ addAlert }) => {
                                     </Button>}>
                                         <SpaceBetween size="xs">
                                             <FormField label="Username">
-                                                <Input type="text" placeholder="Username" value={username} onChange={(e) => setUsername((e.target as HTMLInputElement).value)} />
+                                                <Input type="text" placeholder="Username" value={username} onChange={({ detail }) => setUsername(detail.value)} />
                                             </FormField>
                                             <FormField label="Email">
-                                                <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail((e.target as HTMLInputElement).value)} />
+                                                <Input type="email" placeholder="Email" value={email} onChange={({ detail }) => setEmail(detail.value)} />
                                             </FormField>
                                             <FormField label="Password">
-                                                <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword((e.target as HTMLInputElement).value)} />
+                                                <Input type="password" placeholder="Password" value={password} onChange={({ detail }) => setPassword(detail.value)} />
                                             </FormField>
                                             <FormField label="Confirm Password">
-                                                <Input type="password" placeholder="Confirm Password" value={password2} onChange={(e) => setPassword2((e.target as HTMLInputElement).value)} />
+                                                <Input type="password" placeholder="Confirm Password" value={password2} onChange={({ detail }) => setPassword2(detail.value)} />
                                             </FormField>
                                         </SpaceBetween>
                                     </Form>
