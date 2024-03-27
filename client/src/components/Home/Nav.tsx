@@ -3,6 +3,7 @@ import { TopNavigation, TopNavigationProps } from '../../../theme/build/componen
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../UserProvider';
 import { logout } from '../../requests/auth';
+import logoSvg from '../../../logo/safari-pinned-tab.svg';
 
 interface NavProps {
     setAuth: (auth: boolean) => void;
@@ -55,7 +56,7 @@ const Navigation: React.FC<NavProps> = ({ setAuth }) => {
                     href: '/',
                     title: 'Market Mock',
                     logo: {
-                        src: '../../../logo/safari-pinned-tab.svg',
+                        src: logoSvg,
                         alt: 'Logo'
                     },
                 }}
