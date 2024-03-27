@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - dev
-      - QA
       - main
 
 jobs:
@@ -65,7 +64,7 @@ jobs:
         }' > client/src/config.json
 
     - name: Run all tests
-      run: npm run test:all
+      run: npm run test
 
     - name: Job succeeded
       if: success()
