@@ -1,16 +1,15 @@
-import React, { useState, FC } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AxiosResponse } from 'axios';
-import './Auth.css';
 import { register, ResponseData } from '../../requests/auth';
-import LoadingCircle from '../Common/LoadingCircle';
-import logo from '../../../android-chrome-192x192.png';
+import logo from '../../../logo/android-chrome-192x192.png';
+import { FormField, Input, Button, Box, SpaceBetween, Container, Header, Spinner, Form } from '../../../theme/build/components/index';
 
 interface RegisterProps {
     addAlert: (message: string) => void;
 }
 
-const Register: FC<RegisterProps> = ({ addAlert }) => {
+const Register: React.FC<RegisterProps> = ({ addAlert }) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -39,54 +38,45 @@ const Register: FC<RegisterProps> = ({ addAlert }) => {
     };
 
     return (
-        <div className="auth-container">
-            <img src={logo} alt="logo" className="logo" style={{ width: "50%", marginLeft: "auto", marginRight: "auto" }} />
-            <h1 className="logo-placeholder"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</h1>
-            <br />
-            {!registrationSuccess ? (
-                <>
-                    <h2>Register</h2>
-                    <form className="auth-form" onSubmit={handleRegister}>
-                        <input
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                        <input
-                            type="email"
-                            placeholder="Email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        <input
-                            type="password"
-                            placeholder="Confirm password"
-                            value={password2}
-                            onChange={(e) => setPassword2(e.target.value)}
-                        />
-                        <button type="submit">
-                            Register {loading ? <LoadingCircle /> : ""}
-                        </button>
-
-                        <div className="auth-link">
-                            <small><i>Already have an account?</i></small>
-                            <button data-testid="register-page-login-button" type="button" style={{ width: '100%' }} onClick={() => navigate('/login')}>Login</button>
-                        </div>
-                    </form>
-                </>
-            ) : (
-                <>
-                    <h2>A verification email has been sent.</h2>
-                    <p>Please follow the link in the email from marketmock@gmail.com.</p>
-                </>
-            )}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+            <Container>
+                <Box textAlign="center">
+                    <SpaceBetween size="xs">
+                        <img src={logo} alt="logo" style={{ width: "100px" }} />
+                        <Header variant="h1">Market Mock</Header>
+                        {!registrationSuccess ? (
+                            <>
+                                <form onSubmit={handleRegister}>
+                                    <Form actions={<Button fullWidth variant="primary">
+                                        Register {loading ? <Spinner /> : null}
+                                    </Button>}>
+                                        <SpaceBetween size="xs">
+                                            <FormField label="Username">
+                                                <Input type="text" placeholder="Username" value={username} onChange={({ detail }) => setUsername(detail.value)} />
+                                            </FormField>
+                                            <FormField label="Email">
+                                                <Input type="email" placeholder="Email" value={email} onChange={({ detail }) => setEmail(detail.value)} />
+                                            </FormField>
+                                            <FormField label="Password">
+                                                <Input type="password" placeholder="Password" value={password} onChange={({ detail }) => setPassword(detail.value)} />
+                                            </FormField>
+                                            <FormField label="Confirm Password">
+                                                <Input type="password" placeholder="Confirm Password" value={password2} onChange={({ detail }) => setPassword2(detail.value)} />
+                                            </FormField>
+                                        </SpaceBetween>
+                                    </Form>
+                                </form>
+                                <Button fullWidth variant="link" onClick={() => navigate('/login')}>Already have an account? Login</Button>
+                            </>
+                        ) : (
+                            <>
+                                <Header variant="h2">A verification email has been sent.</Header>
+                                <p>Please follow the link in the email from marketmock@gmail.com.</p>
+                            </>
+                        )}
+                    </SpaceBetween>
+                </Box>
+            </Container>
         </div>
     );
 };

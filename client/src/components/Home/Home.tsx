@@ -1,11 +1,10 @@
 import React, { useEffect, useContext } from 'react';
-import DashboardModule from '../Common/DashboardModule';
-import './Home.css';
 import { getNotifications } from '../../requests/notification';
-import { UserContext } from '../Common/UserProvider';
+import { UserContext } from '../../UserProvider';
 import Portfolio from './Portfolio';
 import Watchlist from './Watchlist';
 import Quests from './Quests';
+import { ColumnLayout } from '../../../theme/build/components/index';
 
 const Home: React.FC = () => {
 
@@ -24,11 +23,11 @@ const Home: React.FC = () => {
     }, []);
 
     return (
-        <div className="home-container">
+        <ColumnLayout columns={3} minColumnWidth={420}>
             <Portfolio fullscreen={false} />
             <Watchlist fullscreen={false} />
             <Quests fullscreen={false} />
-        </div>
+        </ColumnLayout>
     );
 };
 
