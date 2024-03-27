@@ -129,6 +129,20 @@ async function initializeDatabase(): Promise<void> {
                 PRIMARY KEY (user_id, quest_id),
                 FOREIGN KEY (quest_id) REFERENCES Quest(quest_id),
                 FOREIGN KEY (user_id) REFERENCES User(user_id)
+            )`,
+            `CREATE TABLE IF NOT EXISTS HTTP_Request (
+                request_id INT AUTO_INCREMENT PRIMARY KEY,
+                request_url VARCHAR(255),
+                response_status INT,
+                request_date BIGINT DEFAULT (UNIX_TIMESTAMP()),
+                request_ip VARCHAR(255)
+            )`,
+            `CREATE TABLE IF NOT EXISTS Hardware_Load_Log (
+                log_id INT AUTO_INCREMENT PRIMARY KEY,
+                cpu_load TINYINT,
+                memory_load TINYINT,
+                disk_usage TINYINT,
+                log_date BIGINT DEFAULT (UNIX_TIMESTAMP())
             )`
         ];
 

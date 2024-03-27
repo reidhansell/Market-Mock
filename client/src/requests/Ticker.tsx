@@ -1,8 +1,8 @@
 import axios from 'axios';
 import config from '../config.json';
-import Ticker from '../../../models/Ticker';
-import TickerEndOfDay from '../../../models/TickerEndOfDay';
-import TickerIntraday from '../../../models/TickerIntraday';
+import Ticker from '../../models/Ticker';
+import TickerEndOfDay from '../../models/TickerEndOfDay';
+import TickerIntraday from '../../models/TickerIntraday';
 
 export const searchTickers = async (searchTerm: string): Promise<Ticker[]> => {
     try {

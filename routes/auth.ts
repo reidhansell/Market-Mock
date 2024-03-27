@@ -10,12 +10,8 @@ import ExpectedError from '../tools/utils/ExpectedError';
 import { findUserByEmail, findUserByUsername, registerUser, updateVerificationToken, getUserData, findUserSensitiveByEmail, storeRefreshToken, findUserById, updateEmailVerificationStatus, isRefreshTokenStored, deleteRefreshToken, resetUserData } from '../database/queries/auth';
 import config from '../config.json';
 import { calculateAndSaveUserNetWorth } from '../tools/services/netWorthService';
-
-interface AuthenticatedRequest extends Request {
-    user: {
-        user_id: number;
-    }
-}
+import { AuthenticatedRequest } from '../models/User';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 const router: Router = Router();
 
@@ -53,6 +49,8 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
     try {
         const user_id: number = (req as AuthenticatedRequest).user.user_id;
         const userData: User | null = await getUserData(user_id);
+
+        insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json(userData);
     } catch (error) {
         next(error);
@@ -85,6 +83,7 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
         await sendVerificationEmail(email, verificationToken);
         await calculateAndSaveUserNetWorth(user_id);
 
+        insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json(null);
     } catch (error) {
         next(error);
@@ -126,6 +125,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         await storeRefreshToken(refreshToken, user.user_id);
 
         res.cookie('refreshToken', refreshToken, { httpOnly: true, path: '/api/auth/session', sameSite: 'none', secure: true });
+        insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json({ token: token });
     } catch (error) {
         next(error);
@@ -173,6 +173,7 @@ router.post('/verify/:token', async (req: Request, res: Response, next: NextFunc
         }
 
         await updateEmailVerificationStatus(user_id);
+        insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json(null);
     } catch (error) {
         next(error);
@@ -204,6 +205,7 @@ router.get('/session/refresh_token', async (req: Request, res: Response, next: N
         }
 
         const token = jwt.sign({ user_id: payload.user_id }, config.jwtSecret, { expiresIn: '1h' });
+        insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json({ accessToken: token });
     } catch (error) {
         next(error);
@@ -222,6 +224,7 @@ router.post('/session/logout', async (req: Request, res: Response, next: NextFun
         }
 
         await deleteRefreshToken(refreshToken);
+        insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json(null);
     } catch (error) {
         next(error);
@@ -233,6 +236,7 @@ router.post('/reset_progress', authenticateToken, async (req: Request, res: Resp
         const { starting_amount } = req.body;
         const user_id: number = (req as AuthenticatedRequest).user.user_id;
         await resetUserData(user_id, starting_amount);
+        insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json(null);
     } catch (error) {
         next(error);

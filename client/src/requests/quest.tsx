@@ -1,6 +1,6 @@
 import Axios from 'axios';
 import config from '../config.json';
-import { UserQuest } from '../../../models/Quest';
+import { UserQuest } from '../../models/Quest';
 
 export const getUserQuests = async (): Promise<UserQuest[]> => {
     try {

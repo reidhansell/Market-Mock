@@ -1,5 +1,6 @@
 jest.mock('../database/queries/notification');
 jest.mock('../tools/middleware/authMiddleware');
+jest.mock('../database/queries/monitor');
 
 import request from 'supertest';
 import { Express } from 'express';
@@ -7,11 +8,13 @@ import { authenticateToken } from '../tools/middleware/authMiddleware';
 import { getNotificiations, markNotificationAsRead } from '../database/queries/notification';
 import { setupApp } from '../tools/utils/routeTestSetup';
 import notificationRouter from './notification';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 let app: Express;
 
 beforeEach(() => {
     app = setupApp(notificationRouter);
+    (insertHTTPRequest as jest.Mock).mockResolvedValue(undefined);
 });
 
 afterEach(() => {

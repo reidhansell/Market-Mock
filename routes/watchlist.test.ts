@@ -2,6 +2,7 @@ jest.mock('../database/queries/watchlist');
 jest.mock('../tools/middleware/authMiddleware');
 jest.mock('../database/queries/quests');
 jest.mock('../database/queries/portfolio');
+jest.mock('../database/queries/monitor');
 
 import request from 'supertest';
 import { Express } from 'express';
@@ -12,11 +13,13 @@ import { getUserStocks } from '../database/queries/portfolio';
 import { setupApp } from '../tools/utils/routeTestSetup';
 import watchlistRouter from './watchlist';
 import UserStock from '../models/UserStock';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 let app: Express;
 
 beforeEach(() => {
     app = setupApp(watchlistRouter);
+    (insertHTTPRequest as jest.Mock).mockResolvedValue(undefined);
 });
 
 afterEach(() => {

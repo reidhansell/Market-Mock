@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { verifyEmail } from '../../requests/auth';
-import logo from '../../../android-chrome-192x192.png';
+import logo from '../../../logo/android-chrome-192x192.png';
+import { Box, Header, SpaceBetween } from '../../../theme/build/components/index';
 
 const VerifyEmail = () => {
     const navigate = useNavigate();
@@ -24,16 +25,18 @@ const VerifyEmail = () => {
     }, [navigate, token]);
 
     return (
-        <div className="auth-container">
-            <img src={logo} alt="logo" className="logo" style={{ width: "50%", marginLeft: "auto", marginRight: "auto" }} />
-            <h1 className="logo-placeholder"><span style={{ color: "var(--brand)" }}>M</span>ARKET <span style={{ color: "var(--brand)" }}>M</span>OCK</h1>
-            <h2>Email Verification</h2>
-            {success ? (
-                <p>Success! Your email has been verified. Sending you to the login page shortly...</p>
-            ) : (
-                <p>Verifying your email...</p>
-            )}
-        </div>
+        <Box padding="m">
+            <SpaceBetween size='m'>
+                <Header variant="h1">
+                    Email Verification
+                </Header>
+                {success ? (
+                    <p>Success! Your email has been verified. Sending you to the login page shortly...</p>
+                ) : (
+                    <p>Verifying your email...</p>
+                )}
+            </SpaceBetween>
+        </Box>
     );
 };
 

@@ -1,6 +1,6 @@
 import Axios, { AxiosResponse } from 'axios';
 import config from '../config.json';
-import User from '../../../models/User'
+import User from '../../models/User'
 
 interface LoginData {
     email: string;
@@ -12,6 +12,24 @@ interface RegisterData {
     email: string;
     password: string;
 }
+
+interface HardwareLoadLog {
+    log_id: number;
+    cpu_load: number;
+    memory_load: number;
+    disk_usage: number;
+    log_date: number;
+}
+
+interface HTTPRequest {
+    request_id: number;
+    request_url: string;
+    response_status: number;
+    request_date: number;
+    request_ip: string;
+}
+
+interface MonitorData { httpRequests: HTTPRequest[]; hardwareLoadLogs: HardwareLoadLog[]; }
 
 export interface ResponseData {
     data: {
@@ -97,6 +115,15 @@ export const getUser = async (): Promise<AxiosResponse<User>> => {
 export const resetProgress = async (): Promise<AxiosResponse<void>> => {
     try {
         const response = await Axios.post<void>('/api/auth/reset_progress', { starting_amount: 10000 } as resetData);
+        return response;
+    } catch (error: any) {
+        throw error.response.data.error;
+    }
+}
+
+export const getMonitorData = async (): Promise<AxiosResponse<MonitorData>> => {
+    try {
+        const response = await Axios.get<MonitorData>('/api/monitor');
         return response;
     } catch (error: any) {
         throw error.response.data.error;

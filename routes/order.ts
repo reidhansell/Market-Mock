@@ -1,16 +1,13 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticateToken } from '../tools/middleware/authMiddleware';
 import ExpectedError from '../tools/utils/ExpectedError';
-import { getOrdersAndTransactionsByUserId, insertOrder } from '../database/queries/order';
+import { cancelOrder, getOrdersAndTransactionsByUserId, insertOrder, getOrder } from '../database/queries/order';
 import Order from '../models/Order';
 import { processOrder } from '../tools/services/orderFulfillmentService'
 import { getQuests, updateQuest } from '../database/queries/quests';
-
-interface AuthenticatedRequest extends Request {
-    user: {
-        user_id: number;
-    }
-}
+import { getTransactionConnection } from '../database/databaseConnector';
+import { AuthenticatedRequest } from '../models/User';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 async function handleOrderQuests(user_id: number, order: Order) {
     const quests = await getQuests(user_id);
@@ -34,6 +31,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response, next: Nex
         const { user_id } = (req as AuthenticatedRequest).user;
 
         const orders = await getOrdersAndTransactionsByUserId(user_id);
+        insertHTTPRequest(req.url, 200, req.ip);
         res.json(orders);
     } catch (error) {
         next(error);
@@ -75,12 +73,55 @@ router.post('/', authenticateToken, async (req: Request, res: Response, next: Ne
         const resultingOrder = await processOrder(order);
 
         if (resultingOrder === null) {
+            insertHTTPRequest(req.url, 200, req.ip);
             return res.json(order);
         } else {
+            insertHTTPRequest(req.url, 200, req.ip);
             return res.json(resultingOrder);
         }
     } catch (error) {
         next(error);
+    }
+});
+
+router.delete('/:order_id', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+    const connection = await getTransactionConnection();
+    try {
+        const { order_id } = req.params;
+        const { user_id } = (req as AuthenticatedRequest).user;
+
+        if (!order_id) {
+            throw new ExpectedError("Invalid order id", 400, "Order cancellation failed with invalid order id");
+        }
+
+        const order = await getOrder(parseInt(order_id), connection);
+
+        if (!order) {
+            throw new ExpectedError("Invalid order id", 400, "Order cancellation failed with no order found");
+        }
+
+        if (order.user_id !== user_id) {
+            throw new ExpectedError("Invalid order id", 400, "User attempted to cancel an order that does not belong to them");
+        }
+
+        if (order.cancelled || order.transaction_id !== null) {
+            throw new ExpectedError("Order is not open", 400, "Order cancellation failed with order not open");
+        }
+
+        const result = await cancelOrder(parseInt(order_id), connection);
+
+        if (result) {
+            connection.commit();
+
+            insertHTTPRequest(req.url, 200, req.ip);
+            res.json({ message: "Order cancelled successfully" });
+        } else {
+            connection.rollback();
+        }
+
+    } catch (error) {
+        next(error);
+        connection.rollback();
     }
 });
 

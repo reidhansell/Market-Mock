@@ -1,6 +1,6 @@
 import Axios from 'axios';
 import config from '../config.json';
-import Order, { FulfilledOrder, OrderClientSubmission, OrderSubmission } from '../../../models/Order';
+import Order, { FulfilledOrder, OrderClientSubmission } from '../../models/Order';
 
 export const getUserOrders = async (): Promise<FulfilledOrder[]> => {
     try {
@@ -19,6 +19,16 @@ export const createOrder = async (orderData: OrderClientSubmission): Promise<Ord
             ...orderData
         });
         return response.data;
+    } catch (error: any) {
+        throw error.response.data.error;
+    }
+};
+
+export const cancelOrder = async (orderId: number): Promise<boolean> => {
+    try {
+        Axios.defaults.withCredentials = true;
+        await Axios.delete(`${config.serverURL}/api/order/${orderId}`);
+        return true;
     } catch (error: any) {
         throw error.response.data.error;
     }

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import Ticker from "../../../../models/Ticker"
+import Ticker from "../../../models/Ticker"
 import { searchTickers } from '../../requests/Ticker';
-import './TickerSearch.css';
-import Tooltip from '../Common/Tooltip';
+import { Box, Header, Input, SpaceBetween, Link } from '../../../theme/build/components/index';
+import { useNavigate } from 'react-router-dom';
 
 function useDebounce(value: any, delay: number) {
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -25,6 +24,7 @@ const TickerSearch = () => {
     const [watchlistSearch, setWatchlistSearch] = useState('');
     const [searchResults, setSearchResults] = useState([] as Ticker[]);
     const debouncedSearchTerm = useDebounce(watchlistSearch, 500);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (debouncedSearchTerm) {
@@ -42,27 +42,30 @@ const TickerSearch = () => {
     };
 
     return (
-        <div className="ticker-search-container">
-            <div className="ticker-search-header">
-                <input
+        <Box padding="m">
+            <SpaceBetween size='m'>
+                <Header
+                    variant="h1">
+                    Ticker Search
+                </Header>
+                <Input
                     type="text"
                     placeholder="Search all tickers..."
                     value={watchlistSearch}
-                    onChange={(e) => setWatchlistSearch(e.target.value)}
+                    onChange={({ detail }) => setWatchlistSearch(detail.value)}
                 />
-                <h2><Tooltip text={["A ticker symbol is a unique code representing a specific stock, ETF, or other financial asset."]} /></h2>
-            </div>
-            <ul className="ticker-list">
                 {searchResults.length > 0 ? searchResults.map((ticker, index) => (
-                    <Link key={index} to={`/ticker/${ticker.ticker_symbol}`} className="ticker-link">
-                        <li className="ticker-item">
-                            {`${ticker.ticker_symbol}${ticker.company_name ? `: ${ticker.company_name.slice(0, 25)}` : ''}`}
-                        </li>
+                    <Link key={index} href="">
+                        <span onClick={() => navigate(`/ticker/${ticker.ticker_symbol}`)}>
+                            <SpaceBetween direction='horizontal' size='s'>
+                                {`${ticker.ticker_symbol}${ticker.company_name ? `: ${ticker.company_name.slice(0, 25)}` : ''}`}
+                            </SpaceBetween>
+                        </span>
                     </Link>
 
                 )) : watchlistSearch === "" ? <p style={{ padding: "0.5rem" }}>Enter a ticker symbol or company name to begin searching</p> : <p style={{ padding: "0.5rem" }}>Nothing found for the given input</p>}
-            </ul>
-        </div>
+            </SpaceBetween>
+        </Box >
     );
 };
 

@@ -12,14 +12,17 @@ const transporter: Transporter = nodemailer.createTransport({
 
 function getVerifyEmailContent(verificationToken: string): string {
     return `
-        <table style="width: 100%; height: 100%; min-height: 100vh; border-collapse: collapse; margin: 0; background-color: hsl(50.59, 10%, 10%); color: hsl(50.59, 15%, 85%);">
+        <head>
+            <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+        </head>
+        <table style="width: 100%; height: 100%; min-height: 100vh; border-collapse: collapse; margin: 0; background-color: #0f1b2a; color: white; font-family: 'Open Sans', Arial, sans-serif; ">
             <tr>
                 <td style="text-align: center; vertical-align: middle;">
                     <div>
-                        <h1 style="margin-top: 0.5rem; margin-bottom: 0.5rem; color: hsl(50.59, 15%, 85%);">
-                            <span style="color: #3cb043;">M</span>ARKET <span style="color: #3cb043;">M</span>OCK
+                        <h1 style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                            Market Mock
                         </h1>
-                        <h1 style="margin-top: 0.5rem; margin-bottom: 0.5rem; color: hsl(50.59, 15%, 85%);">Email Verification</h1>
+                        <h2 style="margin-top: 0.5rem; margin-bottom: 0.5rem; color: hsl(50.59, 15%, 85%);">Email Verification</h2>
                         <p style="color: hsl(50.59, 15%, 85%);">Please click the following link to verify your email:</p>
                         <a href="${config.clientURL}/verify/${verificationToken}/" style="color: hsl(50.59, 15%, 85%);">Verify Email</a>
                     </div>
