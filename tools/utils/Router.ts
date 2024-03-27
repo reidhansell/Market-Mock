@@ -5,6 +5,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import ExpectedError from './ExpectedError';
 import config from '../../config.json';
+import { insertHTTPRequest } from '../../database/queries/monitor'
 
 export default class Router {
     private static app: express.Express;
@@ -60,6 +61,7 @@ export default class Router {
             if (error.statusCode === 500) {
                 console.error(error.devMessage);
             }
+            insertHTTPRequest(req.url, 500, req.ip);
             res.status(error.statusCode).json({ error: error.message });
             return;
         }

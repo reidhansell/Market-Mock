@@ -4,19 +4,11 @@
     "description": "",
     "main": "server.js",
     "scripts": {
+        "start": "npm run test && tsc-watch --onSuccess \"node dist/server.js\"",
+        "production": "npm run build && npm run server",
         "server": "node dist/server.js",
-        "client": "npm --prefix client start",
-        "predev": "npm run test:all",
-        "dev": "concurrently --kill-others-on-fail \"npm run server:ts\" \"npm run client\"",
-        "client-build": "npm --prefix client run build",
-        "prestart": "npm run test:all",
-        "start": "npm run build && npm run client-build && npm run server",
         "build": "tsc",
-        "server:ts": "tsc-watch --onSuccess \"node dist/server.js\"",
-        "test": "jest --coverage --no-clearConsole",
-        "test:watch": "jest --watch",
-        "test:frontend": "npm --prefix client test",
-        "test:all": "npm test && npm run test:frontend"
+        "test": "jest --coverage --no-clearConsole"
     },
     "keywords": [],
     "author": "",
@@ -25,7 +17,6 @@
         "axios": "^1.4.0",
         "bad-words": "^3.0.4",
         "bcrypt": "^5.1.0",
-        "concurrently": "^6.5.1",
         "cookie-parser": "^1.4.6",
         "cors": "^2.8.5",
         "express": "^4.17.1",
@@ -33,6 +24,7 @@
         "mysql": "^2.18.1",
         "node-cron": "^3.0.2",
         "nodemailer": "^6.9.3",
+        "systeminformation": "^5.21.20",
         "validator": "^13.9.0",
         "winston": "^3.9.0"
     },

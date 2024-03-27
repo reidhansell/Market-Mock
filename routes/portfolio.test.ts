@@ -1,6 +1,7 @@
 jest.mock('../database/queries/portfolio');
 jest.mock('../tools/middleware/authMiddleware');
 jest.mock('../tools/services/intradayService');
+jest.mock('../database/queries/monitor');
 
 import request from 'supertest';
 import { Express } from 'express';
@@ -13,11 +14,13 @@ import { authenticateToken } from '../tools/middleware/authMiddleware';
 import { getIntradayDataForTicker } from '../tools/services/intradayService';
 import { setupApp } from '../tools/utils/routeTestSetup';
 import portfolioRouter from './portfolio';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 let app: Express;
 
 beforeEach(() => {
     app = setupApp(portfolioRouter);
+    (insertHTTPRequest as jest.Mock).mockResolvedValue(undefined);
 });
 
 afterEach(() => {

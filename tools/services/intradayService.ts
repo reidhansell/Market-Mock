@@ -5,6 +5,8 @@ import { marketStackKey } from '../../config.json';
 import { toUnixTimestamp } from '../utils/timeConverter';
 
 const isIntradayDataRecent = (intradayData: TickerIntraday[]): boolean => {
+    // TODO: Make this function account for weekends, holidays, and non-trading hours.
+    //          This todo is not absolutely necessary, but would cut down on API calls.
     if (intradayData.length < 1) return false;
     const dataTime = intradayData[0].date;
     const currentTime = Math.floor(Date.now() / 1000);
@@ -23,28 +25,38 @@ const getDatesForAPIRequest = () => {
 
     let formattedCurrentDate = formatDate(currentDate);
 
-    let yesterdayDate = new Date(currentDate);
-    yesterdayDate.setDate(currentDate.getDate() - 1);
-    let formattedYesterdayDate = formatDate(yesterdayDate);
+    let lastWeekDate = new Date(currentDate);
+    lastWeekDate.setDate(currentDate.getDate() - 7);
+    let formattedLastWeekDate = formatDate(lastWeekDate);
 
-    if (currentDate.getDay() === 0) {
-        let dayBeforeYesterday = new Date(currentDate);
-        dayBeforeYesterday.setDate(currentDate.getDate() - 2);
-        let formattedDayBeforeYesterday = formatDate(dayBeforeYesterday);
-        return [formattedDayBeforeYesterday, formattedYesterdayDate];
-    }
-
-    return [formattedYesterdayDate, formattedCurrentDate];
+    return [formattedLastWeekDate, formattedCurrentDate];
 }
 
 const fetchMarketStackIntradayData = async (ticker: string): Promise<TickerIntraday[]> => {
     const [dateFrom, dateTo] = getDatesForAPIRequest();
     const axiosResponse = await axios.get(`https://api.marketstack.com/v1/intraday?access_key=${marketStackKey}&symbols=${ticker}&interval=1hour&date_from=${dateFrom}&date_to=${dateTo}`) as AxiosResponse;
+
     let convertedTickers: TickerIntraday[] = [];
+    let mostRecentDate = new Date(axiosResponse.data.data[0].date);
+    mostRecentDate.setHours(0, 0, 0, 0);
+
+
+    let previousDate = new Date(mostRecentDate);
+    previousDate.setDate(mostRecentDate.getDate() - 1);
+    previousDate.setHours(0, 0, 0, 0);
+
     for (let dataPoint of axiosResponse.data.data) {
-        convertedTickers.push({ ...dataPoint, date: toUnixTimestamp(dataPoint.date) } as TickerIntraday);
+        let dataPointDate = new Date(dataPoint.date);
+        dataPointDate.setHours(0, 0, 0, 0);
+
+        if (dataPointDate.getTime() === mostRecentDate.getTime() || dataPointDate.getTime() === previousDate.getTime()) {
+            convertedTickers.push({ ...dataPoint, date: toUnixTimestamp(dataPoint.date) } as TickerIntraday);
+        } else {
+            break
+        }
     }
-    return convertedTickers;
+
+    return convertedTickers.slice(0, 6);
 }
 
 export async function getIntradayDataForTicker(ticker: string): Promise<TickerIntraday[]> {

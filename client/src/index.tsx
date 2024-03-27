@@ -2,27 +2,27 @@ import React, { useEffect, useState, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
 import Axios, { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { UserContext } from './components/Common/UserProvider';
+import { UserContext } from './UserProvider';
 import Home from './components/Home/Home';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import VerifyEmail from './components/Auth/VerifyEmail';
-import AlertComponent from './components/Common/Alert';
 import Ticker from './components/Home/Ticker';
 import TickerSearch from './components/Home/TickerSearch';
 import { logout, getUser } from './requests/auth';
-import './index.css';
-import './components/Common/Alert.css';
 import Portfolio from './components/Home/Portfolio';
 import Watchlist from './components/Home/Watchlist';
 import Quests from './components/Home/Quests';
 import OrderPlacer from './components/Home/OrderPlacer';
 import Order from './components/Home/Order';
 import Nav from './components/Home/Nav';
-import { UserProvider } from './components/Common/UserProvider';
-import LoadingCircle from './components/Common/LoadingCircle';
+import { UserProvider } from './UserProvider';
 import { markNotificationAsRead } from './requests/notification';
 import config from './config.json';
+import Admin from './components/Home/Admin';
+import { Flashbar, Spinner, Box } from "../theme/build/components/index";
+import { applyMode, Mode } from '@cloudscape-design/global-styles';
+import './index.scss';
 
 /*
  * Alert System and Axios Interceptors:
@@ -37,11 +37,6 @@ import config from './config.json';
  * Future developers should maintain this structure to prevent the reintroduction of circular dependencies and other bugs that arise from separating these interdependent systems.
  */
 
-interface Alert {
-  id: string;
-  message: string;
-}
-
 interface RetryRequestConfig extends InternalAxiosRequestConfig<any> {
   retryFlag?: boolean;
 }
@@ -49,7 +44,13 @@ interface RetryRequestConfig extends InternalAxiosRequestConfig<any> {
 // Axios error objects are not typed by default, so we define our own type here. However, the wrapper object returned by the server is typed.
 type CustomErrorObject = { error: string };
 
+interface Alert {
+  id: string;
+  message: string;
+}
+
 const App = () => {
+  applyMode(Mode.Dark);
   const [auth, setAuth] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +68,13 @@ const App = () => {
   };
 
   const removeAlert = (id: string) => {
-    setAlerts((prevAlerts) => [...prevAlerts.filter((alert) => alert.id !== id)]);
+    const updatedAlerts = alerts.filter(alert => alert.id !== id);
+    setAlerts(updatedAlerts);
+  };
+
+  const removeNotification = (id: number) => {
+    const updatedNotifications = notifications.filter(notification => notification.notification_id !== id);
+    setNotifications(updatedNotifications);
   };
 
   const isAuthError = (error: AxiosError): boolean => {
@@ -147,42 +154,56 @@ const App = () => {
   }, []);
 
   if (loading) {
-    return <h1><LoadingCircle /></h1>
+    return <Spinner />
   }
 
   return (
     <Router>
-      {auth ? <Nav setAuth={setAuth} /> : null}
-
-      <div className="app-container">
-        <div className='alert-container'>
-          {notifications.map((notification) => (
-            <AlertComponent key={notification.notification_id} message={notification.content} success={notification.success} onClose={() => {
-              setNotifications([...notifications.filter(n => { return notification.notification_id !== n.notification_id })])
-            }} customOnClick={() => {
-              setNotifications([...notifications.filter(n => { return notification.notification_id !== n.notification_id })])
-              markNotificationAsRead(notification.notification_id);
-            }} />
-          ))}
-          {alerts.map((alert) => (
-            <AlertComponent key={alert.id} message={alert.message} onClose={() => removeAlert(alert.id)} />
-          ))}
-        </div>
-
-        <Routes>
-          <Route path="/login" element={!auth ? <Login setAuth={setAuth} /> : <Navigate to="/" />} />
-          <Route path="/register" element={!auth ? <Register addAlert={addAlert} /> : <Navigate to="/" />} />
-          <Route path="/verify/:token" element={<VerifyEmail />} />
-          <Route path="/" element={auth ? <Home /> : <Navigate to="/login" />} />
-          <Route path="/portfolio" element={auth ? <Portfolio fullscreen={true} /> : <Navigate to="/login" />} />
-          <Route path="/watchlist" element={auth ? <Watchlist fullscreen={true} /> : <Navigate to="/login" />} />
-          <Route path="/quests" element={auth ? <Quests fullscreen={true} /> : <Navigate to="/login" />} />
-          <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
-          <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
-          <Route path="/orderplacer/:ticker" element={auth ? <OrderPlacer /> : <Navigate to="/login" />} />
-          <Route path="/order/:order" element={auth ? <Order /> : <Navigate to="/login" />} />
-          <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
-        </Routes>
+      {auth ? <><Nav setAuth={setAuth} /><br /><br /><br /></> : null}
+      <div style={{
+        position: 'fixed',
+        bottom: 10,
+        right: 10,
+        zIndex: 1000,
+        maxWidth: '300px'
+      }}>
+        <Flashbar items={alerts.map(alert => ({
+          dismissible: true,
+          dismissLabel: 'Dismiss',
+          header: alert.message,
+          onDismiss: () => { removeAlert(alert.id) }
+        }))} />
+        <Flashbar items={notifications.map(notification => ({
+          dismissible: true,
+          dismissLabel: 'Mark as Read',
+          header: notification.content,
+          onDismiss: () => { markNotificationAsRead(notification.notification_id); removeNotification(notification.notification_id) }
+        }))} />
+      </div>
+      <Routes>
+        <Route path="/login" element={!auth ? <Login setAuth={setAuth} /> : <Navigate to="/" />} />
+        <Route path="/register" element={!auth ? <Register addAlert={addAlert} /> : <Navigate to="/" />} />
+        <Route path="/verify/:token" element={<VerifyEmail />} />
+        <Route path="/" element={auth ? <Home /> : <Navigate to="/login" />} />
+        <Route path="/portfolio" element={auth ? <Portfolio fullscreen={true} /> : <Navigate to="/login" />} />
+        <Route path="/watchlist" element={auth ? <Watchlist fullscreen={true} /> : <Navigate to="/login" />} />
+        <Route path="/quests" element={auth ? <Quests fullscreen={true} /> : <Navigate to="/login" />} />
+        <Route path="/ticker/:symbol" element={auth ? <Ticker /> : <Navigate to="/login" />} />
+        <Route path="/tickersearch" element={auth ? <TickerSearch /> : <Navigate to="/login" />} />
+        <Route path="/orderplacer/:ticker" element={auth ? <OrderPlacer /> : <Navigate to="/login" />} />
+        <Route path="/order/:order" element={auth ? <Order /> : <Navigate to="/login" />} />
+        <Route path="/admin" element={auth ? <Admin /> : <Navigate to="/login" />} />
+        <Route path="*" element={<Navigate to={auth ? "/" : "/login"} />} />
+      </Routes>
+      <div style={{
+        position: "fixed",
+        bottom: "0",
+        left: "0",
+        zIndex: "1000"
+      }}>
+        <Box>
+          <small>{"v1.1.0"}</small>
+        </Box>
       </div>
     </Router>
   );

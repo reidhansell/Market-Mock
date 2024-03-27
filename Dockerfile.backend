@@ -16,11 +16,9 @@ RUN npm install
 # Copy the backend application to the container
 COPY . .
 
-# Remove the frontend application from the container. We cannot ignore it because it will also be ignored in the front end.
+# Remove the frontend application from the container.
+# We cannot ignore it because it will also be ignored in the front end.
 RUN rm -rf ./client
 
-# Compile TypeScript to JavaScript
-RUN npm run build
-
-# Specify the command to run on container start
-CMD ["npm", "run", "server"]
+# Run the production script to build and start the server
+CMD ["npm", "run", "production"]

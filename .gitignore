@@ -134,4 +134,4 @@ config.json
 .tar
 
 # typescript
-./dist
+/dist

@@ -23,4 +23,5 @@ yarn-debug.log*
 yarn-error.log*
 
 # typescript
-./dist
+/dist
+/theme/build

@@ -1,6 +1,6 @@
 import Axios from 'axios';
 import config from '../config.json';
-import Notification from '../../../models/Notification';
+import Notification from '../../models/Notification';
 
 export const getNotifications = async (): Promise<Notification[]> => {
     try {

@@ -7,6 +7,7 @@ jest.mock('../tools/middleware/authMiddleware');
 jest.mock('../database/queries/auth');
 jest.mock('../tools/services/emailService');
 jest.mock('../tools/services/netWorthService');
+jest.mock('../database/queries/monitor');
 
 import request from 'supertest';
 import { Express } from 'express';
@@ -16,11 +17,13 @@ import { calculateAndSaveUserNetWorth } from '../tools/services/netWorthService'
 import bcrypt from 'bcrypt';
 import { setupApp } from '../tools/utils/routeTestSetup';
 import authRouter from './auth';
+import { insertHTTPRequest } from '../database/queries/monitor';
 
 let app: Express;
 
 beforeEach(() => {
     app = setupApp(authRouter);
+    (insertHTTPRequest as jest.Mock).mockResolvedValue(undefined);
 });
 
 afterEach(() => {
