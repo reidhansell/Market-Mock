@@ -2,13 +2,23 @@ import nodemailer, { Transporter } from 'nodemailer';
 import jwt from 'jsonwebtoken';
 import config from '../../config.json';
 
-const transporter: Transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: config.email,
-        pass: config.emailpassword,
-    },
-});
+// TEST-TARGET ADAPTATION (2026-07-12): when config.mailHost is set, send through a plain
+// SMTP sink (Mailpit) with no auth/TLS — makes email verification work + inspectable in the
+// local stack. Falls back to the original Gmail transport when mailHost is unset.
+const transporter: Transporter = config.mailHost
+    ? nodemailer.createTransport({
+        host: config.mailHost,
+        port: config.mailPort,
+        secure: false,
+        ignoreTLS: true,
+    })
+    : nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: config.email,
+            pass: config.emailpassword,
+        },
+    });
 
 function getVerifyEmailContent(verificationToken: string): string {
     return `

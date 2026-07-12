@@ -2,7 +2,10 @@ version: '3'
 
 services:
   mysql:
-    image: mysql:8
+    # TEST-TARGET ADAPTATION (2026-07-12): pinned 8.0 (was bare "mysql:8", which now
+    # resolves to 8.4 where --default-authentication-plugin was removed -> boot abort).
+    # The legacy mysql@2.18.1 driver needs mysql_native_password, which 8.0 still supports.
+    image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password
     container_name: ${DBHOSTNAME}
     environment:
@@ -11,10 +14,22 @@ services:
       MYSQL_USER: ${DBUSERNAME}
       MYSQL_PASSWORD: ${DBPASSWORD}
     ports:
-      - "3306:3306"
+      # TEST-TARGET ADAPTATION (2026-07-12): host 3306 is taken by the local MySQL
+      # service, so expose the container on 3307. Backend->DB still uses the internal
+      # docker network (host "mysql", port 3306); this mapping is only for host access.
+      - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
       
+  mailpit:
+    # TEST-TARGET ADAPTATION (2026-07-12): Mailpit (maintained successor to MailHog) — a
+    # catch-all SMTP sink so registration's verification email succeeds instead of crashing
+    # the request, and is inspectable/automatable. Web UI + REST API on 8025; SMTP on 1025.
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
   backend:
     build:
       context: .
@@ -24,6 +39,7 @@ services:
       - "5000:5000"
     depends_on:
       - mysql
+      - mailpit
     volumes:
       - ./config.json:/app/dist/config.json
       - ./.env:/app/dist/.env

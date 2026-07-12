@@ -80,8 +80,16 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
         const user_id = await registerUser(username, email, hashedPassword);
         const verificationToken = generateVerificationToken(user_id);
         await updateVerificationToken(user_id, verificationToken);
-        await sendVerificationEmail(email, verificationToken);
         await calculateAndSaveUserNetWorth(user_id);
+
+        // Email is the only external, failure-prone step: do it last and treat a send
+        // failure as non-fatal. A bad mail server should not 500 the request or leave a
+        // half-created account — the user exists and can re-request verification.
+        try {
+            await sendVerificationEmail(email, verificationToken);
+        } catch (emailError) {
+            console.error('Verification email failed to send (registration still succeeded):', emailError);
+        }
 
         insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json(null);
@@ -124,7 +132,12 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         const refreshToken = jwt.sign({ user_id: user.user_id }, config.refreshTokenSecret);
         await storeRefreshToken(refreshToken, user.user_id);
 
-        res.cookie('refreshToken', refreshToken, { httpOnly: true, path: '/api/auth/session', sameSite: 'none', secure: true });
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            path: '/api/auth/session',
+            sameSite: config.production ? 'none' : 'lax',
+            secure: config.production,
+        });
         insertHTTPRequest(req.url, 200, req.ip);
         res.status(200).json({ token: token });
     } catch (error) {

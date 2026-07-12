@@ -62,6 +62,13 @@ const fetchMarketStackIntradayData = async (ticker: string): Promise<TickerIntra
 export async function getIntradayDataForTicker(ticker: string): Promise<TickerIntraday[]> {
     let intradayData = await getLatestIntradayData(ticker);
 
+    // TEST-TARGET ADAPTATION (2026-07-12): seeded mode. With no marketStackKey, never refresh
+    // from the live API — treat the seeded DB prices as source of truth. Without this, seeded
+    // intraday data older than 1h triggers a MarketStack fetch that throws on the blank key.
+    if (!marketStackKey) {
+        return intradayData || [];
+    }
+
     if (!intradayData || !isIntradayDataRecent(intradayData)) {
         const convertedTickers = await fetchMarketStackIntradayData(ticker);
         await deleteIntradayData(ticker);

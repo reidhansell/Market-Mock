@@ -17,5 +17,16 @@ RUN npm install
 # Install global serve package
 RUN npm install -g serve
 
-# Run the production script to build the app and serve it
-CMD ["npm", "run", "production"]
+# TEST-TARGET ADAPTATION (2026-07-12): build the SPA inside the image. The original
+# prod script only ran `serve dist` — the build was dropped ("do not build front end
+# in production due to memory restrictions") for a low-memory host. A test target needs
+# a real build; give Node headroom for the Cloudscape bundle.
+ENV NODE_OPTIONS=--max-old-space-size=4096
+# Generate the themeable Cloudscape components -> client/theme/build/, which src/ imports
+# as ../theme/build/components/index. This generation step was missing from the build
+# script; without it the vite build can't resolve those imports.
+RUN node theme/buildTheme.js
+RUN npm run build
+
+# Serve the built SPA on 3000 (-s rewrites unknown routes to index.html for React Router)
+CMD ["serve", "-s", "dist", "-l", "3000"]

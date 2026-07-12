@@ -61,7 +61,7 @@ export default class Router {
             if (error.statusCode === 500) {
                 console.error(error.devMessage);
             }
-            insertHTTPRequest(req.url, 500, req.ip);
+            insertHTTPRequest(req.url, error.statusCode, req.ip);
             res.status(error.statusCode).json({ error: error.message });
             return;
         }

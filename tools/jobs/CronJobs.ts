@@ -11,7 +11,11 @@ export default class CronJobs {
     public static scheduleJobs() {
         console.log('Scheduling cron jobs...');
         this.scheduleCleanupTokens();
-        this.scheduleSyncTickers();
+        // TEST-TARGET ADAPTATION (2026-07-12): live MarketStack ticker sync disabled.
+        // A deterministic test target seeds ticker prices directly into the DB instead of
+        // pulling a live feed (which also crashed boot: a blank marketStackKey makes the
+        // immediate syncTickers() reject as an unhandled promise -> Node process exit).
+        // this.scheduleSyncTickers();
         this.scheduleCalculateNetWorth();
         this.scheduleFulfillOpenOrders();
         this.scheduleHardwareDataCollection();
