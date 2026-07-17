@@ -1,0 +1,16 @@
+# curl -i -X POST http://localhost:5000/api/order  (Authorization: Bearer <seed user token>)  -H 'Content-Type: application/json'  -d '{"ticker_symbol":"AAPL","order_type":"LIMIT","trigger_price":1,"quantity":1}'
+# 2026-07-17, Market Mock local test target, app v1.1.0. LIMIT buy, trigger 1 well below seeded AAPL price 190, so it stays open and has no Transaction row.
+
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Access-Control-Allow-Origin: http://localhost:3000
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Content-Type: application/json; charset=utf-8
+Content-Length: 139
+ETag: W/"8b-Mqq6Pb5qYj4YcDL3gyfE1qdfPRI"
+Date: Fri, 17 Jul 2026 17:53:19 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"order_id":3,"user_id":1,"ticker_symbol":"AAPL","order_type":"LIMIT","trigger_price":1,"quantity":1,"cancelled":0,"order_date":1784310799}

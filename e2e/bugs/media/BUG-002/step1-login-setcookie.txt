@@ -1,0 +1,17 @@
+# curl -i -X POST http://localhost:5000/api/auth/login -H 'Content-Type: application/json' -d '{"email":"seed@marketmock.test","password":"Test1234!"}'
+# 2026-07-16, Market Mock local test target, app v1.1.0. JWT and refresh-token values truncated for publication.
+
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Access-Control-Allow-Origin: http://localhost:3000
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Set-Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.<...truncated...>; Path=/api/auth/session; HttpOnly; SameSite=Lax
+Content-Type: application/json; charset=utf-8
+Content-Length: 227
+ETag: W/"e3-8F72SXDIQlPFyuI1yOWoUWhyyC0"
+Date: Thu, 16 Jul 2026 18:26:51 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.<...truncated...>"}

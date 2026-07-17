@@ -1,0 +1,25 @@
+# Database state before vs after the failed reset (docker exec mysql ...), 2026-07-17, app v1.1.0.
+# reset_progress returned HTTP 500 'Could not reset user data', yet the writes persisted:
+# balance overwritten to 99999 and holdings deleted. resetUserData never calls beginTransaction(),
+# so the pooled connection runs in autocommit and transaction.rollback() is a no-op.
+
+===== BEFORE reset =====
+-- User:
+user_id	starting_amount	current_balance
+1	10000.00	6000.00
+-- User_Stocks:
+ticker_symbol	quantity
+AAPL	10
+MSFT	5
+
+===== AFTER the 500 =====
+-- User (balance + starting_amount overwritten to 99999 despite the reported failure):
+user_id	starting_amount	current_balance
+1	99999.00	99999.00
+-- User_Stocks (holdings DELETED, not rolled back):
+
+-- Trade_Order (orders remain; the transaction-less LIMIT has cancelled=0):
+order_id	ticker_symbol	order_type	cancelled
+1	AAPL	MARKET	0
+2	MSFT	MARKET	0
+3	AAPL	LIMIT	0
