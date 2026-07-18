@@ -1,5 +1,8 @@
 jest.mock('axios');
 jest.mock('../../database/queries/ticker');
+jest.mock('../../config.json', () => ({
+    marketStackKey: 'fake-key-for-tests',
+}));
 
 import { getIntradayDataForTicker } from './intradayService';
 import axios from 'axios';
@@ -13,10 +16,9 @@ const mockedInsertIntradayData = insertIntradayData as jest.MockedFunction<typeo
 describe('intradayService', () => {
     const unconvertedTimestamp = Math.floor(Date.now());
     const unixTimestamp = Math.floor(unconvertedTimestamp / 1000);
-    const unconvertedTimestampOld = Math.floor(Date.now()) - (3600000 * 2);
+    const unconvertedTimestampOld = Math.floor(Date.now()) - 3600000 * 2;
     const unixTimestampOld = Math.floor(unconvertedTimestampOld / 1000);
     const dummyIntradayDataFromDB: TickerIntraday[] = [
-
         {
             open: 150.0,
             high: 155.0,
@@ -42,7 +44,6 @@ describe('intradayService', () => {
     ];
 
     const dummyIntradayDataFromMarketStack: TickerIntraday[] = [
-
         {
             open: 150.0,
             high: 155.0,
@@ -80,7 +81,9 @@ describe('intradayService', () => {
 
     it('should fetch intraday data from MarketStack when no recent data is found in the database', async () => {
         mockedGetLatestIntradayData.mockResolvedValueOnce([]);
-        mockedAxios.get.mockResolvedValueOnce({ data: { data: dummyIntradayDataFromMarketStack } });
+        mockedAxios.get.mockResolvedValueOnce({
+            data: { data: dummyIntradayDataFromMarketStack },
+        });
 
         const result = await getIntradayDataForTicker('AAPL');
         expect(result).toEqual(dummyIntradayDataFromDB);
@@ -103,7 +106,9 @@ describe('intradayService', () => {
             },
         ];
         mockedGetLatestIntradayData.mockResolvedValueOnce(oldIntradayData);
-        mockedAxios.get.mockResolvedValueOnce({ data: { data: dummyIntradayDataFromMarketStack } });
+        mockedAxios.get.mockResolvedValueOnce({
+            data: { data: dummyIntradayDataFromMarketStack },
+        });
 
         const result = await getIntradayDataForTicker('AAPL');
         expect(result).toEqual(dummyIntradayDataFromDB);

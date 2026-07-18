@@ -1,6 +1,7 @@
 name: Run Tests
 
-on: 
+on:
+  push:
   pull_request:
     branches:
       - dev
@@ -11,65 +12,67 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '18'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
 
-    - name: Cache server node_modules
-      uses: actions/cache@v2
-      with:
-        path: node_modules
-        key: server-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          server-${{ runner.os }}-
-    
-    - name: Cache client node_modules
-      uses: actions/cache@v2
-      with:
-        path: client/node_modules
-        key: client-${{ runner.os }}-${{ hashFiles('client/package-lock.json') }}
-        restore-keys: |
-          client-${{ runner.os }}-
-    - name: Install dependencies for the server
-      run: npm install
+      - name: Cache server node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: server-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            server-${{ runner.os }}-
 
-    - name: Install dependencies for the client
-      run: npm install --prefix client
+      - name: Cache client node_modules
+        uses: actions/cache@v4
+        with:
+          path: client/node_modules
+          key: client-${{ runner.os }}-${{ hashFiles('client/package-lock.json') }}
+          restore-keys: |
+            client-${{ runner.os }}-
+      - name: Install dependencies for the server
+        run: npm install
 
-    - name: Create server config.json from secrets
-      run: |
-        echo '{
-          "production": false,
-          "dbhostname": ${{ secrets.dbhostname }},
-          "dbusername": ${{ secrets.dbusername }},
-          "dbpassword": ${{ secrets.dbpassword }},
-          "dbname": ${{ secrets.dbname }},
-          "port": 5000,
-          "email": ${{ secrets.email }},
-          "emailpassword": ${{ secrets.emailpassword }},
-          "jwtSecret": ${{ secrets.jwtSecret }},
-          "refreshTokenSecret": ${{ secrets.refreshTokenSecret }},
-          "clientURL": ${{ secrets.clientURL }},
-          "marketStackKey": ${{ secrets.marketStackKey }}
-        }' > config.json
+      - name: Install dependencies for the client
+        run: npm install --prefix client
 
-    - name: Create client config.json from secrets
-      run: |
-        echo '{
-          "serverURL": ${{ secrets.serverURL }}
-        }' > client/src/config.json
+      - name: Create server config.json from secrets
+        run: |
+          echo '{
+            "production": false,
+            "dbhostname": ${{ secrets.dbhostname }},
+            "dbusername": ${{ secrets.dbusername }},
+            "dbpassword": ${{ secrets.dbpassword }},
+            "dbname": ${{ secrets.dbname }},
+            "port": 5000,
+            "email": ${{ secrets.email }},
+            "emailpassword": ${{ secrets.emailpassword }},
+            "jwtSecret": ${{ secrets.jwtSecret }},
+            "refreshTokenSecret": ${{ secrets.refreshTokenSecret }},
+            "clientURL": ${{ secrets.clientURL }},
+            "marketStackKey": ${{ secrets.marketStackKey }},
+            "mailHost": "localhost",
+            "mailPort": 1025
+          }' > config.json
 
-    - name: Run all tests
-      run: npm run test
+      - name: Create client config.json from secrets
+        run: |
+          echo '{
+            "serverURL": ${{ secrets.serverURL }}
+          }' > client/src/config.json
 
-    - name: Job succeeded
-      if: success()
-      run: echo "Tests passed successfully!"
-      
-    - name: Job failed
-      if: failure()
-      run: echo "Tests failed. Please check the logs."
+      - name: Run all tests
+        run: npm run test
+
+      - name: Job succeeded
+        if: success()
+        run: echo "Tests passed successfully!"
+
+      - name: Job failed
+        if: failure()
+        run: echo "Tests failed. Please check the logs."
