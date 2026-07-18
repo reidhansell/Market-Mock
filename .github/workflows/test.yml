@@ -55,7 +55,9 @@ jobs:
             "jwtSecret": ${{ secrets.jwtSecret }},
             "refreshTokenSecret": ${{ secrets.refreshTokenSecret }},
             "clientURL": ${{ secrets.clientURL }},
-            "marketStackKey": ${{ secrets.marketStackKey }}
+            "marketStackKey": ${{ secrets.marketStackKey }},
+            "mailHost": "localhost",
+            "mailPort": 1025
           }' > config.json
 
       - name: Create client config.json from secrets
