@@ -1,46 +1,53 @@
+[![Run Tests](https://github.com/reidhansell/Market-Mock/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/reidhansell/Market-Mock/actions/workflows/test.yml)
+
 # Market Mock
-Welcome to Market Mock! Market Mock is a free, educational paper-trading platform designed to make learning about and practicing investing a fun experience. With game-like elements such as quests and leaderboards, users can enjoy the process of exploring the investment world.
+
+Market Mock is a free, educational paper-trading platform: practice investing in a risk-free setting, with game-like quests and leaderboards to make learning the market enjoyable.
+
+Built solo by Reid Hansell in 2023 — Express/TypeScript + MySQL on the back, a React/Cloudscape SPA on the front. In 2026 the app was revived to serve as the **app-under-test for a hand-authored Playwright + API test suite** — see [`e2e/`](e2e/README.md). The app is the target; the suite is the point.
 
 ## Features
-- **Paper Trading:** Practice investing in a risk-free, educational setting.
-- **Quests:** Guide users through the game, starting simple and becoming progressively challenging.
-- **Leaderboards:** Foster a competitive and achievement-driven learning environment.
 
-## Getting Started
-To get Market Mock up and running on your local machine, follow these steps:
+- **Paper trading:** buy and sell with fake money against real market structure.
+- **Quests:** guided goals that start simple and get progressively harder.
+- **Leaderboards:** a competitive, achievement-driven learning environment.
 
-### Prerequisites
-- Install [MySQL](https://dev.mysql.com/downloads/mysql/) locally.
-- Set up a MySQL user.
+## Running it locally
 
-### Installation
-1. **Clone the Repo:** If you haven’t already, clone the repository to your local machine.
-   ```git clone https://github.com/your-username/market-mock.git```
-   
-2. **Navigate to the Project Directory:**
-```cd market-mock```
+Prereqs: Docker Desktop, Node 18+.
 
-3. **Install Dependencies:**
-```npm install```
+```
+docker compose up -d      # mysql, backend, frontend, mailpit
+bash scripts/seed.sh      # deterministic data + a verified test account
+```
 
-4. **Configure the Project:**
-Fill out the config.json file with the necessary information.
+UI at `http://localhost:3000`, API at `http://localhost:5000`, Mailpit (email capture) at `http://localhost:8025`. Seeded account: `seed@marketmock.test` / `Test1234!`. Reset with `docker compose down -v`, then re-seed.
 
-5. **Start the Development Server:**
-```npm run dev```
+Full detail — including installing and running the Playwright suite — lives in [`e2e/README.md`](e2e/README.md).
 
-Market Mock should now be running on your local development server!
+## Testing & CI
 
-### Contributing
-Contributions are welcome! For guidelines on how to contribute, please refer to the Wiki.
+- **`e2e/`** — the hand-authored test suite: Playwright + TypeScript, UI journeys behind Page Objects plus REST API tests. Start with the [risk-based test plan](e2e/TEST-PLAN.md) and the [defect reports with repro evidence](e2e/BUGS.md).
+- **CI** — [`.github/workflows/test.yml`](.github/workflows/test.yml) runs on every push and on pull requests into `dev`/`main`. It currently runs the app's Jest unit tests; wiring the Playwright suite into CI is the roadmap (see [`e2e/README.md`](e2e/README.md), "Intended scope"). The badge above tracks `main`.
 
-### License
-This project is licensed under the MIT License - see the LICENSE file for details.
+## How AI is used in this repo
 
-### Contact
-Reid Hansell - reidhansell@gmail.com
+Being explicit about authorship, because for this repo it's the point:
 
-For more information, questions, or discussions related to the project, feel free to reach out!
+| Part                                                                                          | Who / how                                                                                                                                 |
+| --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| The app — `routes/`, `tools/`, `client/`, `database/`, …                                      | Reid's own 2023 code. Recent changes to run it as a test target are AI-assisted and tagged in-code `TEST-TARGET ADAPTATION (2026-07-12)`. |
+| The tests — `e2e/tests/`, `e2e/pages/`, `e2e/fixtures/`                                       | **Reid, hand-authored, no AI.** Deliberate SDET skill-building.                                                                           |
+| Scaffolding — `e2e/` config, `scripts/seed.sh`, the READMEs (including this one), `CLAUDE.md` | AI-drafted (Claude), maintained with Reid.                                                                                                |
 
-### Additional Documentation
-For more in-depth documentation, diagrams, and guidelines, check out the Market Mock Wiki.
+## Git workflow
+
+Day-to-day work happens on `dev`; changes land in `main` via pull request, gated on the CI check going green. If `dev` falls behind `main`, it's caught up with a fast-forward merge (`git merge --ff-only main`) — never a rewrite.
+
+## License
+
+MIT — see the LICENSE file.
+
+## Contact
+
+Reid Hansell — reidhansell@gmail.com
